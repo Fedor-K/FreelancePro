@@ -128,7 +128,7 @@ export default function Dashboard() {
           iconColor="#48BB78"
           iconBgColor="#C6F6D5"
           actionLabel="Create Documents"
-          onClick={() => navigate("/documents")}
+          onClick={() => setLocation("/documents")}
         >
           <div className="mt-5 grid grid-cols-2 gap-4">
             <div className="overflow-hidden rounded-lg border border-gray-200">
