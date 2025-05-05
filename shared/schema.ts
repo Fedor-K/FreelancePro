@@ -1,6 +1,22 @@
-import { pgTable, text, serial, integer, boolean, timestamp, pgEnum, doublePrecision } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, pgEnum, doublePrecision, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// External data schema
+export const externalData = pgTable("external_data", {
+  id: serial("id").primaryKey(),
+  source: text("source").notNull(),
+  dataType: text("data_type").notNull(),
+  content: json("content").notNull(),
+  processed: boolean("processed").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertExternalDataSchema = createInsertSchema(externalData).omit({
+  id: true,
+  processed: true,
+  createdAt: true,
+});
 
 // Client schema
 export const clients = pgTable("clients", {
@@ -79,3 +95,16 @@ export type InsertResume = z.infer<typeof insertResumeSchema>;
 
 export type Document = typeof documents.$inferSelect;
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+
+export type ExternalData = typeof externalData.$inferSelect;
+export type InsertExternalData = z.infer<typeof insertExternalDataSchema>;
+
+// Define webhook payload schema
+export const webhookPayloadSchema = z.object({
+  source: z.string().min(1, "Source is required"),
+  dataType: z.string().min(1, "Data type is required"),
+  content: z.record(z.any()),
+  apiKey: z.string().min(1, "API key is required"),
+});
+
+export type WebhookPayload = z.infer<typeof webhookPayloadSchema>;

@@ -2,7 +2,8 @@ import {
   clients, type Client, type InsertClient,
   projects, type Project, type InsertProject,
   resumes, type Resume, type InsertResume,
-  documents, type Document, type InsertDocument
+  documents, type Document, type InsertDocument,
+  externalData, type ExternalData, type InsertExternalData
 } from "@shared/schema";
 
 // Interface for storage operations
@@ -34,6 +35,14 @@ export interface IStorage {
   getDocument(id: number): Promise<Document | undefined>;
   createDocument(document: InsertDocument): Promise<Document>;
   deleteDocument(id: number): Promise<boolean>;
+  
+  // External data operations
+  getExternalData(): Promise<ExternalData[]>;
+  getUnprocessedExternalData(): Promise<ExternalData[]>;
+  getExternalDataById(id: number): Promise<ExternalData | undefined>;
+  createExternalData(data: InsertExternalData): Promise<ExternalData>;
+  markExternalDataAsProcessed(id: number): Promise<boolean>;
+  deleteExternalData(id: number): Promise<boolean>;
 }
 
 // In-memory implementation of storage
@@ -42,11 +51,13 @@ export class MemStorage implements IStorage {
   private projects: Map<number, Project>;
   private resumes: Map<number, Resume>;
   private documents: Map<number, Document>;
+  private externalDataItems: Map<number, ExternalData>;
   
   private clientId: number = 1;
   private projectId: number = 1;
   private resumeId: number = 1;
   private documentId: number = 1;
+  private externalDataId: number = 1;
 
   constructor() {
     this.clients = new Map();
