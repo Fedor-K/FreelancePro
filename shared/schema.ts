@@ -102,11 +102,27 @@ export type InsertExternalData = z.infer<typeof insertExternalDataSchema>;
 // Define webhook payload schema
 export const webhookPayloadSchema = z.object({
   type: z.string().min(1, "Type is required"),
-  name: z.string().optional(),
-  email: z.string().email().optional(),
+  title: z.string().optional(),
   description: z.string().optional(),
-  source: z.string().optional(),
-  timestamp: z.string().datetime().optional(),
+  sourcePlatform: z.string().optional(),
+  sourceUrl: z.string().optional(),
+  postedAt: z.string().datetime().optional(),
+  company: z.string().optional(),
+  location: z.string().optional(),
+  isRemote: z.boolean().optional(),
+  langPairs: z.array(z.object({
+    sourceLanguage: z.string(),
+    targetLanguage: z.string()
+  })).optional(),
+  skills: z.array(z.string()).optional(),
+  specializations: z.array(z.string()).optional(),
+  jobType: z.string().optional(),
+  deadline: z.string().datetime().optional(),
+  rate: z.string().optional(),
+  contactEmail: z.string().email().optional(),
+  contactName: z.string().optional(),
+  rawContent: z.string().optional(),
+  // Keeping the generic data field for any additional fields
   data: z.record(z.any()).optional()
 });
 
