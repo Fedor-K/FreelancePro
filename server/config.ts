@@ -4,6 +4,8 @@ export const WEBHOOK_API_KEYS = {
   // Default secure API key for demonstration
   // In production, this should be stored in environment variables
   default: "freelanly-api-key-01",
+  // Added Zennodroid integration API key
+  zennodroid: "zennodroid-api-key-93847",
   // You can add additional API keys for different integrations
   // Example: "integration1": "key1",
   // Example: "integration2": "key2",
