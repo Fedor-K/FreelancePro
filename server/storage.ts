@@ -64,6 +64,7 @@ export class MemStorage implements IStorage {
     this.projects = new Map();
     this.resumes = new Map();
     this.documents = new Map();
+    this.externalDataItems = new Map();
 
     // Initialize with some sample data
     const client1: Client = { 
@@ -257,6 +258,48 @@ export class MemStorage implements IStorage {
 
   async deleteDocument(id: number): Promise<boolean> {
     return this.documents.delete(id);
+  }
+  
+  // External data methods
+  async getExternalData(): Promise<ExternalData[]> {
+    return Array.from(this.externalDataItems.values());
+  }
+
+  async getUnprocessedExternalData(): Promise<ExternalData[]> {
+    return Array.from(this.externalDataItems.values()).filter(
+      (item) => !item.processed
+    );
+  }
+
+  async getExternalDataById(id: number): Promise<ExternalData | undefined> {
+    return this.externalDataItems.get(id);
+  }
+
+  async createExternalData(data: InsertExternalData): Promise<ExternalData> {
+    const id = this.externalDataId++;
+    const newExternalData: ExternalData = {
+      ...data,
+      id,
+      processed: false,
+      createdAt: new Date()
+    };
+    this.externalDataItems.set(id, newExternalData);
+    return newExternalData;
+  }
+
+  async markExternalDataAsProcessed(id: number): Promise<boolean> {
+    const externalData = this.externalDataItems.get(id);
+    if (!externalData) {
+      return false;
+    }
+    
+    const updatedData = { ...externalData, processed: true };
+    this.externalDataItems.set(id, updatedData);
+    return true;
+  }
+
+  async deleteExternalData(id: number): Promise<boolean> {
+    return this.externalDataItems.delete(id);
   }
 }
 

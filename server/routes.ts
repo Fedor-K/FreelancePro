@@ -1,17 +1,46 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { 
   insertClientSchema, 
   insertProjectSchema,
   insertResumeSchema,
-  insertDocumentSchema
+  insertDocumentSchema,
+  insertExternalDataSchema,
+  webhookPayloadSchema
 } from "@shared/schema";
 import { z } from "zod";
 import OpenAI from "openai";
+import { isValidApiKey, getApiKeySource } from "./config";
 
 // Initialize OpenAI
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || "sk-dummy-key" });
+
+// Middleware to verify API key
+const verifyApiKey = (req: Request, res: Response, next: NextFunction) => {
+  const apiKey = req.headers['x-api-key'] as string;
+  
+  if (!apiKey) {
+    return res.status(401).json({ 
+      message: "API key is required", 
+      error: "Unauthorized", 
+      details: "Please provide your API key in the X-API-Key header" 
+    });
+  }
+  
+  if (!isValidApiKey(apiKey)) {
+    return res.status(403).json({ 
+      message: "Invalid API key", 
+      error: "Forbidden", 
+      details: "The provided API key is not valid or has been revoked" 
+    });
+  }
+  
+  // Add source to request for logging/tracking
+  (req as any).apiKeySource = getApiKeySource(apiKey);
+  
+  next();
+};
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Client routes
@@ -469,6 +498,112 @@ Date: ____________
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch stats" });
+    }
+  });
+
+  // External data webhook endpoints
+  app.post("/api/webhook/data", verifyApiKey, async (req: Request, res: Response) => {
+    try {
+      const result = webhookPayloadSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ 
+          message: "Invalid webhook payload", 
+          errors: result.error.format() 
+        });
+      }
+      
+      // Save the data
+      const externalData = await storage.createExternalData({
+        source: (req as any).apiKeySource || "unknown",
+        type: result.data.type,
+        content: JSON.stringify(result.data),
+        processed: false
+      });
+      
+      res.status(201).json({
+        message: "Data received successfully",
+        dataId: externalData.id
+      });
+    } catch (error) {
+      console.error("Error processing webhook data:", error);
+      res.status(500).json({ message: "Failed to process external data" });
+    }
+  });
+
+  // GET external data (admin access)
+  app.get("/api/external-data", async (req: Request, res: Response) => {
+    try {
+      const data = await storage.getExternalData();
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch external data" });
+    }
+  });
+
+  // GET unprocessed external data (admin access)
+  app.get("/api/external-data/unprocessed", async (req: Request, res: Response) => {
+    try {
+      const data = await storage.getUnprocessedExternalData();
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch unprocessed external data" });
+    }
+  });
+
+  // GET single external data item (admin access)
+  app.get("/api/external-data/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid external data ID" });
+      }
+      
+      const data = await storage.getExternalDataById(id);
+      if (!data) {
+        return res.status(404).json({ message: "External data not found" });
+      }
+      
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch external data" });
+    }
+  });
+
+  // Mark external data as processed (admin access)
+  app.patch("/api/external-data/:id/process", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid external data ID" });
+      }
+      
+      const success = await storage.markExternalDataAsProcessed(id);
+      if (!success) {
+        return res.status(404).json({ message: "External data not found" });
+      }
+      
+      res.json({ message: "External data marked as processed" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to process external data" });
+    }
+  });
+
+  // DELETE external data (admin access)
+  app.delete("/api/external-data/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid external data ID" });
+      }
+      
+      const success = await storage.deleteExternalData(id);
+      if (!success) {
+        return res.status(404).json({ message: "External data not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete external data" });
     }
   });
 
