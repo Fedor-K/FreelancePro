@@ -515,7 +515,7 @@ Date: ____________
       // Save the data
       const externalData = await storage.createExternalData({
         source: (req as any).apiKeySource || "unknown",
-        type: result.data.type,
+        dataType: result.data.type,
         content: JSON.stringify(result.data),
         processed: false
       });

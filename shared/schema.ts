@@ -101,10 +101,13 @@ export type InsertExternalData = z.infer<typeof insertExternalDataSchema>;
 
 // Define webhook payload schema
 export const webhookPayloadSchema = z.object({
-  source: z.string().min(1, "Source is required"),
-  dataType: z.string().min(1, "Data type is required"),
-  content: z.record(z.any()),
-  apiKey: z.string().min(1, "API key is required"),
+  type: z.string().min(1, "Type is required"),
+  name: z.string().optional(),
+  email: z.string().email().optional(),
+  description: z.string().optional(),
+  source: z.string().optional(),
+  timestamp: z.string().datetime().optional(),
+  data: z.record(z.any()).optional()
 });
 
 export type WebhookPayload = z.infer<typeof webhookPayloadSchema>;
