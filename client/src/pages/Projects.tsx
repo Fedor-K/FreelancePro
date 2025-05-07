@@ -124,21 +124,7 @@ export default function Projects() {
   };
 
   const handleEditProject = (project: Project) => {
-    // Convert null values to undefined to match form schema
-    const processedProject = {
-      ...project,
-      // Convert null boolean fields to false
-      invoiceSent: project.invoiceSent === null ? false : project.invoiceSent,
-      isPaid: project.isPaid === null ? false : project.isPaid,
-      isArchived: project.isArchived === null ? false : project.isArchived,
-      // Convert null string fields to empty strings
-      description: project.description || "",
-      sourceLang: project.sourceLang || "",
-      targetLang: project.targetLang || "",
-      // Keep numeric fields as is
-    };
-    
-    setFormProject(processedProject as Project);
+    setFormProject(project);
     setIsEditDialogOpen(true);
   };
 
@@ -379,6 +365,15 @@ export default function Projects() {
                 deadline: formProject.deadline 
                   ? new Date(formProject.deadline).toISOString().split('T')[0]
                   : "",
+                // Convert null boolean fields to false
+                invoiceSent: formProject.invoiceSent === null ? false : formProject.invoiceSent,
+                isPaid: formProject.isPaid === null ? false : formProject.isPaid,
+                isArchived: formProject.isArchived === null ? false : formProject.isArchived,
+                // Convert null string fields to empty strings
+                description: formProject.description || "",
+                sourceLang: formProject.sourceLang || "",
+                targetLang: formProject.targetLang || "",
+                // Keep numeric fields as is
               }}
               projectId={formProject.id}
               onSuccess={() => {

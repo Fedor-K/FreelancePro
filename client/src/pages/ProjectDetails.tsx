@@ -3,12 +3,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { StatusBadge, ProjectLabelBadge, LanguagePairBadge, ProjectLabel } from "@/components/ui/status-badge";
 import { useToast } from "@/hooks/use-toast";
 import { ProjectForm } from "@/components/projects/ProjectForm";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { apiRequest } from "@/lib/queryClient";
-import { format } from "date-fns";
+import { format, isPast, differenceInDays } from "date-fns";
 import { 
   ArrowLeft,
   ClipboardList, 
@@ -21,11 +21,51 @@ import {
   User,
   Building,
   Mail,
+  Phone,
+  ExternalLink,
 } from "lucide-react";
 import { Project, Client, Document } from "@shared/schema";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+
+// Get project label based on status and dates
+const getProjectLabels = (project: Project): ProjectLabel[] => {
+  const labels: ProjectLabel[] = [];
+  
+  if (project.invoiceSent) {
+    labels.push("Invoice sent");
+  }
+  
+  if (project.isPaid) {
+    labels.push("Mark as paid");
+  }
+  
+  if (project.deadline && isPast(new Date(project.deadline))) {
+    labels.push("Past");
+    
+    if (project.status !== "Delivered" && project.status !== "Completed") {
+      labels.push("Overdue");
+    }
+  }
+  
+  if (project.status === "In Progress") {
+    labels.push("To be delivered");
+  }
+  
+  if (project.deadline && !isPast(new Date(project.deadline)) && 
+      differenceInDays(new Date(project.deadline), new Date()) <= 3) {
+    labels.push("Deadline approaching");
+  }
+  
+  if (!project.invoiceSent && 
+      (project.status === "Delivered" || project.status === "Completed")) {
+    labels.push("Make invoice");
+  }
+  
+  return labels;
+};
 
 export default function ProjectDetails() {
   const [_, navigate] = useLocation();
