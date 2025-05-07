@@ -50,7 +50,9 @@ export const projects = pgTable("projects", {
   status: projectStatusEnum("status").notNull().default("New"),
 });
 
-export const insertProjectSchema = createInsertSchema(projects).omit({
+export const insertProjectSchema = createInsertSchema(projects, {
+  deadline: z.string().or(z.date()).nullable().optional().transform(val => val ? new Date(val) : null),
+}).omit({
   id: true,
 });
 

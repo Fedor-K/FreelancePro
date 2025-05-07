@@ -33,7 +33,6 @@ const formSchema = insertProjectSchema.extend({
   name: z.string().min(2, { message: "Project name must be at least 2 characters" }),
   clientId: z.coerce.number({ invalid_type_error: "Please select a client" }),
   status: z.enum(["New", "In Progress", "Paid", "Completed"]),
-  deadline: z.string().optional().nullable(),
   amount: z.coerce.number().min(0).optional().nullable(),
   description: z.string().optional().nullable(),
 });
@@ -71,23 +70,17 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     
-    // Format the data before sending to API
-    const formattedData = {
-      ...data,
-      deadline: data.deadline ? new Date(data.deadline).toISOString() : null,
-    };
-    
     try {
       if (projectId) {
         // Update existing project
-        await apiRequest("PATCH", `/api/projects/${projectId}`, formattedData);
+        await apiRequest("PATCH", `/api/projects/${projectId}`, data);
         toast({
           title: "Project updated",
           description: "Project has been updated successfully.",
         });
       } else {
         // Create new project
-        await apiRequest("POST", "/api/projects", formattedData);
+        await apiRequest("POST", "/api/projects", data);
         toast({
           title: "Project added",
           description: "New project has been added successfully.",
@@ -185,7 +178,11 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
               <FormItem>
                 <FormLabel>Deadline</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} />
+                  <Input 
+                    type="date" 
+                    {...field} 
+                    value={field.value || ""} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
