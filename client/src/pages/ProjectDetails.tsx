@@ -318,7 +318,12 @@ export default function ProjectDetails() {
             projectId={project.id}
             onSuccess={() => {
               setIsEditDialogOpen(false);
+              queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
               queryClient.invalidateQueries({ queryKey: ['/api/projects', id] });
+              toast({
+                title: "Project updated",
+                description: "Project has been updated successfully."
+              });
             }}
           />
         </DialogContent>

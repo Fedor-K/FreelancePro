@@ -72,6 +72,9 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
     setIsSubmitting(true);
     
     try {
+      console.log("Submitting project with data:", data);
+      console.log("Project ID:", projectId);
+      
       if (projectId) {
         // Update existing project
         await apiRequest("PATCH", `/api/projects/${projectId}`, data);
@@ -90,6 +93,9 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
       
       // Invalidate and refetch projects
       queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+      if (projectId) {
+        queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId] });
+      }
       
       if (onSuccess) {
         onSuccess();
@@ -100,6 +106,7 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
         form.reset();
       }
     } catch (error) {
+      console.error("Form submission error:", error);
       toast({
         title: "Error",
         description: `Failed to ${projectId ? "update" : "add"} project. Please try again.`,
