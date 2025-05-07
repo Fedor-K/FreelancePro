@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -31,7 +32,8 @@ import {
   Trash2, 
   MoreHorizontal,
   X,
-  Plus
+  Plus,
+  ExternalLink
 } from "lucide-react";
 
 export default function Projects() {
