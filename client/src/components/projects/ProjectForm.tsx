@@ -128,19 +128,31 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
       if (projectIdNum && !isNaN(projectIdNum) && projectIdNum > 0) {
         // Update existing project
         console.log(`Sending PATCH request to /api/projects/${projectIdNum}`);
-        await apiRequest("PATCH", `/api/projects/${projectIdNum}`, formattedData);
-        toast({
-          title: "Project updated",
-          description: "Project has been updated successfully.",
-        });
+        try {
+          const response = await apiRequest("PATCH", `/api/projects/${projectIdNum}`, formattedData);
+          console.log("PATCH response:", response);
+          toast({
+            title: "Project updated",
+            description: "Project has been updated successfully.",
+          });
+        } catch (error) {
+          console.error("PATCH request failed:", error);
+          throw error;
+        }
       } else {
         // Create new project
         console.log("Sending POST request to /api/projects");
-        await apiRequest("POST", "/api/projects", formattedData);
-        toast({
-          title: "Project added",
-          description: "New project has been added successfully.",
-        });
+        try {
+          const response = await apiRequest("POST", "/api/projects", formattedData);
+          console.log("POST response:", response);
+          toast({
+            title: "Project added",
+            description: "New project has been added successfully.",
+          });
+        } catch (error) {
+          console.error("POST request failed:", error);
+          throw error;
+        }
       }
       
       // Invalidate and refetch projects

@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useToast } from "@/hooks/use-toast";
 import { ProjectForm } from "@/components/projects/ProjectForm";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 import { 
@@ -31,6 +31,9 @@ export default function ProjectDetails() {
   const [_, navigate] = useLocation();
   const { projectId } = useParams();
   const id = projectId ? parseInt(projectId) : 0;
+  
+  console.log("ProjectDetails - Received projectId param:", projectId);
+  console.log("ProjectDetails - Parsed ID:", id);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -317,7 +320,8 @@ export default function ProjectDetails() {
       {project && isEditDialogOpen && (
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent className="sm:max-w-[550px]">
-            {/* No need for console log in render */}
+            <DialogTitle>Edit Project</DialogTitle>
+            <DialogDescription>Make changes to your project below.</DialogDescription>
             
             <ProjectForm 
               defaultValues={{
@@ -346,14 +350,16 @@ export default function ProjectDetails() {
       {project && isDeleteDialogOpen && (
         <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <DialogContent className="sm:max-w-[425px]">
+            <DialogTitle>Delete Project</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. Are you sure you want to permanently delete this project?
+            </DialogDescription>
             <div className="flex flex-col items-center gap-4 py-4">
               <div className="p-3 rounded-full bg-red-100">
                 <Trash2 className="h-6 w-6 text-red-600" />
               </div>
-              <h2 className="text-xl font-semibold text-center">Delete Project</h2>
-              <p className="text-center text-gray-500">
+              <p className="text-center text-gray-700">
                 Are you sure you want to delete <span className="font-semibold">{project.name}</span>? 
-                This action cannot be undone.
               </p>
               <div className="flex justify-end w-full space-x-3 pt-4">
                 <Button 
