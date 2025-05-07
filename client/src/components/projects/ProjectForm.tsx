@@ -52,6 +52,7 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
   const { toast } = useToast();
   
   console.log("ProjectForm rendered with projectId:", projectId);
+  console.log("ProjectForm defaultValues:", defaultValues);
   
   // Fetch clients for the select dropdown
   const { data: clients = [] } = useQuery<Client[]>({
@@ -69,6 +70,14 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
       amount: undefined,
     },
   });
+  
+  // Update form values when defaultValues change (for edit mode)
+  useEffect(() => {
+    if (defaultValues) {
+      console.log("Resetting form with defaultValues:", defaultValues);
+      form.reset(defaultValues);
+    }
+  }, [defaultValues, form]);
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
@@ -162,7 +171,7 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
               <FormLabel>Client</FormLabel>
               <Select
                 onValueChange={(value) => field.onChange(parseInt(value))}
-                defaultValue={field.value?.toString()}
+                value={field.value?.toString()}
               >
                 <FormControl>
                   <SelectTrigger>
