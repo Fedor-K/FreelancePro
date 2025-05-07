@@ -29,10 +29,11 @@ import { ClipboardList, Calendar, DollarSign } from "lucide-react";
 import { Client } from "@shared/schema";
 
 // Extend the schema with validation
-const formSchema = insertProjectSchema.extend({
+const formSchema = z.object({
   name: z.string().min(2, { message: "Project name must be at least 2 characters" }),
   clientId: z.coerce.number({ invalid_type_error: "Please select a client" }),
   status: z.enum(["New", "In Progress", "Paid", "Completed"]),
+  deadline: z.string().optional().nullable(),
   amount: z.coerce.number().min(0).optional().nullable(),
   description: z.string().optional().nullable(),
 });
@@ -206,6 +207,7 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
                       placeholder="0.00"
                       className="pl-7"
                       {...field}
+                      value={field.value?.toString() || ""}
                       onChange={(e) => {
                         const value = e.target.value !== "" ? parseFloat(e.target.value) : undefined;
                         field.onChange(value);

@@ -166,7 +166,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/projects", async (req: Request, res: Response) => {
     try {
-      const result = insertProjectSchema.safeParse(req.body);
+      // Process the request data
+      const data = { ...req.body };
+      
+      // Parse deadline if it's a string
+      if (typeof data.deadline === 'string' && data.deadline) {
+        try {
+          data.deadline = new Date(data.deadline);
+        } catch (e) {
+          return res.status(400).json({ 
+            message: "Invalid project data", 
+            errors: { deadline: { _errors: ["Invalid date format"] } }
+          });
+        }
+      }
+      
+      const result = insertProjectSchema.safeParse(data);
       if (!result.success) {
         return res.status(400).json({ message: "Invalid project data", errors: result.error.format() });
       }
@@ -180,6 +195,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const project = await storage.createProject(result.data);
       res.status(201).json(project);
     } catch (error) {
+      console.error("Project creation error:", error);
       res.status(500).json({ message: "Failed to create project" });
     }
   });
@@ -196,7 +212,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Project not found" });
       }
       
-      const result = insertProjectSchema.partial().safeParse(req.body);
+      // Process the request data
+      const data = { ...req.body };
+      
+      // Parse deadline if it's a string
+      if (typeof data.deadline === 'string' && data.deadline) {
+        try {
+          data.deadline = new Date(data.deadline);
+        } catch (e) {
+          return res.status(400).json({ 
+            message: "Invalid project data", 
+            errors: { deadline: { _errors: ["Invalid date format"] } }
+          });
+        }
+      }
+      
+      const result = insertProjectSchema.partial().safeParse(data);
       if (!result.success) {
         return res.status(400).json({ message: "Invalid project data", errors: result.error.format() });
       }
@@ -204,6 +235,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedProject = await storage.updateProject(id, result.data);
       res.json(updatedProject);
     } catch (error) {
+      console.error("Project update error:", error);
       res.status(500).json({ message: "Failed to update project" });
     }
   });
