@@ -35,8 +35,22 @@ export const insertClientSchema = createInsertSchema(clients).omit({
 export const projectStatusEnum = pgEnum("project_status", [
   "New",
   "In Progress",
+  "Delivered",
+  "Not started",
   "Paid",
   "Completed",
+]);
+
+// Project label enum
+export const projectLabelEnum = pgEnum("project_label", [
+  "Invoice sent",
+  "Mark as paid",
+  "Past",
+  "Archive",
+  "Make invoice",
+  "Overdue",
+  "To be delivered",
+  "Deadline approaching"
 ]);
 
 // Project schema
@@ -47,7 +61,14 @@ export const projects = pgTable("projects", {
   description: text("description"),
   deadline: timestamp("deadline"),
   amount: doublePrecision("amount"),
+  volume: integer("volume"),  // Character count
+  sourceLang: text("source_lang"),
+  targetLang: text("target_lang"),
   status: projectStatusEnum("status").notNull().default("New"),
+  labels: text("labels").array(),  // Store multiple labels
+  invoiceSent: boolean("invoice_sent").default(false),
+  isPaid: boolean("is_paid").default(false),
+  isArchived: boolean("is_archived").default(false),
 });
 
 export const insertProjectSchema = createInsertSchema(projects, {

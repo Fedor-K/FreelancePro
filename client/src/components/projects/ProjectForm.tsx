@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { insertProjectSchema } from "@shared/schema";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -32,10 +33,16 @@ import { Client } from "@shared/schema";
 const formSchema = z.object({
   name: z.string().min(2, { message: "Project name must be at least 2 characters" }),
   clientId: z.coerce.number({ invalid_type_error: "Please select a client" }),
-  status: z.enum(["New", "In Progress", "Paid", "Completed"]),
+  status: z.enum(["New", "In Progress", "Delivered", "Not started", "Paid", "Completed"]),
   deadline: z.string().optional().nullable(),
   amount: z.coerce.number().min(0).optional().nullable(),
+  volume: z.coerce.number().min(0).optional().nullable(),
+  sourceLang: z.string().optional().nullable(),
+  targetLang: z.string().optional().nullable(),
   description: z.string().optional().nullable(),
+  invoiceSent: z.boolean().optional().default(false),
+  isPaid: z.boolean().optional().default(false),
+  isArchived: z.boolean().optional().default(false),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -68,6 +75,12 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
       status: "New",
       deadline: "",
       amount: undefined,
+      volume: undefined,
+      sourceLang: "",
+      targetLang: "",
+      invoiceSent: false,
+      isPaid: false,
+      isArchived: false,
     },
   });
   
@@ -84,6 +97,12 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
         deadline: defaultValues.deadline || "",
         amount: defaultValues.amount,
         description: defaultValues.description || "",
+        volume: defaultValues.volume,
+        sourceLang: defaultValues.sourceLang || "",
+        targetLang: defaultValues.targetLang || "",
+        invoiceSent: defaultValues.invoiceSent || false,
+        isPaid: defaultValues.isPaid || false,
+        isArchived: defaultValues.isArchived || false,
       };
       
       console.log("Setting form values:", valuesToSet);
@@ -295,6 +314,134 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
           />
         </div>
         
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="volume"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Volume (chars)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="10000"
+                    {...field}
+                    value={field.value?.toString() || ""}
+                    onChange={(e) => {
+                      const value = e.target.value !== "" ? parseInt(e.target.value) : undefined;
+                      field.onChange(value);
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <div className="grid grid-cols-2 gap-2">
+            <FormField
+              control={form.control}
+              name="sourceLang"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Source Lang</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="EN"
+                      {...field}
+                      value={field.value || ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="targetLang"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Target Lang</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="DE"
+                      {...field}
+                      value={field.value || ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-3 gap-4">
+          <FormField
+            control={form.control}
+            name="invoiceSent"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>Invoice Sent</FormLabel>
+                  <FormDescription>
+                    Mark if invoice was sent
+                  </FormDescription>
+                </div>
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="isPaid"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>Is Paid</FormLabel>
+                  <FormDescription>
+                    Mark if payment received
+                  </FormDescription>
+                </div>
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="isArchived"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>Archive</FormLabel>
+                  <FormDescription>
+                    Hide from active projects
+                  </FormDescription>
+                </div>
+              </FormItem>
+            )}
+          />
+        </div>
+        
         <FormField
           control={form.control}
           name="status"
@@ -313,6 +460,8 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
                 <SelectContent>
                   <SelectItem value="New">New</SelectItem>
                   <SelectItem value="In Progress">In Progress</SelectItem>
+                  <SelectItem value="Delivered">Delivered</SelectItem>
+                  <SelectItem value="Not started">Not started</SelectItem>
                   <SelectItem value="Paid">Paid</SelectItem>
                   <SelectItem value="Completed">Completed</SelectItem>
                 </SelectContent>

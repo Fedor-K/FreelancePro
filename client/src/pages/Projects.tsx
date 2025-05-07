@@ -4,7 +4,8 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { 
+import { Checkbox } from "@/components/ui/checkbox";
+import {
   Table, 
   TableBody, 
   TableCell, 
@@ -12,7 +13,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { StatusBadge, ProjectLabelBadge, LanguagePairBadge, ProjectLabel } from "@/components/ui/status-badge";
 import { ProjectForm } from "@/components/projects/ProjectForm";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { 
@@ -24,7 +25,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Project, Client } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
-import { format } from "date-fns";
+import { format, isPast, differenceInDays } from "date-fns";
 import { 
   ClipboardList, 
   Search, 
@@ -33,7 +34,12 @@ import {
   MoreHorizontal,
   X,
   Plus,
-  ExternalLink
+  ExternalLink,
+  FileText,
+  DollarSign,
+  Archive,
+  Filter,
+  Clock
 } from "lucide-react";
 
 export default function Projects() {
@@ -46,6 +52,7 @@ export default function Projects() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
   
   const { data: projects = [], isLoading: isLoadingProjects } = useQuery<Project[]>({
     queryKey: ['/api/projects'],
@@ -57,17 +64,60 @@ export default function Projects() {
   
   const isLoading = isLoadingProjects || isLoadingClients;
 
-  // Filter projects based on search term
-  const filteredProjects = projects.filter(project => 
-    project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    project.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (getClientName(project.clientId).toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  // Filter projects based on search term and archived status
+  const filteredProjects = projects.filter(project => {
+    // Filter by archived status
+    if (!showArchived && project.isArchived) return false;
+    
+    // Filter by search term
+    return (
+      project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      project.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (getClientName(project.clientId).toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  });
 
   const getClientName = (clientId: number) => {
     const client = clients.find(c => c.id === clientId);
     return client ? client.name : "Unknown Client";
+  };
+  
+  // Get project label based on status and dates
+  const getProjectLabels = (project: Project): ProjectLabel[] => {
+    const labels: ProjectLabel[] = [];
+    
+    if (project.invoiceSent) {
+      labels.push("Invoice sent");
+    }
+    
+    if (project.isPaid) {
+      labels.push("Mark as paid");
+    }
+    
+    if (project.deadline && isPast(new Date(project.deadline))) {
+      labels.push("Past");
+      
+      if (project.status !== "Delivered" && project.status !== "Completed") {
+        labels.push("Overdue");
+      }
+    }
+    
+    if (project.status === "In Progress") {
+      labels.push("To be delivered");
+    }
+    
+    if (project.deadline && !isPast(new Date(project.deadline)) && 
+        differenceInDays(new Date(project.deadline), new Date()) <= 3) {
+      labels.push("Deadline approaching");
+    }
+    
+    if (!project.invoiceSent && 
+        (project.status === "Delivered" || project.status === "Completed")) {
+      labels.push("Make invoice");
+    }
+    
+    return labels;
   };
 
   const handleEditProject = (project: Project) => {
