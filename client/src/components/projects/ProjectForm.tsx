@@ -75,10 +75,21 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
   useEffect(() => {
     if (defaultValues) {
       console.log("Resetting form with defaultValues:", defaultValues);
-      console.log("ProjectID in useEffect:", projectId);
-      form.reset(defaultValues);
+      
+      // Make sure to set all values explicitly to avoid undefined values
+      const valuesToSet = {
+        name: defaultValues.name || "",
+        clientId: defaultValues.clientId,
+        status: defaultValues.status || "New",
+        deadline: defaultValues.deadline || "",
+        amount: defaultValues.amount,
+        description: defaultValues.description || "",
+      };
+      
+      console.log("Setting form values:", valuesToSet);
+      form.reset(valuesToSet);
     }
-  }, [defaultValues, form, projectId]);
+  }, [defaultValues, form]);
   
   // Debug log whenever projectId changes
   useEffect(() => {
@@ -148,9 +159,12 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
       }
     } catch (error) {
       console.error("Form submission error:", error);
+      // Define the projectIdNum variable for this block too
+      const errorProjectIdNum = typeof projectId === 'string' ? parseInt(projectId) : projectId;
+      
       toast({
         title: "Error",
-        description: `Failed to ${(projectIdNum && !isNaN(projectIdNum) && projectIdNum > 0) ? "update" : "add"} project. Please try again.`,
+        description: `Failed to ${(errorProjectIdNum && !isNaN(errorProjectIdNum) && errorProjectIdNum > 0) ? "update" : "add"} project. Please try again.`,
         variant: "destructive",
       });
     } finally {
@@ -166,10 +180,10 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
         </div>
         <div>
           <h3 className="text-lg font-medium leading-6 text-gray-900">
-            {projectId ? "Edit Project" : "Add New Project"}
+            {projectId && Number(projectId) > 0 ? "Edit Project" : "Add New Project"}
           </h3>
           <p className="mt-1 text-sm text-gray-500">
-            {projectId
+            {projectId && Number(projectId) > 0
               ? "Update the project details below."
               : "Fill out the project details below to add a new project to your dashboard."}
           </p>
@@ -326,7 +340,7 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
             Cancel
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Saving..." : projectId ? "Update Project" : "Add Project"}
+            {isSubmitting ? "Saving..." : projectId && Number(projectId) > 0 ? "Update Project" : "Add Project"}
           </Button>
         </div>
       </form>
