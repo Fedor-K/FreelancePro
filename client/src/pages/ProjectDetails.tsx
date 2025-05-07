@@ -306,58 +306,62 @@ export default function ProjectDetails() {
       </div>
 
       {/* Edit Project Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[550px]">
-          <ProjectForm 
-            defaultValues={{
-              ...project,
-              deadline: project.deadline 
-                ? new Date(project.deadline).toISOString().split('T')[0]
-                : "",
-            }}
-            projectId={project.id}
-            onSuccess={() => {
-              setIsEditDialogOpen(false);
-              queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
-              queryClient.invalidateQueries({ queryKey: ['/api/projects', id] });
-              toast({
-                title: "Project updated",
-                description: "Project has been updated successfully."
-              });
-            }}
-          />
-        </DialogContent>
-      </Dialog>
+      {project && isEditDialogOpen && (
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="sm:max-w-[550px]">
+            <ProjectForm 
+              defaultValues={{
+                ...project,
+                deadline: project.deadline 
+                  ? new Date(project.deadline).toISOString().split('T')[0]
+                  : "",
+              }}
+              projectId={project.id} 
+              onSuccess={() => {
+                setIsEditDialogOpen(false);
+                queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+                queryClient.invalidateQueries({ queryKey: ['/api/projects', id] });
+                toast({
+                  title: "Project updated",
+                  description: "Project has been updated successfully."
+                });
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
       
       {/* Delete Confirmation Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <div className="flex flex-col items-center gap-4 py-4">
-            <div className="p-3 rounded-full bg-red-100">
-              <Trash2 className="h-6 w-6 text-red-600" />
+      {project && isDeleteDialogOpen && (
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <div className="flex flex-col items-center gap-4 py-4">
+              <div className="p-3 rounded-full bg-red-100">
+                <Trash2 className="h-6 w-6 text-red-600" />
+              </div>
+              <h2 className="text-xl font-semibold text-center">Delete Project</h2>
+              <p className="text-center text-gray-500">
+                Are you sure you want to delete <span className="font-semibold">{project.name}</span>? 
+                This action cannot be undone.
+              </p>
+              <div className="flex justify-end w-full space-x-3 pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsDeleteDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={handleDeleteProject}
+                >
+                  Delete
+                </Button>
+              </div>
             </div>
-            <h2 className="text-xl font-semibold text-center">Delete Project</h2>
-            <p className="text-center text-gray-500">
-              Are you sure you want to delete <span className="font-semibold">{project.name}</span>? 
-              This action cannot be undone.
-            </p>
-            <div className="flex justify-end w-full space-x-3 pt-4">
-              <Button 
-                variant="outline" 
-                onClick={() => setIsDeleteDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button 
-                variant="destructive" 
-                onClick={handleDeleteProject}
-              >
-                Delete
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

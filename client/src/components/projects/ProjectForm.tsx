@@ -75,9 +75,15 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
   useEffect(() => {
     if (defaultValues) {
       console.log("Resetting form with defaultValues:", defaultValues);
+      console.log("ProjectID in useEffect:", projectId);
       form.reset(defaultValues);
     }
-  }, [defaultValues, form]);
+  }, [defaultValues, form, projectId]);
+  
+  // Debug log whenever projectId changes
+  useEffect(() => {
+    console.log("ProjectId changed:", projectId);
+  }, [projectId]);
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
@@ -100,10 +106,18 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
       
       console.log("Formatted data to send:", formattedData);
       
-      if (projectId) {
+      console.log("projectId value:", projectId);
+      console.log("projectId type:", typeof projectId);
+      console.log("projectId condition check:", !!projectId);
+      console.log("projectId conversion:", Number(projectId), Boolean(Number(projectId)));
+      
+      // Force projectId to be a number for comparison
+      const projectIdNum = typeof projectId === 'string' ? parseInt(projectId) : projectId;
+      
+      if (projectIdNum && !isNaN(projectIdNum) && projectIdNum > 0) {
         // Update existing project
-        console.log(`Sending PATCH request to /api/projects/${projectId}`);
-        await apiRequest("PATCH", `/api/projects/${projectId}`, formattedData);
+        console.log(`Sending PATCH request to /api/projects/${projectIdNum}`);
+        await apiRequest("PATCH", `/api/projects/${projectIdNum}`, formattedData);
         toast({
           title: "Project updated",
           description: "Project has been updated successfully.",
@@ -120,8 +134,8 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
       
       // Invalidate and refetch projects
       queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
-      if (projectId) {
-        queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId] });
+      if (projectIdNum && !isNaN(projectIdNum) && projectIdNum > 0) {
+        queryClient.invalidateQueries({ queryKey: ['/api/projects', projectIdNum] });
       }
       
       if (onSuccess) {
@@ -129,14 +143,14 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
       }
       
       // Reset form if creating new project
-      if (!projectId) {
+      if (!projectIdNum || isNaN(projectIdNum) || projectIdNum <= 0) {
         form.reset();
       }
     } catch (error) {
       console.error("Form submission error:", error);
       toast({
         title: "Error",
-        description: `Failed to ${projectId ? "update" : "add"} project. Please try again.`,
+        description: `Failed to ${(projectIdNum && !isNaN(projectIdNum) && projectIdNum > 0) ? "update" : "add"} project. Please try again.`,
         variant: "destructive",
       });
     } finally {
