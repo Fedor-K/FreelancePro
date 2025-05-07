@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -53,6 +53,14 @@ export default function ProjectDetails() {
   });
 
   const isLoading = isLoadingProject || isLoadingClient || isLoadingDocuments;
+  
+  // Debug logging when project changes or edit dialog opens
+  useEffect(() => {
+    if (project && isEditDialogOpen) {
+      console.log("Opening edit dialog for project:", project);
+      console.log("Project ID in dialog:", project.id, typeof project.id);
+    }
+  }, [project, isEditDialogOpen]);
 
   const handleDeleteProject = async () => {
     if (!project) return;
@@ -309,6 +317,8 @@ export default function ProjectDetails() {
       {project && isEditDialogOpen && (
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent className="sm:max-w-[550px]">
+            {/* No need for console log in render */}
+            
             <ProjectForm 
               defaultValues={{
                 ...project,
@@ -319,6 +329,7 @@ export default function ProjectDetails() {
               projectId={project.id} 
               onSuccess={() => {
                 setIsEditDialogOpen(false);
+                // Force refetch project data after updating
                 queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
                 queryClient.invalidateQueries({ queryKey: ['/api/projects', id] });
                 toast({

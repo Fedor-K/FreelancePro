@@ -202,15 +202,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/projects/:id", async (req: Request, res: Response) => {
     try {
+      console.log("PATCH request received for project with ID:", req.params.id);
+      console.log("Request body:", req.body);
+      
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
+        console.log("Invalid project ID:", req.params.id);
         return res.status(400).json({ message: "Invalid project ID" });
       }
       
       const project = await storage.getProject(id);
       if (!project) {
+        console.log("Project not found with ID:", id);
         return res.status(404).json({ message: "Project not found" });
       }
+      
+      console.log("Original project data:", project);
       
       // Process the request data
       const data = { ...req.body };
@@ -220,6 +227,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           data.deadline = new Date(data.deadline);
         } catch (e) {
+          console.log("Invalid date format:", data.deadline, e);
           return res.status(400).json({ 
             message: "Invalid project data", 
             errors: { deadline: { _errors: ["Invalid date format"] } }
@@ -229,10 +237,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const result = insertProjectSchema.partial().safeParse(data);
       if (!result.success) {
+        console.log("Validation failed:", result.error.format());
         return res.status(400).json({ message: "Invalid project data", errors: result.error.format() });
       }
       
+      console.log("Data after validation:", result.data);
+      
       const updatedProject = await storage.updateProject(id, result.data);
+      console.log("Updated project:", updatedProject);
       res.json(updatedProject);
     } catch (error) {
       console.error("Project update error:", error);
@@ -548,8 +560,8 @@ Date: ____________
       const externalData = await storage.createExternalData({
         source: (req as any).apiKeySource || "unknown",
         dataType: result.data.type,
-        content: JSON.stringify(result.data),
-        processed: false
+        content: JSON.stringify(result.data)
+        // Note: processed flag is now handled internally by the storage method
       });
       
       res.status(201).json({
