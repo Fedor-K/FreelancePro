@@ -39,14 +39,19 @@ export default function ProjectDetails() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
+  // Fetch the specific project using ID in the URL
   const { data: project, isLoading: isLoadingProject } = useQuery<Project>({
-    queryKey: ['/api/projects', id],
-    enabled: !isNaN(id),
+    queryKey: [`/api/projects/${id}`],
+    enabled: !isNaN(id) && id > 0,
   });
 
+  // Get client ID from project data
+  const clientId = project?.clientId;
+  
+  // Fetch client data
   const { data: client, isLoading: isLoadingClient } = useQuery<Client>({
-    queryKey: ['/api/clients', project?.clientId],
-    enabled: !!project?.clientId,
+    queryKey: [`/api/clients/${clientId}`],
+    enabled: !!clientId,
   });
 
   const { data: documents = [], isLoading: isLoadingDocuments } = useQuery<Document[]>({
@@ -57,13 +62,21 @@ export default function ProjectDetails() {
 
   const isLoading = isLoadingProject || isLoadingClient || isLoadingDocuments;
   
-  // Debug logging when project changes or edit dialog opens
+  // Debug logging when project or client changes
   useEffect(() => {
-    if (project && isEditDialogOpen) {
-      console.log("Opening edit dialog for project:", project);
-      console.log("Project ID in dialog:", project.id, typeof project.id);
+    if (project) {
+      console.log("Project data loaded:", project);
+      console.log("Project ID:", project.id, typeof project.id);
     }
-  }, [project, isEditDialogOpen]);
+  }, [project]);
+  
+  useEffect(() => {
+    if (client) {
+      console.log("Client data loaded:", client);
+    } else if (project?.clientId) {
+      console.log("Client data not loaded yet, client ID:", project.clientId);
+    }
+  }, [client, project]);
 
   const handleDeleteProject = async () => {
     if (!project) return;
