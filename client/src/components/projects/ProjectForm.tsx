@@ -263,7 +263,7 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
               <FormLabel>Status</FormLabel>
               <Select
                 onValueChange={field.onChange}
-                defaultValue={field.value}
+                value={field.value}
               >
                 <FormControl>
                   <SelectTrigger>
