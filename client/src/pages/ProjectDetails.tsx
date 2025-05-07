@@ -348,11 +348,20 @@ export default function ProjectDetails() {
                 setIsEditDialogOpen(false);
                 // Force refetch project data after updating
                 queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
-                queryClient.invalidateQueries({ queryKey: ['/api/projects', id] });
+                queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}`] });
+                
+                // Also invalidate client data as it might have changed
+                if (clientId) {
+                  queryClient.invalidateQueries({ queryKey: [`/api/clients/${clientId}`] });
+                }
+                
                 toast({
                   title: "Project updated",
                   description: "Project has been updated successfully."
                 });
+                
+                // Reload the page to get fresh data
+                window.location.reload();
               }}
             />
           </DialogContent>
