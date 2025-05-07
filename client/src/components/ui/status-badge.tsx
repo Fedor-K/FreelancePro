@@ -14,6 +14,7 @@ export type ProjectLabel =
 
 interface StatusBadgeProps {
   status: StatusType;
+  className?: string;
 }
 
 interface ProjectLabelBadgeProps {
@@ -25,7 +26,7 @@ interface LanguagePairBadgeProps {
   targetLang: string;
 }
 
-export function StatusBadge({ status }: StatusBadgeProps) {
+export function StatusBadge({ status, className }: StatusBadgeProps) {
   const getStatusColorClass = (status: StatusType) => {
     switch (status) {
       case "In Progress":
@@ -47,7 +48,8 @@ export function StatusBadge({ status }: StatusBadgeProps) {
       variant="outline"
       className={cn(
         "rounded-md border px-2 py-1 text-xs font-medium",
-        getStatusColorClass(status)
+        getStatusColorClass(status),
+        className
       )}
     >
       {status}

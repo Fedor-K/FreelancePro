@@ -175,7 +175,7 @@ export default function ProjectDetails() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="flex flex-col">
                   <span className="text-sm text-gray-500 flex items-center">
                     <Calendar className="h-4 w-4 mr-1 text-gray-400" />
@@ -187,6 +187,7 @@ export default function ProjectDetails() {
                       : "No deadline set"}
                   </span>
                 </div>
+                
                 <div className="flex flex-col">
                   <span className="text-sm text-gray-500 flex items-center">
                     <DollarSign className="h-4 w-4 mr-1 text-gray-400" />
@@ -201,6 +202,41 @@ export default function ProjectDetails() {
                       : "Not specified"}
                   </span>
                 </div>
+                
+                <div className="flex flex-col">
+                  <span className="text-sm text-gray-500 flex items-center">
+                    <FileText className="h-4 w-4 mr-1 text-gray-400" />
+                    Volume
+                  </span>
+                  <span className="font-medium">
+                    {project.volume 
+                      ? `${project.volume.toLocaleString()} characters`
+                      : "Not specified"}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500">Status:</span>
+                <StatusBadge status={project.status} />
+                
+                <div className="flex flex-wrap gap-1 ml-2">
+                  {getProjectLabels(project).map((label, idx) => (
+                    <ProjectLabelBadge key={idx} label={label} />
+                  ))}
+                </div>
+              </div>
+              
+              <div className="flex items-center">
+                <span className="text-sm text-gray-500 mr-2">Language pair:</span>
+                {project.sourceLang && project.targetLang ? (
+                  <LanguagePairBadge 
+                    sourceLang={project.sourceLang}
+                    targetLang={project.targetLang}
+                  />
+                ) : (
+                  <span className="text-sm text-gray-500">Not specified</span>
+                )}
               </div>
 
               <Separator className="my-4" />
@@ -342,6 +378,15 @@ export default function ProjectDetails() {
                 deadline: project.deadline 
                   ? new Date(project.deadline).toISOString().split('T')[0]
                   : "",
+                // Convert null boolean fields to false
+                invoiceSent: project.invoiceSent === null ? false : project.invoiceSent,
+                isPaid: project.isPaid === null ? false : project.isPaid,
+                isArchived: project.isArchived === null ? false : project.isArchived,
+                // Convert null string fields to empty strings
+                description: project.description || "",
+                sourceLang: project.sourceLang || "",
+                targetLang: project.targetLang || "",
+                // Keep numeric fields as is
               }}
               projectId={project.id} 
               onSuccess={() => {
