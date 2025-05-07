@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   Table, 
   TableBody, 
@@ -20,7 +22,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { Project, Client } from "@shared/schema";
@@ -121,7 +124,21 @@ export default function Projects() {
   };
 
   const handleEditProject = (project: Project) => {
-    setFormProject(project);
+    // Convert null values to undefined to match form schema
+    const processedProject = {
+      ...project,
+      // Convert null boolean fields to false
+      invoiceSent: project.invoiceSent === null ? false : project.invoiceSent,
+      isPaid: project.isPaid === null ? false : project.isPaid,
+      isArchived: project.isArchived === null ? false : project.isArchived,
+      // Convert null string fields to empty strings
+      description: project.description || "",
+      sourceLang: project.sourceLang || "",
+      targetLang: project.targetLang || "",
+      // Keep numeric fields as is
+    };
+    
+    setFormProject(processedProject as Project);
     setIsEditDialogOpen(true);
   };
 
@@ -150,36 +167,51 @@ export default function Projects() {
 
   return (
     <div className="py-6">
-      <div className="mb-6 flex justify-between items-center">
-        <div className="relative w-72">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-          <Input
-            className="pl-10"
-            placeholder="Search projects..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          {searchTerm && (
-            <button
-              onClick={() => setSearchTerm("")}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              <X size={16} />
-            </button>
-          )}
+      <div className="mb-6 space-y-4">
+        <div className="flex justify-between items-center">
+          <div className="relative w-72">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <Input
+              className="pl-10"
+              placeholder="Search projects..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={showArchived}
+                onCheckedChange={setShowArchived}
+                id="show-archived"
+              />
+              <Label htmlFor="show-archived" className="text-sm">
+                Show Archived
+              </Label>
+            </div>
+            
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  New Project
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[550px]">
+                <ProjectForm onSuccess={() => setIsAddDialogOpen(false)} />
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
-        
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              New Project
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[550px]">
-            <ProjectForm onSuccess={() => setIsAddDialogOpen(false)} />
-          </DialogContent>
-        </Dialog>
       </div>
       
       <Card>
@@ -189,8 +221,10 @@ export default function Projects() {
               <TableRow>
                 <TableHead>Project</TableHead>
                 <TableHead>Client</TableHead>
-                <TableHead>Deadline</TableHead>
+                <TableHead>Languages</TableHead>
+                <TableHead>Volume</TableHead>
                 <TableHead>Amount</TableHead>
+                <TableHead>Deadline</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="w-20 text-right">Actions</TableHead>
               </TableRow>
@@ -198,21 +232,26 @@ export default function Projects() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-10 text-gray-500">
+                  <TableCell colSpan={8} className="text-center py-10 text-gray-500">
                     Loading projects...
                   </TableCell>
                 </TableRow>
               ) : filteredProjects.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-10 text-gray-500">
+                  <TableCell colSpan={8} className="text-center py-10 text-gray-500">
                     {searchTerm 
                       ? "No projects match your search. Try a different term."
-                      : "No projects found. Add a project to get started."}
+                      : showArchived 
+                        ? "No archived projects found."
+                        : "No projects found. Add a project to get started."}
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredProjects.map((project) => (
-                  <TableRow key={project.id}>
+                  <TableRow 
+                    key={project.id} 
+                    className={project.isArchived ? "bg-gray-50" : ""}
+                  >
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-blue-100 rounded-full">
@@ -233,14 +272,27 @@ export default function Projects() {
                                 : project.description}
                             </span>
                           )}
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {getProjectLabels(project).map((label, idx) => (
+                              <ProjectLabelBadge key={idx} label={label} />
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>{getClientName(project.clientId)}</TableCell>
                     <TableCell>
-                      {project.deadline 
-                        ? format(new Date(project.deadline), 'MMM d, yyyy')
-                        : "—"}
+                      {project.sourceLang && project.targetLang ? (
+                        <LanguagePairBadge 
+                          sourceLang={project.sourceLang}
+                          targetLang={project.targetLang}
+                        />
+                      ) : "—"}
+                    </TableCell>
+                    <TableCell>
+                      {project.volume ? (
+                        <span>{project.volume.toLocaleString()} chars</span>
+                      ) : "—"}
                     </TableCell>
                     <TableCell>
                       {project.amount 
@@ -248,6 +300,11 @@ export default function Projects() {
                             style: 'currency',
                             currency: 'USD'
                           }).format(project.amount)
+                        : "—"}
+                    </TableCell>
+                    <TableCell>
+                      {project.deadline 
+                        ? format(new Date(project.deadline), 'MMM d, yyyy')
                         : "—"}
                     </TableCell>
                     <TableCell>
@@ -268,6 +325,28 @@ export default function Projects() {
                           <DropdownMenuItem onClick={() => handleEditProject(project)}>
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => {
+                              // Toggle archive status
+                              handleEditProject({
+                                ...project,
+                                isArchived: !project.isArchived
+                              });
+                            }}
+                          >
+                            {project.isArchived ? (
+                              <>
+                                <Archive className="mr-2 h-4 w-4" />
+                                Unarchive
+                              </>
+                            ) : (
+                              <>
+                                <Archive className="mr-2 h-4 w-4" />
+                                Archive
+                              </>
+                            )}
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             className="text-red-600"
