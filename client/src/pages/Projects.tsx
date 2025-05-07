@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 
 export default function Projects() {
+  const [_, navigate] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
@@ -168,7 +169,13 @@ export default function Projects() {
                           <ClipboardList className="h-4 w-4 text-primary" />
                         </div>
                         <div>
-                          <span className="font-medium block">{project.name}</span>
+                          <span 
+                            className="font-medium block cursor-pointer hover:text-primary flex items-center"
+                            onClick={() => navigate(`/projects/${project.id}`)}
+                          >
+                            {project.name}
+                            <ExternalLink className="ml-1 h-3 w-3 text-gray-400" />
+                          </span>
                           {project.description && (
                             <span className="text-xs text-gray-500">
                               {project.description.length > 40 
@@ -204,6 +211,10 @@ export default function Projects() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => navigate(`/projects/${project.id}`)}>
+                            <ExternalLink className="mr-2 h-4 w-4" />
+                            View Details
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleEditProject(project)}>
                             <Edit className="mr-2 h-4 w-4" />
                             Edit

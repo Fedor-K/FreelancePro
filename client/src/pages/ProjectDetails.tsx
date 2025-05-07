@@ -30,7 +30,7 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbS
 export default function ProjectDetails() {
   const [_, navigate] = useLocation();
   const { projectId } = useParams();
-  const id = parseInt(projectId);
+  const id = projectId ? parseInt(projectId) : 0;
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -206,7 +206,7 @@ export default function ProjectDetails() {
                           <div>
                             <span className="font-medium">{doc.type.charAt(0).toUpperCase() + doc.type.slice(1)}</span>
                             <span className="text-xs text-gray-500 ml-2">
-                              {format(new Date(doc.createdAt), 'MMM d, yyyy')}
+                              {doc.createdAt ? format(new Date(doc.createdAt), 'MMM d, yyyy') : ""}
                             </span>
                           </div>
                         </div>
