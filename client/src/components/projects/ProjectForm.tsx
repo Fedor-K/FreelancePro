@@ -51,6 +51,8 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
+  console.log("ProjectForm rendered with projectId:", projectId);
+  
   // Fetch clients for the select dropdown
   const { data: clients = [] } = useQuery<Client[]>({
     queryKey: ['/api/clients'],
@@ -75,16 +77,32 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
       console.log("Submitting project with data:", data);
       console.log("Project ID:", projectId);
       
+      // Ensure proper date formatting for the API
+      let formattedData = { ...data };
+      if (formattedData.deadline) {
+        try {
+          // Make sure the deadline is a valid date string in ISO format
+          const date = new Date(formattedData.deadline);
+          formattedData.deadline = date.toISOString();
+        } catch (error) {
+          console.error("Error formatting date:", error);
+        }
+      }
+      
+      console.log("Formatted data to send:", formattedData);
+      
       if (projectId) {
         // Update existing project
-        await apiRequest("PATCH", `/api/projects/${projectId}`, data);
+        console.log(`Sending PATCH request to /api/projects/${projectId}`);
+        await apiRequest("PATCH", `/api/projects/${projectId}`, formattedData);
         toast({
           title: "Project updated",
           description: "Project has been updated successfully.",
         });
       } else {
         // Create new project
-        await apiRequest("POST", "/api/projects", data);
+        console.log("Sending POST request to /api/projects");
+        await apiRequest("POST", "/api/projects", formattedData);
         toast({
           title: "Project added",
           description: "New project has been added successfully.",
