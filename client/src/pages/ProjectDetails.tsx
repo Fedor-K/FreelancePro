@@ -410,38 +410,18 @@ export default function ProjectDetails() {
                     Generate Document
                   </Button>
                   
-                  {/* Only show Create Invoice button when project is in Delivered status and invoice not yet sent */}
+                  {/* Only show Send Invoice button when project is in Delivered status and invoice not yet sent */}
                   {project.status === "Delivered" && !project.invoiceSent && (
                     <Button 
                       variant="default" 
                       size="sm"
                       onClick={() => {
-                        // Mark invoice as sent
-                        apiRequest("PATCH", `/api/projects/${project.id}`, {
-                          invoiceSent: true
-                        }).then(() => {
-                          // Invalidate queries to refresh data
-                          queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
-                          queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}`] });
-                          
-                          toast({
-                            title: "Invoice marked as sent",
-                            description: "The project has been updated with invoice sent status.",
-                          });
-
-                          // Navigate to generate invoice document
-                          navigate(`/documents?projectId=${project.id}&type=invoice`);
-                        }).catch(error => {
-                          toast({
-                            title: "Error",
-                            description: "Failed to update invoice status. Please try again.",
-                            variant: "destructive",
-                          });
-                        });
+                        // Navigate to generate invoice document
+                        navigate(`/documents?projectId=${project.id}&type=invoice`);
                       }}
                     >
                       <Receipt className="h-4 w-4 mr-2" />
-                      Create Invoice
+                      Send Invoice
                     </Button>
                   )}
                 </div>

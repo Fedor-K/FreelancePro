@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -25,6 +26,7 @@ import { File, FileText, Download, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Project, Document as DocumentType } from "@shared/schema";
 import { generateDocument, exportToPdf, copyToClipboard } from "@/lib/docGenerator";
+import { apiRequest } from "@/lib/queryClient";
 
 // Form schema for document generation
 const formSchema = z.object({
@@ -42,6 +44,7 @@ export function DocumentGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [document, setDocument] = useState<DocumentType | null>(null);
   const [activeTab, setActiveTab] = useState("form");
+  const [location] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
@@ -55,13 +58,67 @@ export function DocumentGenerator() {
     queryKey: ['/api/clients'],
   });
   
+  // Parse query parameters
+  const searchParams = new URLSearchParams(location.split("?")[1]);
+  const projectIdParam = searchParams.get("projectId");
+  const typeParam = searchParams.get("type") as "invoice" | "contract" | null;
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      type: "invoice",
-      projectId: "",
+      type: typeParam || "invoice",
+      projectId: projectIdParam || "",
     },
   });
+  
+  // Effect to handle invoice creation from other pages
+  useEffect(() => {
+    // If projectId and type are specified, auto-generate the document
+    if (projectIdParam && typeParam && projects.length > 0) {
+      // Auto-select the form values
+      form.setValue("projectId", projectIdParam);
+      form.setValue("type", typeParam);
+      
+      // Only auto-generate if the document hasn't been generated yet
+      if (!document && typeParam === "invoice") {
+        // Auto-submit the form
+        form.handleSubmit(async (data) => {
+          setIsGenerating(true);
+          try {
+            // First mark the project as invoice sent
+            await apiRequest("PATCH", `/api/projects/${projectIdParam}`, {
+              invoiceSent: true
+            });
+            
+            // Then generate the invoice
+            const generatedDocument = await generateDocument(
+              data.type, 
+              parseInt(data.projectId)
+            );
+            
+            setDocument(generatedDocument);
+            setActiveTab("preview");
+            
+            // Invalidate projects to refresh data
+            queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+            
+            toast({
+              title: "Invoice generated",
+              description: "Your invoice has been generated and the project marked as invoiced.",
+            });
+          } catch (error) {
+            toast({
+              title: "Error",
+              description: "Failed to generate invoice. Please try again later.",
+              variant: "destructive",
+            });
+          } finally {
+            setIsGenerating(false);
+          }
+        })();
+      }
+    }
+  }, [projectIdParam, typeParam, projects.length, document]);
 
   const getClientName = (clientId: number) => {
     const client = clients.find(c => c.id === clientId);

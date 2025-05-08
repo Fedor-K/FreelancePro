@@ -404,7 +404,7 @@ export default function Projects() {
                           </DropdownMenuContent>
                         </DropdownMenu>
                         
-                        {/* Add Create Invoice button for delivered projects without invoices */}
+                        {/* Show Send Invoice button for delivered projects without invoices */}
                         {project.status === "Delivered" && !project.invoiceSent && (
                           <Button 
                             size="sm" 
@@ -414,31 +414,12 @@ export default function Projects() {
                               e.preventDefault();
                               e.stopPropagation();
                               
-                              // Mark project as invoice sent and redirect to create invoice
-                              apiRequest("PATCH", `/api/projects/${project.id}`, {
-                                invoiceSent: true
-                              }).then(() => {
-                                // Invalidate queries to refresh data
-                                queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
-                                
-                                // Navigate to documents page with query params to create invoice
-                                navigate(`/documents?createInvoice=true&projectId=${project.id}`);
-                                
-                                toast({
-                                  title: "Invoice creation initiated",
-                                  description: "Creating invoice for project."
-                                });
-                              }).catch(error => {
-                                toast({
-                                  title: "Error",
-                                  description: "Failed to update project status. Please try again.",
-                                  variant: "destructive",
-                                });
-                              });
+                              // Navigate to documents page with query params to create invoice
+                              navigate(`/documents?projectId=${project.id}&type=invoice`);
                             }}
                           >
                             <Receipt className="h-3 w-3" />
-                            Invoice
+                            Send Invoice
                           </Button>
                         )}
                       </div>
@@ -472,31 +453,12 @@ export default function Projects() {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 
-                                // Mark project as invoice sent and redirect to create invoice
-                                apiRequest("PATCH", `/api/projects/${project.id}`, {
-                                  invoiceSent: true
-                                }).then(() => {
-                                  // Invalidate queries to refresh data
-                                  queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
-                                  
-                                  // Navigate to documents page with query params to create invoice
-                                  navigate(`/documents?createInvoice=true&projectId=${project.id}`);
-                                  
-                                  toast({
-                                    title: "Invoice creation initiated",
-                                    description: "Creating invoice for project."
-                                  });
-                                }).catch(error => {
-                                  toast({
-                                    title: "Error",
-                                    description: "Failed to update project status. Please try again.",
-                                    variant: "destructive",
-                                  });
-                                });
+                                // Navigate to documents page with query params to create invoice
+                                navigate(`/documents?projectId=${project.id}&type=invoice`);
                               }}
                             >
                               <Receipt className="mr-2 h-4 w-4" />
-                              Create Invoice
+                              Send Invoice
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuItem onClick={(e) => {
