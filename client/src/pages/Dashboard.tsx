@@ -16,7 +16,8 @@ import {
   Archive,
   Filter,
   Clock,
-  ChevronDown
+  ChevronDown,
+  Receipt
 } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { Card, CardContent } from "@/components/ui/card";
