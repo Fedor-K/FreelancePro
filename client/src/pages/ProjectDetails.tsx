@@ -295,7 +295,11 @@ export default function ProjectDetails() {
                       {["Not started", "In Progress", "Delivered", "Completed", "Paid"].map((status) => (
                         <DropdownMenuItem 
                           key={status}
-                          onClick={() => {
+                          onClick={(e) => {
+                            // Prevent event bubbling
+                            e.preventDefault();
+                            e.stopPropagation();
+                            
                             if (status !== project.status) {
                               // Update project status
                               apiRequest("PATCH", `/api/projects/${project.id}`, {

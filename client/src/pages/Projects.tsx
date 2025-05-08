@@ -314,7 +314,11 @@ export default function Projects() {
                             {["Not started", "In Progress", "Delivered", "Completed", "Paid"].map((status) => (
                               <DropdownMenuItem 
                                 key={status}
-                                onClick={() => {
+                                onClick={(e) => {
+                                  // Prevent event bubbling to parent elements
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  
                                   if (status !== project.status) {
                                     // Update project status directly via API
                                     apiRequest("PATCH", `/api/projects/${project.id}`, {
@@ -354,17 +358,28 @@ export default function Projects() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => navigate(`/projects/${project.id}`)}>
+                          <DropdownMenuItem onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            navigate(`/projects/${project.id}`);
+                          }}>
                             <ExternalLink className="mr-2 h-4 w-4" />
                             View Details
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEditProject(project)}>
+                          <DropdownMenuItem onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleEditProject(project);
+                          }}>
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              
                               // Toggle archive status directly via API
                               apiRequest("PATCH", `/api/projects/${project.id}`, {
                                 isArchived: !project.isArchived
@@ -401,7 +416,9 @@ export default function Projects() {
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             className="text-red-600"
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
                               setProjectToDelete(project);
                               setIsDeleteDialogOpen(true);
                             }}
