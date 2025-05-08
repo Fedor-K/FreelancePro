@@ -174,7 +174,7 @@ export default function Dashboard() {
   return (
     <div>
       <div className="mb-6 flex justify-between items-center">
-        <h1 className="text-2xl font-semibold text-gray-900">Projects</h1>
+        <h1 className="text-2xl font-semibold text-gray-900"></h1>
       </div>
       
       {/* Stats Overview */}
@@ -251,16 +251,6 @@ export default function Dashboard() {
           </div>
           
           <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setSearchTerm("");
-                setShowArchived(true);
-              }}
-            >
-              Show All Projects
-            </Button>
-            
             <div className="flex items-center gap-2">
               <Switch
                 checked={showArchived}
@@ -442,6 +432,17 @@ export default function Dashboard() {
                 )}
               </TableBody>
             </Table>
+          </div>
+          <div className="flex justify-center mt-4 pb-3">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setSearchTerm("");
+                setShowArchived(true);
+              }}
+            >
+              Show All Projects
+            </Button>
           </div>
         </Card>
       </div>
