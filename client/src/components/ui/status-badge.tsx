@@ -1,13 +1,16 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-type StatusType = "New" | "In Progress" | "Delivered" | "Not started" | "Paid" | "Completed";
+type StatusType = "In Progress" | "Delivered" | "Paid";
 
 export type ProjectLabel = 
   | "In Progress" 
   | "Overdue"
   | "Pending payment"
-  | "Paid";
+  | "Paid"
+  | "Invoice sent"
+  | "To be delivered"
+  | "Make invoice";
 
 interface StatusBadgeProps {
   status: StatusType;
@@ -29,10 +32,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
       case "In Progress":
         return "bg-blue-100 text-blue-700 border-blue-200";
       case "Delivered":
-      case "Completed":
         return "bg-green-100 text-green-700 border-green-200";
-      case "Not started":
-        return "bg-orange-100 text-orange-700 border-orange-200";
       case "Paid":
         return "bg-purple-100 text-purple-700 border-purple-200";
       default:
@@ -65,6 +65,12 @@ export function ProjectLabelBadge({ label }: ProjectLabelBadgeProps) {
         return "bg-red-50 text-red-600 border-red-100";
       case "Pending payment":
         return "bg-blue-50 text-blue-600 border-blue-100";
+      case "Invoice sent":
+        return "bg-indigo-50 text-indigo-600 border-indigo-100";
+      case "To be delivered":
+        return "bg-orange-50 text-orange-600 border-orange-100";
+      case "Make invoice":
+        return "bg-amber-50 text-amber-600 border-amber-100";
       default:
         return "bg-gray-50 text-gray-600 border-gray-100";
     }
