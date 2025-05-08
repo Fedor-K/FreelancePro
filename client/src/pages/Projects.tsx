@@ -38,111 +38,98 @@ import {
   X,
   Plus,
   ExternalLink,
-  FileText,
-  DollarSign,
   Archive,
   Filter,
-  Clock,
   ChevronDown
 } from "lucide-react";
 
 export default function Projects() {
-  const [_, navigate] = useLocation();
+  const [, navigate] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  
   const [searchTerm, setSearchTerm] = useState("");
-  const [formProject, setFormProject] = useState<Project | null>(null);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const [showArchived, setShowArchived] = useState(false);
   
-  const { data: projects = [], isLoading: isLoadingProjects } = useQuery<Project[]>({
+  // State for edit dialog
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [formProject, setFormProject] = useState<Project | null>(null);
+  
+  // State for delete dialog
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  
+  // Fetch projects data
+  const { data: projects = [], isLoading } = useQuery<Project[]>({
     queryKey: ['/api/projects'],
   });
   
-  const { data: clients = [], isLoading: isLoadingClients } = useQuery<Client[]>({
+  // Fetch clients data
+  const { data: clients = [] } = useQuery<Client[]>({
     queryKey: ['/api/clients'],
   });
   
-  const isLoading = isLoadingProjects || isLoadingClients;
-
-  // Filter projects based on search term and archived status
-  const filteredProjects = projects.filter(project => {
-    // Filter by archived status
-    if (!showArchived && project.isArchived) return false;
-    
-    // Filter by search term
-    return (
-      project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      project.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (getClientName(project.clientId).toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-  });
-
-  const getClientName = (clientId: number) => {
-    const client = clients.find(c => c.id === clientId);
-    return client ? client.name : "Unknown Client";
-  };
-  
-  // Get project label based on status and dates
+  // Get project labels based on status and deadline
   const getProjectLabels = (project: Project): ProjectLabel[] => {
     const labels: ProjectLabel[] = [];
     
+    // If project is paid, that's the only label that matters
+    if (project.isPaid) {
+      labels.push("Paid");
+      return labels;
+    }
+    
+    // Check invoice status
     if (project.invoiceSent) {
       labels.push("Invoice sent");
     }
     
-    if (project.isPaid || project.status === "Paid") {
-      labels.push("Paid" as ProjectLabel);
-    }
-    
-    if (project.deadline && isPast(new Date(project.deadline))) {
-      // If deadline is in the past and project isn't complete, delivered, or paid
-      if (project.status !== "Delivered" && 
-          project.status !== "Completed" && 
-          project.status !== "Paid" && 
-          !project.isPaid) {
+    // Check deadline status
+    if (project.deadline) {
+      const deadlineDate = new Date(project.deadline);
+      
+      if (isPast(deadlineDate)) {
+        // If deadline is in the past
         labels.push("Overdue");
+      } else {
+        // If deadline is approaching (less than 7 days)
+        const daysToDeadline = differenceInDays(deadlineDate, new Date());
+        if (daysToDeadline <= 7) {
+          labels.push("To be delivered");
+        }
       }
-    } else if (project.deadline && 
-               !isPast(new Date(project.deadline)) && 
-               differenceInDays(new Date(project.deadline), new Date()) <= 3 &&
-               project.status !== "Paid" && 
-               !project.isPaid) {
-      labels.push("To be delivered");
-    } else if (project.status !== "Delivered" && 
-               project.status !== "Completed" && 
-               project.status !== "Paid" && 
-               !project.isPaid) {
-      // If project is active and not yet due
-      labels.push("In Progress" as ProjectLabel);
     }
     
-    if (!project.invoiceSent && 
-        (project.status === "Delivered" || project.status === "Completed")) {
-      labels.push("Make invoice");
+    // Add in-progress label
+    if (project.status === "In Progress") {
+      labels.push("In Progress");
     }
     
     return labels;
   };
-
+  
+  const getClientName = (clientId: number) => {
+    const client = clients.find(c => c.id === clientId);
+    return client ? client.company || client.name : "Unknown Client";
+  };
+  
   const handleEditProject = (project: Project) => {
     setFormProject(project);
     setIsEditDialogOpen(true);
   };
-
+  
   const handleDeleteProject = async () => {
     if (!projectToDelete) return;
     
     try {
-      await apiRequest("DELETE", `/api/projects/${projectToDelete.id}`, undefined);
+      await apiRequest("DELETE", `/api/projects/${projectToDelete.id}`);
       
-      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+      // Close the dialog and reset state
       setIsDeleteDialogOpen(false);
       setProjectToDelete(null);
+      
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
       
       toast({
         title: "Project deleted",
@@ -156,69 +143,90 @@ export default function Projects() {
       });
     }
   };
-
+  
+  // Filter projects based on search term and archived status
+  const filteredProjects = projects.filter(project => {
+    // Filter by archived status
+    if (!showArchived && project.isArchived) return false;
+    
+    // Filter by search term
+    return (
+      project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      project.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (getClientName(project.clientId).toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  });
+  
   return (
     <div className="py-6">
-      <div className="mb-6 space-y-4">
-        <div className="flex justify-between items-center">
-          <div className="relative w-72">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-            <Input
-              className="pl-10"
-              placeholder="Search projects..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm("")}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                <X size={16} />
-              </button>
-            )}
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <Switch
-                checked={showArchived}
-                onCheckedChange={setShowArchived}
-                id="show-archived"
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-semibold text-gray-900">Projects</h1>
+        <div className="flex items-center gap-2">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                New Project
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[550px]">
+              <ProjectForm 
+                onSuccess={() => {
+                  queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+                }}
               />
-              <Label htmlFor="show-archived" className="text-sm">
-                Show Archived
-              </Label>
-            </div>
-            
-            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  New Project
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[550px]">
-                <ProjectForm onSuccess={() => setIsAddDialogOpen(false)} />
-              </DialogContent>
-            </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+      
+      <div className="my-6 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input 
+            placeholder="Search projects..." 
+            className="pl-9 pr-4" 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          {searchTerm && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7" 
+              onClick={() => setSearchTerm("")}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+        
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2">
+            <Switch 
+              id="archived" 
+              checked={showArchived}
+              onCheckedChange={setShowArchived}
+            />
+            <Label htmlFor="archived" className="text-sm">Show archived</Label>
           </div>
         </div>
       </div>
       
-      <Card>
-        <div className="rounded-md border">
+      <Card className="mt-6">
+        <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Project</TableHead>
+                <TableHead className="w-[300px]">Project</TableHead>
                 <TableHead>Client</TableHead>
-                <TableHead>Languages</TableHead>
+                <TableHead>Language</TableHead>
                 <TableHead>Volume</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Deadline</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="w-20 text-right">Actions</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -250,13 +258,14 @@ export default function Projects() {
                           <ClipboardList className="h-4 w-4 text-primary" />
                         </div>
                         <div>
-                          <span 
-                            className="font-medium block cursor-pointer hover:text-primary flex items-center"
+                          <Button 
+                            variant="link" 
+                            className="p-0 h-auto font-medium text-sm cursor-pointer hover:text-primary flex items-center"
                             onClick={() => navigate(`/projects/${project.id}`)}
                           >
                             {project.name}
                             <ExternalLink className="ml-1 h-3 w-3 text-gray-400" />
-                          </span>
+                          </Button>
                           {project.description && (
                             <span className="text-xs text-gray-500">
                               {project.description.length > 40 
@@ -300,60 +309,72 @@ export default function Projects() {
                         : "—"}
                     </TableCell>
                     <TableCell>
-                      <div className="relative inline-block">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="p-0 flex items-center">
-                              <StatusBadge status={project.status} />
-                              <ChevronDown className="ml-1 h-4 w-4 opacity-50" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent className="w-40">
-                            <div className="px-2 py-1.5 text-sm font-medium">Change Status</div>
-                            <DropdownMenuSeparator />
-                            {["Not started", "In Progress", "Delivered", "Completed", "Paid"].map((status) => (
-                              <DropdownMenuItem 
-                                key={status}
-                                onClick={(e) => {
-                                  // Prevent event bubbling to parent elements
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  
-                                  if (status !== project.status) {
-                                    // Update project status directly via API
-                                    apiRequest("PATCH", `/api/projects/${project.id}`, {
-                                      status: status
-                                    }).then(() => {
-                                      // Invalidate queries to refresh data
-                                      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
-                                      
-                                      toast({
-                                        title: "Status updated",
-                                        description: `Project status changed to ${status}`,
-                                      });
-                                    }).catch(error => {
-                                      toast({
-                                        title: "Error",
-                                        description: "Failed to update status. Please try again.",
-                                        variant: "destructive",
-                                      });
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            className="p-0 flex items-center"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                          >
+                            <StatusBadge status={project.status} />
+                            <ChevronDown className="ml-1 h-4 w-4 opacity-50" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-40">
+                          <div className="px-2 py-1.5 text-sm font-medium">Change Status</div>
+                          <DropdownMenuSeparator />
+                          {["Not started", "In Progress", "Delivered", "Completed", "Paid"].map((status) => (
+                            <DropdownMenuItem 
+                              key={status}
+                              onClick={(e) => {
+                                // Prevent event bubbling to parent elements
+                                e.preventDefault();
+                                e.stopPropagation();
+                                
+                                if (status !== project.status) {
+                                  // Update project status directly via API
+                                  apiRequest("PATCH", `/api/projects/${project.id}`, {
+                                    status: status
+                                  }).then(() => {
+                                    // Invalidate queries to refresh data
+                                    queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+                                    
+                                    toast({
+                                      title: "Status updated",
+                                      description: `Project status changed to ${status}`,
                                     });
-                                  }
-                                }}
-                                className={project.status === status ? "bg-gray-100" : ""}
-                              >
-                                <StatusBadge status={status as any} className="mr-2" />
-                                <span>{status}</span>
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
+                                  }).catch(error => {
+                                    toast({
+                                      title: "Error",
+                                      description: "Failed to update status. Please try again.",
+                                      variant: "destructive",
+                                    });
+                                  });
+                                }
+                              }}
+                              className={project.status === status ? "bg-gray-100" : ""}
+                            >
+                              <StatusBadge status={status as any} className="mr-2" />
+                              <span>{status}</span>
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                          >
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>

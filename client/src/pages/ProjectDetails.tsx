@@ -284,12 +284,19 @@ export default function ProjectDetails() {
                 <div className="relative inline-block">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="p-0 flex items-center">
+                      <Button 
+                        variant="ghost" 
+                        className="p-0 flex items-center"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                      >
                         <StatusBadge status={project.status} />
                         <ChevronDown className="ml-1 h-4 w-4 opacity-50" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-40">
+                    <DropdownMenuContent className="w-40" onClick={(e) => e.stopPropagation()}>
                       <div className="px-2 py-1.5 text-sm font-medium">Change Status</div>
                       <DropdownMenuSeparator />
                       {["Not started", "In Progress", "Delivered", "Completed", "Paid"].map((status) => (
