@@ -192,6 +192,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Client not found" });
       }
       
+      // Business logic validation
+      // Ensure invoice can't be sent for Not started projects
+      if (result.data.status === "Not started" && result.data.invoiceSent === true) {
+        return res.status(400).json({ 
+          message: "Invalid project data", 
+          errors: { invoiceSent: { _errors: ["Cannot mark invoice as sent for projects that haven't started"] } }
+        });
+      }
+      
       const project = await storage.createProject(result.data);
       res.status(201).json(project);
     } catch (error) {
@@ -242,6 +251,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log("Data after validation:", result.data);
+      
+      // Business logic validation
+      // If changing status to "Not started", ensure invoiceSent is false
+      if (result.data.status === "Not started" && project.invoiceSent) {
+        result.data.invoiceSent = false;
+        console.log("Reset invoiceSent to false for Not started project");
+      }
+      
+      // If setting invoiceSent to true, ensure the project isn't in "Not started" status
+      if (result.data.invoiceSent === true && 
+          (project.status === "Not started" || result.data.status === "Not started")) {
+        return res.status(400).json({ 
+          message: "Invalid project update", 
+          errors: { invoiceSent: { _errors: ["Cannot mark invoice as sent for projects that haven't started"] } }
+        });
+      }
       
       const updatedProject = await storage.updateProject(id, result.data);
       console.log("Updated project:", updatedProject);
@@ -437,6 +462,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const project = await storage.getProject(parseInt(projectId));
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
+      }
+      
+      // Business logic validation - can't create invoice for Not started projects
+      if (type === 'invoice' && project.status === "Not started") {
+        return res.status(400).json({ 
+          message: "Cannot create invoice", 
+          errors: { status: { _errors: ["Cannot create invoice for projects that haven't started"] } }
+        });
       }
       
       const client = await storage.getClient(project.clientId);
