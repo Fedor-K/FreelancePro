@@ -115,7 +115,7 @@ export default function Dashboard() {
       labels.push("Invoice sent");
     }
     
-    if (project.isPaid) {
+    if (project.isPaid || project.status === "Paid") {
       labels.push("Paid" as ProjectLabel);
     }
     
@@ -125,21 +125,31 @@ export default function Dashboard() {
       const today = new Date();
       
       if (isPast(deadlineDate) && !isToday(deadlineDate)) {
-        // If deadline is in the past and status isn't complete
-        if (project.status !== "Delivered" && project.status !== "Completed" && project.status !== "Paid") {
+        // If deadline is in the past and project isn't complete, delivered, or paid
+        if (project.status !== "Delivered" && 
+            project.status !== "Completed" && 
+            project.status !== "Paid" && 
+            !project.isPaid) {
           labels.push("Overdue");
         }
       } else if (isToday(deadlineDate)) {
         // If deadline is today
-        labels.push("To be delivered");
-      } else if (project.status !== "Delivered" && project.status !== "Completed" && project.status !== "Paid") {
+        if (project.status !== "Paid" && !project.isPaid) {
+          labels.push("To be delivered");
+        }
+      } else if (project.status !== "Delivered" && 
+                 project.status !== "Completed" && 
+                 project.status !== "Paid" && 
+                 !project.isPaid) {
         // If project is active and not yet due
         labels.push("In Progress" as ProjectLabel);
       }
     }
     
-    // Show "Make invoice" for delivered but not invoiced projects
+    // Show "Make invoice" for delivered/completed but not invoiced/paid projects
     if (!project.invoiceSent && 
+        !project.isPaid && 
+        project.status !== "Paid" && 
         (project.status === "Delivered" || project.status === "Completed")) {
       labels.push("Make invoice");
     }
