@@ -269,7 +269,7 @@ export default function Dashboard() {
                   New Project
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[550px]">
+              <DialogContent className="sm:max-w-[550px] max-h-[80vh] overflow-y-auto">
                 <DialogTitle>Create New Project</DialogTitle>
                 <DialogDescription>
                   Add details for your new project. Fill in all required fields.
@@ -447,7 +447,7 @@ export default function Dashboard() {
       {/* Edit Project Dialog */}
       {formProject && (
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="sm:max-w-[550px]">
+          <DialogContent className="sm:max-w-[550px] max-h-[80vh] overflow-y-auto">
             <DialogTitle>Edit Project</DialogTitle>
             <DialogDescription>
               Update the details of your project.

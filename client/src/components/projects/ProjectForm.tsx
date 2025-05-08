@@ -221,7 +221,7 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
         </div>
       </div>
       
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pb-6">
         <FormField
           control={form.control}
           name="clientId"
