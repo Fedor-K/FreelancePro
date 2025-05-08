@@ -116,7 +116,7 @@ export default function Dashboard() {
     }
     
     if (project.isPaid) {
-      labels.push("Paid");
+      labels.push("Paid" as ProjectLabel);
     }
     
     // Deadline and status labels
@@ -134,7 +134,7 @@ export default function Dashboard() {
         labels.push("To be delivered");
       } else if (project.status !== "Delivered" && project.status !== "Completed" && project.status !== "Paid") {
         // If project is active and not yet due
-        labels.push("In Progress");
+        labels.push("In Progress" as ProjectLabel);
       }
     }
     
