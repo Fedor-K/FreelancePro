@@ -12,6 +12,8 @@ import {
 import { z } from "zod";
 import OpenAI from "openai";
 import { isValidApiKey, getApiKeySource } from "./config";
+import { WebSocketServer, WebSocket } from 'ws';
+import { log } from './vite';
 
 // Initialize OpenAI
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || "sk-dummy-key" });
@@ -685,5 +687,190 @@ Date: ____________
   });
 
   const httpServer = createServer(app);
+
+  // Initialize WebSocket server
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+
+  // Store active connections and their project rooms
+  const connections = new Map();
+  const projectRooms = new Map();
+
+  wss.on('connection', (ws) => {
+    log('WebSocket connection established', 'websocket');
+    
+    // Generate a unique ID for this connection
+    const connectionId = `conn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    connections.set(connectionId, { ws, projectId: null });
+
+    ws.on('message', (message) => {
+      try {
+        const data = JSON.parse(message.toString());
+        log(`Received message: ${JSON.stringify(data)}`, 'websocket');
+
+        // Handle different message types
+        if (data.type === 'join') {
+          // Join a project room
+          const projectId = data.projectId;
+          
+          // Add to project room
+          if (!projectRooms.has(projectId)) {
+            projectRooms.set(projectId, new Set());
+          }
+          projectRooms.get(projectId).add(connectionId);
+          
+          // Update connection data
+          connections.get(connectionId).projectId = projectId;
+          
+          log(`Client ${connectionId} joined project ${projectId}`, 'websocket');
+          
+          // Send confirmation
+          ws.send(JSON.stringify({
+            type: 'joined',
+            projectId,
+            status: 'success'
+          }));
+        } 
+        else if (data.type === 'node_update' || data.type === 'edge_update' || 
+                 data.type === 'node_add' || data.type === 'edge_add' || 
+                 data.type === 'node_remove' || data.type === 'edge_remove') {
+          // Forward updates to all clients in the same project room
+          const connection = connections.get(connectionId);
+          const projectId = connection.projectId;
+          
+          if (projectId && projectRooms.has(projectId)) {
+            const roomConnections = projectRooms.get(projectId);
+            
+            // Broadcast to all other connections in the same room
+            roomConnections.forEach((connId) => {
+              if (connId !== connectionId) { // Don't send back to sender
+                const targetConn = connections.get(connId);
+                if (targetConn && targetConn.ws.readyState === WebSocket.OPEN) {
+                  targetConn.ws.send(JSON.stringify(data));
+                }
+              }
+            });
+          }
+        }
+      } catch (error) {
+        log(`Error processing WebSocket message: ${error}`, 'websocket');
+      }
+    });
+
+    ws.on('close', () => {
+      // Clean up when connection closes
+      const connection = connections.get(connectionId);
+      if (connection && connection.projectId) {
+        const projectId = connection.projectId;
+        if (projectRooms.has(projectId)) {
+          projectRooms.get(projectId).delete(connectionId);
+          
+          // Remove project room if empty
+          if (projectRooms.get(projectId).size === 0) {
+            projectRooms.delete(projectId);
+          }
+        }
+      }
+      
+      // Remove the connection
+      connections.delete(connectionId);
+      log(`WebSocket connection closed: ${connectionId}`, 'websocket');
+    });
+  });
+
+  // Add API endpoint to get mind map data for a project
+  app.get("/api/projects/:id/mindmap", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid project ID" });
+      }
+      
+      const project = await storage.getProject(id);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      // In a real implementation, this would fetch mind map data from database
+      // For this example, we'll return a default structure
+      res.json({
+        nodes: [
+          {
+            id: 'project',
+            type: 'custom',
+            data: { 
+              label: project.name,
+              description: project.description || 'Project root node'
+            },
+            position: { x: 250, y: 50 }
+          },
+          {
+            id: 'deliverables',
+            type: 'custom',
+            data: { 
+              label: 'Deliverables',
+              description: 'Project deliverables'
+            },
+            position: { x: 100, y: 200 }
+          },
+          {
+            id: 'timeline',
+            type: 'custom',
+            data: { 
+              label: 'Timeline',
+              description: `Deadline: ${project.deadline ? new Date(project.deadline).toLocaleDateString() : 'No deadline'}`
+            },
+            position: { x: 400, y: 200 }
+          }
+        ],
+        edges: [
+          {
+            id: 'e-project-deliverables',
+            source: 'project',
+            target: 'deliverables',
+            type: 'default'
+          },
+          {
+            id: 'e-project-timeline',
+            source: 'project',
+            target: 'timeline',
+            type: 'default'
+          }
+        ]
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch mind map data" });
+    }
+  });
+
+  // Save mind map data for a project
+  app.post("/api/projects/:id/mindmap", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid project ID" });
+      }
+      
+      const project = await storage.getProject(id);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      const { nodes, edges } = req.body;
+      
+      if (!Array.isArray(nodes) || !Array.isArray(edges)) {
+        return res.status(400).json({ message: "Invalid mind map data" });
+      }
+      
+      // In a real implementation, this would save to database
+      // For this example, just acknowledge receipt
+      res.json({
+        message: "Mind map saved successfully",
+        projectId: id
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to save mind map" });
+    }
+  });
+
   return httpServer;
 }
