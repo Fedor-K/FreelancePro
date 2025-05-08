@@ -436,10 +436,7 @@ export default function Dashboard() {
           <div className="flex justify-center mt-4 pb-3">
             <Button 
               variant="outline" 
-              onClick={() => {
-                setSearchTerm("");
-                setShowArchived(true);
-              }}
+              onClick={() => navigate('/projects')}
             >
               Show All Projects
             </Button>
