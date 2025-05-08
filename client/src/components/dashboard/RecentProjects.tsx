@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format, isPast, isToday } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { StatusBadge, ProjectLabelBadge, type ProjectLabel } from "@/components/ui/status-badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { FileText, Plus, ArrowRight, ChevronDown } from "lucide-react";
+import { FileText, Plus, ArrowRight, ChevronDown, Receipt } from "lucide-react";
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +22,7 @@ import { Project } from "@shared/schema";
 export function RecentProjects() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [, navigate] = useLocation();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
   const { data: projects = [], isLoading } = useQuery<Project[]>({
@@ -121,6 +122,32 @@ export function RecentProjects() {
     setIsDialogOpen(false);
     queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
   };
+  
+  const handleCreateInvoice = async (e: React.MouseEvent, projectId: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    try {
+      await apiRequest({
+        url: `/api/projects/${projectId}`,
+        method: 'PATCH',
+        data: { invoiceSent: true }
+      });
+      
+      toast({
+        title: "Invoice created",
+        description: "Invoice has been created and marked as sent"
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to create invoice",
+        variant: "destructive"
+      });
+    }
+  };
 
   if (isLoading) {
     return <div>Loading projects...</div>;
@@ -147,7 +174,7 @@ export function RecentProjects() {
         <ul className="divide-y divide-gray-200">
           {recentProjects.length > 0 ? (
             recentProjects.map((project) => (
-              <li key={project.id}>
+              <li key={project.id} className="relative">
                 <Link href={`/projects/${project.id}`} className="block hover:bg-gray-50">
                   <div className="flex items-center px-4 py-4 sm:px-6">
                     <div className="flex items-center flex-1 min-w-0">
@@ -165,6 +192,19 @@ export function RecentProjects() {
                               <ProjectLabelBadge key={idx} label={label} />
                             ))}
                           </div>
+                          
+                          {/* Only show Create Invoice button when project is in Delivered status and invoice not yet sent */}
+                          {project.status === "Delivered" && !project.invoiceSent && (
+                            <Button 
+                              variant="default" 
+                              size="sm"
+                              className="mt-2"
+                              onClick={(e) => handleCreateInvoice(e, project.id)}
+                            >
+                              <Receipt className="mr-1 h-3 w-3" />
+                              Create Invoice
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </div>
