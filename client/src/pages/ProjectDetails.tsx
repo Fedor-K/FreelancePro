@@ -24,6 +24,9 @@ import {
   Phone,
   ExternalLink,
   ChevronDown,
+  Receipt,
+  BrainCircuit,
+  Sparkles,
 } from "lucide-react";
 import { Project, Client, Document } from "@shared/schema";
 import { Separator } from "@/components/ui/separator";
@@ -37,6 +40,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { MindMapVisualization } from "@/components/projects/MindMapVisualization";
 
 // Get project label based on status and dates
 const getProjectLabels = (project: Project): ProjectLabel[] => {
@@ -97,6 +101,8 @@ export default function ProjectDetails() {
   const queryClient = useQueryClient();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [showMindMap, setShowMindMap] = useState(false);
+  const [mindMapCollaborative, setMindMapCollaborative] = useState(false);
 
   // Fetch the specific project using ID in the URL
   const { data: project, isLoading: isLoadingProject } = useQuery<Project>({
@@ -394,7 +400,7 @@ export default function ProjectDetails() {
                   </div>
                 )}
                 
-                <div className="mt-4">
+                <div className="mt-4 flex space-x-3">
                   <Button 
                     variant="outline" 
                     size="sm"
@@ -403,6 +409,89 @@ export default function ProjectDetails() {
                     <FileText className="h-4 w-4 mr-2" />
                     Generate Document
                   </Button>
+                  
+                  {/* Only show Create Invoice button when project is in Delivered status and invoice not yet sent */}
+                  {project.status === "Delivered" && !project.invoiceSent && (
+                    <Button 
+                      variant="default" 
+                      size="sm"
+                      onClick={() => {
+                        // Mark invoice as sent
+                        apiRequest("PATCH", `/api/projects/${project.id}`, {
+                          invoiceSent: true
+                        }).then(() => {
+                          // Invalidate queries to refresh data
+                          queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+                          queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}`] });
+                          
+                          toast({
+                            title: "Invoice marked as sent",
+                            description: "The project has been updated with invoice sent status.",
+                          });
+
+                          // Navigate to generate invoice document
+                          navigate(`/documents?projectId=${project.id}&type=invoice`);
+                        }).catch(error => {
+                          toast({
+                            title: "Error",
+                            description: "Failed to update invoice status. Please try again.",
+                            variant: "destructive",
+                          });
+                        });
+                      }}
+                    >
+                      <Receipt className="h-4 w-4 mr-2" />
+                      Create Invoice
+                    </Button>
+                  )}
+                </div>
+                
+                {/* Project Mind Map Section */}
+                <div className="mt-8 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-medium text-gray-500 flex items-center">
+                      <BrainCircuit className="h-4 w-4 mr-1" />
+                      Project Mind Map
+                    </h3>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => setShowMindMap(!showMindMap)}
+                      >
+                        {showMindMap ? "Hide Mind Map" : "Show Mind Map"}
+                      </Button>
+                      
+                      {showMindMap && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setMindMapCollaborative(!mindMapCollaborative)}
+                        >
+                          {mindMapCollaborative ? 
+                            <span className="flex items-center"><Sparkles className="h-3 w-3 mr-1 text-green-500" /> Collaborative</span> : 
+                            "Enable Collaboration"
+                          }
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {showMindMap && (
+                    <div className="border rounded-md mt-4">
+                      <MindMapVisualization 
+                        project={project}
+                        collaborative={mindMapCollaborative}
+                        onSave={(nodes, edges) => {
+                          toast({
+                            title: "Mind Map Saved",
+                            description: "Project mind map has been updated successfully."
+                          });
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
