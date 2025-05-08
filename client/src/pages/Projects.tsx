@@ -316,14 +316,23 @@ export default function Projects() {
                                 key={status}
                                 onClick={() => {
                                   if (status !== project.status) {
-                                    handleEditProject({
-                                      ...project,
-                                      status: status as any
-                                    });
-                                    
-                                    toast({
-                                      title: "Status updated",
-                                      description: `Project status changed to ${status}`,
+                                    // Update project status directly via API
+                                    apiRequest("PATCH", `/api/projects/${project.id}`, {
+                                      status: status
+                                    }).then(() => {
+                                      // Invalidate queries to refresh data
+                                      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+                                      
+                                      toast({
+                                        title: "Status updated",
+                                        description: `Project status changed to ${status}`,
+                                      });
+                                    }).catch(error => {
+                                      toast({
+                                        title: "Error",
+                                        description: "Failed to update status. Please try again.",
+                                        variant: "destructive",
+                                      });
                                     });
                                   }
                                 }}
