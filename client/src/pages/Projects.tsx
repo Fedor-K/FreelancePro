@@ -404,8 +404,8 @@ export default function Projects() {
                           </DropdownMenuContent>
                         </DropdownMenu>
                         
-                        {/* Show Send Invoice button for delivered projects without invoices */}
-                        {project.status === "Delivered" && !project.invoiceSent && (
+                        {/* Show Send Invoice button for delivered projects without invoices and not paid */}
+                        {project.status === "Delivered" && !project.invoiceSent && !project.isPaid && (
                           <Button 
                             size="sm" 
                             variant="outline" 
@@ -447,7 +447,7 @@ export default function Projects() {
                             <ExternalLink className="mr-2 h-4 w-4" />
                             View Details
                           </DropdownMenuItem>
-                          {project.status === "Delivered" && !project.invoiceSent && (
+                          {project.status === "Delivered" && !project.invoiceSent && !project.isPaid && (
                             <DropdownMenuItem 
                               onClick={(e) => {
                                 e.preventDefault();

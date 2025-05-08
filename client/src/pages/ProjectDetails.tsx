@@ -410,8 +410,8 @@ export default function ProjectDetails() {
                     Generate Document
                   </Button>
                   
-                  {/* Only show Send Invoice button when project is in Delivered status and invoice not yet sent */}
-                  {project.status === "Delivered" && !project.invoiceSent && (
+                  {/* Only show Send Invoice button when project is in Delivered status, not paid and invoice not yet sent */}
+                  {project.status === "Delivered" && !project.invoiceSent && !project.isPaid && (
                     <Button 
                       variant="default" 
                       size="sm"
