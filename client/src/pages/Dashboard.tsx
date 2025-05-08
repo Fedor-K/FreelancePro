@@ -149,16 +149,20 @@ export default function Dashboard() {
   const getProjectLabels = (project: Project): ProjectLabel[] => {
     const labels: ProjectLabel[] = [];
     
-    // Payment status labels
-    if (project.invoiceSent) {
-      labels.push("Invoice sent");
-    }
-    
+    // If project is paid, that's the only label that matters
     if (project.isPaid || project.status === "Paid") {
-      labels.push("Paid" as ProjectLabel);
+      labels.push("Paid");
+      return labels;
     }
     
-    // Deadline and status labels
+    // Show "Pending payment" status for delivered/completed and invoice sent
+    if (project.invoiceSent && 
+        (project.status === "Delivered" || project.status === "Completed")) {
+      labels.push("Pending payment");
+      return labels;
+    }
+    
+    // Check deadline status
     if (project.deadline) {
       const deadlineDate = new Date(project.deadline);
       const today = new Date();
@@ -170,25 +174,14 @@ export default function Dashboard() {
             project.status !== "Paid" && 
             !project.isPaid) {
           labels.push("Overdue");
+          return labels;
         }
-      } else if (isToday(deadlineDate)) {
-        // If deadline is today
-        if (project.status !== "Paid" && !project.isPaid) {
-          labels.push("To be delivered");
-        }
-      } else if (project.status === "In Progress" && 
-                 !project.isPaid) {
-        // Only show In Progress label if the status is actually In Progress
-        labels.push("In Progress" as ProjectLabel);
       }
     }
     
-    // Show "Make invoice" for delivered/completed but not invoiced/paid projects
-    if (!project.invoiceSent && 
-        !project.isPaid && 
-        project.status !== "Paid" && 
-        (project.status === "Delivered" || project.status === "Completed")) {
-      labels.push("Make invoice");
+    // If nothing else applies and status is In Progress, show that
+    if (project.status === "In Progress") {
+      labels.push("In Progress");
     }
     
     return labels;

@@ -4,12 +4,10 @@ import { cn } from "@/lib/utils";
 type StatusType = "New" | "In Progress" | "Delivered" | "Not started" | "Paid" | "Completed";
 
 export type ProjectLabel = 
-  | "Invoice sent" 
-  | "Paid" 
   | "In Progress" 
-  | "Overdue" 
-  | "To be delivered" 
-  | "Make invoice";
+  | "Overdue"
+  | "Pending payment"
+  | "Paid";
 
 interface StatusBadgeProps {
   status: StatusType;
@@ -59,17 +57,13 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
 export function ProjectLabelBadge({ label }: ProjectLabelBadgeProps) {
   const getLabelColorClass = (label: ProjectLabel) => {
     switch (label) {
-      case "Invoice sent":
-        return "bg-blue-50 text-blue-600 border-blue-100";
       case "Paid":
         return "bg-green-50 text-green-600 border-green-100";
       case "In Progress":
         return "bg-gray-50 text-gray-600 border-gray-100";
       case "Overdue":
         return "bg-red-50 text-red-600 border-red-100";
-      case "To be delivered":
-        return "bg-amber-50 text-amber-600 border-amber-100";
-      case "Make invoice":
+      case "Pending payment":
         return "bg-blue-50 text-blue-600 border-blue-100";
       default:
         return "bg-gray-50 text-gray-600 border-gray-100";

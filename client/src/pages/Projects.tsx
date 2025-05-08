@@ -74,14 +74,16 @@ export default function Projects() {
     const labels: ProjectLabel[] = [];
     
     // If project is paid, that's the only label that matters
-    if (project.isPaid) {
+    if (project.isPaid || project.status === "Paid") {
       labels.push("Paid");
       return labels;
     }
     
-    // Check invoice status
-    if (project.invoiceSent) {
-      labels.push("Invoice sent");
+    // Show "Pending payment" status for delivered/completed and invoice sent
+    if (project.invoiceSent && 
+        (project.status === "Delivered" || project.status === "Completed")) {
+      labels.push("Pending payment");
+      return labels;
     }
     
     // Check deadline status
@@ -89,18 +91,18 @@ export default function Projects() {
       const deadlineDate = new Date(project.deadline);
       
       if (isPast(deadlineDate)) {
-        // If deadline is in the past
-        labels.push("Overdue");
-      } else {
-        // If deadline is approaching (less than 7 days)
-        const daysToDeadline = differenceInDays(deadlineDate, new Date());
-        if (daysToDeadline <= 7) {
-          labels.push("To be delivered");
+        // If deadline is in the past and project isn't complete, delivered, or paid
+        if (project.status !== "Delivered" && 
+            project.status !== "Completed" && 
+            project.status !== "Paid" && 
+            !project.isPaid) {
+          labels.push("Overdue");
+          return labels;
         }
       }
     }
     
-    // Add in-progress label
+    // If nothing else applies and status is In Progress, show that
     if (project.status === "In Progress") {
       labels.push("In Progress");
     }
