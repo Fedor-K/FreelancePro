@@ -57,9 +57,8 @@ const getProjectLabels = (project: Project): ProjectLabel[] => {
     const today = new Date();
     
     if (isPast(deadlineDate) && !isToday(deadlineDate)) {
-      // If deadline is in the past and project isn't complete, delivered, or paid
+      // If deadline is in the past and project isn't delivered or paid
       if (project.status !== "Delivered" && 
-          project.status !== "Completed" && 
           project.status !== "Paid" && 
           !project.isPaid) {
         labels.push("Overdue");
@@ -76,11 +75,11 @@ const getProjectLabels = (project: Project): ProjectLabel[] => {
     }
   }
   
-  // Show "Make invoice" for delivered/completed but not invoiced/paid projects
+  // Show "Make invoice" for delivered but not invoiced/paid projects
   if (!project.invoiceSent && 
       !project.isPaid && 
       project.status !== "Paid" && 
-      (project.status === "Delivered" || project.status === "Completed")) {
+      project.status === "Delivered") {
     labels.push("Make invoice");
   }
   

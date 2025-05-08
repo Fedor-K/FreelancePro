@@ -151,8 +151,8 @@ export default function Projects() {
       return Number.MAX_SAFE_INTEGER;
     }
     
-    // Completed projects have second lowest priority
-    if (project.status === "Completed") {
+    // Delivered projects have second lowest priority
+    if (project.status === "Delivered") {
       return Number.MAX_SAFE_INTEGER - 1;
     }
     
