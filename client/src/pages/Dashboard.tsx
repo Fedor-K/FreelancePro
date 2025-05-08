@@ -1,18 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { 
   Users, 
   ClipboardList, 
   DollarSign, 
   FileText,
-  Wand2, 
-  File 
+  ArrowRight
 } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { RecentProjects } from "@/components/dashboard/RecentProjects";
-import { ClientList } from "@/components/dashboard/ClientList";
-import { FeatureCard } from "@/components/dashboard/FeatureCard";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface DashboardStats {
@@ -38,6 +36,13 @@ export default function Dashboard() {
 
   return (
     <div>
+      <div className="mb-6 flex justify-between items-center">
+        <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
+        <Button onClick={() => setLocation("/projects/new")}>
+          New Project
+        </Button>
+      </div>
+      
       {/* Stats Overview */}
       <div className="grid grid-cols-1 gap-5 mt-6 sm:grid-cols-2 lg:grid-cols-4">
         {isLoading ? (
@@ -92,69 +97,19 @@ export default function Dashboard() {
 
       {/* Recent Projects */}
       <RecentProjects />
-
-      {/* Featured Sections */}
-      <div className="grid grid-cols-1 gap-6 mt-8 lg:grid-cols-2">
-        {/* Resume Generator */}
-        <FeatureCard
-          title="Resume Generator"
-          description="Create professional resumes tailored for your freelance specialty. AI-powered to highlight your best skills."
-          icon={Wand2}
-          iconColor="#805AD5"
-          iconBgColor="#E9D8FD"
-          actionLabel="Generate Resume"
-          onClick={() => setLocation("/resume")}
+      
+      {/* View All Projects */}
+      <div className="mt-8 text-center">
+        <Button 
+          variant="outline" 
+          size="lg"
+          onClick={() => setLocation("/projects")}
+          className="w-full sm:w-auto"
         >
-          <div className="overflow-hidden rounded-lg bg-gray-50">
-            <img 
-              src="https://images.unsplash.com/photo-1586281380349-632531db7ed4?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" 
-              alt="Resume example" 
-              className="object-cover w-full h-40"
-            />
-            <div className="p-4">
-              <h4 className="font-medium text-gray-900">Create a new resume</h4>
-              <p className="mt-1 text-sm text-gray-500">
-                Choose from multiple templates or let AI suggest the best format for your experience.
-              </p>
-            </div>
-          </div>
-        </FeatureCard>
-
-        {/* Document Templates */}
-        <FeatureCard
-          title="Document Templates"
-          description="Generate professional invoices and contracts based on your client and project data."
-          icon={File}
-          iconColor="#48BB78"
-          iconBgColor="#C6F6D5"
-          actionLabel="Create Documents"
-          onClick={() => setLocation("/documents")}
-        >
-          <div className="mt-5 grid grid-cols-2 gap-4">
-            <div className="overflow-hidden rounded-lg border border-gray-200">
-              <div className="p-4">
-                <div className="flex items-center">
-                  <File className="h-5 w-5 text-secondary mr-2" />
-                  <h4 className="font-medium text-gray-900">Invoice Templates</h4>
-                </div>
-                <p className="mt-1 text-sm text-gray-500">Professional invoices with your branding.</p>
-              </div>
-            </div>
-            <div className="overflow-hidden rounded-lg border border-gray-200">
-              <div className="p-4">
-                <div className="flex items-center">
-                  <FileText className="h-5 w-5 text-primary mr-2" />
-                  <h4 className="font-medium text-gray-900">Contract Templates</h4>
-                </div>
-                <p className="mt-1 text-sm text-gray-500">Legally sound contracts for your projects.</p>
-              </div>
-            </div>
-          </div>
-        </FeatureCard>
+          View All Projects
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
       </div>
-
-      {/* Client List */}
-      <ClientList />
     </div>
   );
 }
