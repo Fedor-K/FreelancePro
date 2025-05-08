@@ -89,8 +89,8 @@ export default function Dashboard() {
       return Number.MAX_SAFE_INTEGER;
     }
     
-    // Completed projects have second lowest priority
-    if (project.status === "Completed") {
+    // Delivered projects have second lowest priority
+    if (project.status === "Delivered") {
       return Number.MAX_SAFE_INTEGER - 1;
     }
     
@@ -155,9 +155,8 @@ export default function Dashboard() {
       return labels;
     }
     
-    // Show "Pending payment" status for delivered/completed and invoice sent
-    if (project.invoiceSent && 
-        (project.status === "Delivered" || project.status === "Completed")) {
+    // Show "Pending payment" status for delivered and invoice sent
+    if (project.invoiceSent && project.status === "Delivered") {
       labels.push("Pending payment");
       return labels;
     }
@@ -168,9 +167,8 @@ export default function Dashboard() {
       const today = new Date();
       
       if (isPast(deadlineDate) && !isToday(deadlineDate)) {
-        // If deadline is in the past and project isn't complete, delivered, or paid
+        // If deadline is in the past and project isn't delivered or paid
         if (project.status !== "Delivered" && 
-            project.status !== "Completed" && 
             project.status !== "Paid" && 
             !project.isPaid) {
           labels.push("Overdue");

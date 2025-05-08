@@ -79,9 +79,8 @@ export default function Projects() {
       return labels;
     }
     
-    // Show "Pending payment" status for delivered/completed and invoice sent
-    if (project.invoiceSent && 
-        (project.status === "Delivered" || project.status === "Completed")) {
+    // Show "Pending payment" status for delivered and invoice sent
+    if (project.invoiceSent && project.status === "Delivered") {
       labels.push("Pending payment");
       return labels;
     }
@@ -91,9 +90,8 @@ export default function Projects() {
       const deadlineDate = new Date(project.deadline);
       
       if (isPast(deadlineDate)) {
-        // If deadline is in the past and project isn't complete, delivered, or paid
+        // If deadline is in the past and project isn't delivered or paid
         if (project.status !== "Delivered" && 
-            project.status !== "Completed" && 
             project.status !== "Paid" && 
             !project.isPaid) {
           labels.push("Overdue");

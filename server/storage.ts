@@ -176,6 +176,7 @@ export class MemStorage implements IStorage {
       sourceLang: "English",
       targetLang: "German",
       status: "In Progress",
+      labels: ["In Progress", "Overdue"],
       invoiceSent: false,
       isPaid: false,
       isArchived: false
