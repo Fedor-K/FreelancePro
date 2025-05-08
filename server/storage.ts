@@ -107,6 +107,7 @@ export class MemStorage implements IStorage {
       sourceLang: "English",
       targetLang: "German",
       status: "In Progress",
+      labels: ["In Progress"],
       invoiceSent: false,
       isPaid: false,
       isArchived: false
@@ -122,7 +123,8 @@ export class MemStorage implements IStorage {
       volume: 8000,
       sourceLang: "English",
       targetLang: "Spanish",
-      status: "Not started",
+      status: "In Progress",
+      labels: ["In Progress"],
       invoiceSent: false,
       isPaid: false,
       isArchived: false
@@ -138,7 +140,8 @@ export class MemStorage implements IStorage {
       volume: 5000,
       sourceLang: "French",
       targetLang: "English",
-      status: "Completed",
+      status: "Delivered",
+      labels: ["Delivered", "Pending payment"],
       invoiceSent: true,
       isPaid: false,
       isArchived: false
@@ -155,6 +158,7 @@ export class MemStorage implements IStorage {
       sourceLang: "Spanish",
       targetLang: "English",
       status: "Paid",
+      labels: ["Paid"],
       invoiceSent: true,
       isPaid: true,
       isArchived: false

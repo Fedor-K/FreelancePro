@@ -33,12 +33,9 @@ export const insertClientSchema = createInsertSchema(clients).omit({
 
 // Project status enum
 export const projectStatusEnum = pgEnum("project_status", [
-  "New",
   "In Progress",
   "Delivered",
-  "Not started",
   "Paid",
-  "Completed",
 ]);
 
 // Project label enum
@@ -64,7 +61,7 @@ export const projects = pgTable("projects", {
   volume: integer("volume"),  // Character count
   sourceLang: text("source_lang"),
   targetLang: text("target_lang"),
-  status: projectStatusEnum("status").notNull().default("New"),
+  status: projectStatusEnum("status").notNull().default("In Progress"),
   labels: text("labels").array(),  // Store multiple labels
   invoiceSent: boolean("invoice_sent").default(false),
   isPaid: boolean("is_paid").default(false),
