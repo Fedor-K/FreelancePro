@@ -72,7 +72,7 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
       name: "",
       clientId: undefined,
       description: "",
-      status: "New",
+      status: "In Progress",
       deadline: "",
       amount: undefined,
       volume: undefined,
@@ -93,7 +93,7 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
       const valuesToSet = {
         name: defaultValues.name || "",
         clientId: defaultValues.clientId,
-        status: defaultValues.status || "New",
+        status: defaultValues.status || "In Progress",
         deadline: defaultValues.deadline || "",
         amount: defaultValues.amount,
         description: defaultValues.description || "",
@@ -461,12 +461,9 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="New">New</SelectItem>
                   <SelectItem value="In Progress">In Progress</SelectItem>
                   <SelectItem value="Delivered">Delivered</SelectItem>
-                  <SelectItem value="Not started">Not started</SelectItem>
                   <SelectItem value="Paid">Paid</SelectItem>
-                  <SelectItem value="Completed">Completed</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />

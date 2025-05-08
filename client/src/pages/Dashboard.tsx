@@ -436,7 +436,7 @@ export default function Dashboard() {
                             <DropdownMenuContent className="w-40" onClick={(e) => e.stopPropagation()}>
                               <div className="px-2 py-1.5 text-sm font-medium">Change Status</div>
                               <DropdownMenuSeparator />
-                              {["Not started", "In Progress", "Delivered", "Completed", "Paid"].map((status) => (
+                              {["In Progress", "Delivered", "Paid"].map((status) => (
                                 <DropdownMenuItem 
                                   key={status}
                                   onClick={(e) => {
