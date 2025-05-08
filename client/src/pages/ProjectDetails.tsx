@@ -280,7 +280,53 @@ export default function ProjectDetails() {
               
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-500">Status:</span>
-                <StatusBadge status={project.status} />
+                
+                <div className="relative inline-block">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="p-0 flex items-center">
+                        <StatusBadge status={project.status} />
+                        <ChevronDown className="ml-1 h-4 w-4 opacity-50" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-40">
+                      <div className="px-2 py-1.5 text-sm font-medium">Change Status</div>
+                      <DropdownMenuSeparator />
+                      {["Not started", "In Progress", "Delivered", "Completed", "Paid"].map((status) => (
+                        <DropdownMenuItem 
+                          key={status}
+                          onClick={() => {
+                            if (status !== project.status) {
+                              // Update project status
+                              apiRequest("PATCH", `/api/projects/${project.id}`, {
+                                status: status
+                              }).then(() => {
+                                // Invalidate queries to refresh data
+                                queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+                                queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}`] });
+                                
+                                toast({
+                                  title: "Status updated",
+                                  description: `Project status changed to ${status}`,
+                                });
+                              }).catch(error => {
+                                toast({
+                                  title: "Error",
+                                  description: "Failed to update status. Please try again.",
+                                  variant: "destructive",
+                                });
+                              });
+                            }
+                          }}
+                          className={project.status === status ? "bg-gray-100" : ""}
+                        >
+                          <StatusBadge status={status as any} className="mr-2" />
+                          <span>{status}</span>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
                 
                 <div className="flex flex-wrap gap-1 ml-2">
                   {getProjectLabels(project).map((label, idx) => (
