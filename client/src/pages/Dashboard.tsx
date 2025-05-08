@@ -45,7 +45,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Project, Client } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
-import { format, isPast, differenceInDays } from "date-fns";
+import { format, isPast, isToday, differenceInDays, isEqual } from "date-fns";
 
 interface DashboardStats {
   activeClients: number;
@@ -110,31 +110,35 @@ export default function Dashboard() {
   const getProjectLabels = (project: Project): ProjectLabel[] => {
     const labels: ProjectLabel[] = [];
     
+    // Payment status labels
     if (project.invoiceSent) {
       labels.push("Invoice sent");
     }
     
     if (project.isPaid) {
-      labels.push("Mark as paid");
+      labels.push("Paid");
     }
     
-    if (project.deadline && isPast(new Date(project.deadline))) {
-      labels.push("Past");
+    // Deadline and status labels
+    if (project.deadline) {
+      const deadlineDate = new Date(project.deadline);
+      const today = new Date();
       
-      if (project.status !== "Delivered" && project.status !== "Completed") {
-        labels.push("Overdue");
+      if (isPast(deadlineDate) && !isToday(deadlineDate)) {
+        // If deadline is in the past and status isn't complete
+        if (project.status !== "Delivered" && project.status !== "Completed" && project.status !== "Paid") {
+          labels.push("Overdue");
+        }
+      } else if (isToday(deadlineDate)) {
+        // If deadline is today
+        labels.push("To be delivered");
+      } else if (project.status !== "Delivered" && project.status !== "Completed" && project.status !== "Paid") {
+        // If project is active and not yet due
+        labels.push("In Progress");
       }
     }
     
-    if (project.status === "In Progress") {
-      labels.push("To be delivered");
-    }
-    
-    if (project.deadline && !isPast(new Date(project.deadline)) && 
-        differenceInDays(new Date(project.deadline), new Date()) <= 3) {
-      labels.push("Deadline approaching");
-    }
-    
+    // Show "Make invoice" for delivered but not invoiced projects
     if (!project.invoiceSent && 
         (project.status === "Delivered" || project.status === "Completed")) {
       labels.push("Make invoice");

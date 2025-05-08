@@ -5,11 +5,10 @@ type StatusType = "New" | "In Progress" | "Delivered" | "Not started" | "Paid" |
 
 export type ProjectLabel = 
   | "Invoice sent" 
-  | "Mark as paid" 
-  | "Past" 
+  | "Paid" 
+  | "In Progress" 
   | "Overdue" 
   | "To be delivered" 
-  | "Deadline approaching" 
   | "Make invoice";
 
 interface StatusBadgeProps {
