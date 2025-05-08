@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ProjectForm } from "@/components/projects/ProjectForm";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { apiRequest } from "@/lib/queryClient";
-import { format, isPast, differenceInDays } from "date-fns";
+import { format, isPast, differenceInDays, isToday } from "date-fns";
 import { 
   ArrowLeft,
   ClipboardList, 
@@ -23,43 +23,65 @@ import {
   Mail,
   Phone,
   ExternalLink,
+  ChevronDown,
 } from "lucide-react";
 import { Project, Client, Document } from "@shared/schema";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 // Get project label based on status and dates
 const getProjectLabels = (project: Project): ProjectLabel[] => {
   const labels: ProjectLabel[] = [];
   
+  // Payment status labels
   if (project.invoiceSent) {
     labels.push("Invoice sent");
   }
   
-  if (project.isPaid) {
-    labels.push("Mark as paid");
+  if (project.isPaid || project.status === "Paid") {
+    labels.push("Paid" as ProjectLabel);
   }
   
-  if (project.deadline && isPast(new Date(project.deadline))) {
-    labels.push("Past");
+  // Deadline and status labels
+  if (project.deadline) {
+    const deadlineDate = new Date(project.deadline);
+    const today = new Date();
     
-    if (project.status !== "Delivered" && project.status !== "Completed") {
-      labels.push("Overdue");
+    if (isPast(deadlineDate) && !isToday(deadlineDate)) {
+      // If deadline is in the past and project isn't complete, delivered, or paid
+      if (project.status !== "Delivered" && 
+          project.status !== "Completed" && 
+          project.status !== "Paid" && 
+          !project.isPaid) {
+        labels.push("Overdue");
+      }
+    } else if (isToday(deadlineDate)) {
+      // If deadline is today
+      if (project.status !== "Paid" && !project.isPaid) {
+        labels.push("To be delivered");
+      }
+    } else if (project.status !== "Delivered" && 
+               project.status !== "Completed" && 
+               project.status !== "Paid" && 
+               !project.isPaid) {
+      // If project is active and not yet due
+      labels.push("In Progress" as ProjectLabel);
     }
   }
   
-  if (project.status === "In Progress") {
-    labels.push("To be delivered");
-  }
-  
-  if (project.deadline && !isPast(new Date(project.deadline)) && 
-      differenceInDays(new Date(project.deadline), new Date()) <= 3) {
-    labels.push("Deadline approaching");
-  }
-  
+  // Show "Make invoice" for delivered/completed but not invoiced/paid projects
   if (!project.invoiceSent && 
+      !project.isPaid && 
+      project.status !== "Paid" && 
       (project.status === "Delivered" || project.status === "Completed")) {
     labels.push("Make invoice");
   }
