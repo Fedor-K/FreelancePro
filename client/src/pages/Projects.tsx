@@ -40,7 +40,9 @@ import {
   ExternalLink,
   Archive,
   Filter,
-  ChevronDown
+  ChevronDown,
+  Receipt,
+  FileText
 } from "lucide-react";
 
 export default function Projects() {
