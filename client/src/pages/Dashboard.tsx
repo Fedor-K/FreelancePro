@@ -393,27 +393,48 @@ export default function Dashboard() {
                         <div className="relative inline-block">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="p-0 flex items-center">
+                              <Button 
+                                variant="ghost" 
+                                className="p-0 flex items-center"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                }}
+                              >
                                 <StatusBadge status={project.status} />
                                 <ChevronDown className="ml-1 h-4 w-4 opacity-50" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-40">
+                            <DropdownMenuContent className="w-40" onClick={(e) => e.stopPropagation()}>
                               <div className="px-2 py-1.5 text-sm font-medium">Change Status</div>
                               <DropdownMenuSeparator />
                               {["Not started", "In Progress", "Delivered", "Completed", "Paid"].map((status) => (
                                 <DropdownMenuItem 
                                   key={status}
-                                  onClick={() => {
+                                  onClick={(e) => {
+                                    // Prevent event bubbling
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    
                                     if (status !== project.status) {
-                                      handleEditProject({
-                                        ...project,
-                                        status: status as any
-                                      });
-                                      
-                                      toast({
-                                        title: "Status updated",
-                                        description: `Project status changed to ${status}`,
+                                      // Update project status directly via API
+                                      apiRequest("PATCH", `/api/projects/${project.id}`, {
+                                        status: status
+                                      }).then(() => {
+                                        // Invalidate queries to refresh data
+                                        queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+                                        queryClient.invalidateQueries({ queryKey: ['/api/stats'] });
+                                        
+                                        toast({
+                                          title: "Status updated",
+                                          description: `Project status changed to ${status}`,
+                                        });
+                                      }).catch(error => {
+                                        toast({
+                                          title: "Error",
+                                          description: "Failed to update status. Please try again.",
+                                          variant: "destructive",
+                                        });
                                       });
                                     }
                                   }}
@@ -435,21 +456,53 @@ export default function Dashboard() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => navigate(`/projects/${project.id}`)}>
+                            <DropdownMenuItem 
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                navigate(`/projects/${project.id}`);
+                              }}
+                            >
                               <ExternalLink className="mr-2 h-4 w-4" />
                               View Details
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleEditProject(project)}>
+                            <DropdownMenuItem 
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleEditProject(project);
+                              }}
+                            >
                               <Edit className="mr-2 h-4 w-4" />
                               Edit
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
-                              onClick={() => {
-                                // Toggle archive status
-                                handleEditProject({
-                                  ...project,
+                              onClick={(e) => {
+                                // Prevent event bubbling
+                                e.preventDefault();
+                                e.stopPropagation();
+                                
+                                // Toggle archive status directly via API
+                                apiRequest("PATCH", `/api/projects/${project.id}`, {
                                   isArchived: !project.isArchived
+                                }).then(() => {
+                                  // Invalidate queries to refresh data
+                                  queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+                                  queryClient.invalidateQueries({ queryKey: ['/api/stats'] });
+                                  
+                                  toast({
+                                    title: project.isArchived ? "Project unarchived" : "Project archived",
+                                    description: project.isArchived ? 
+                                      "Project has been moved to active projects." : 
+                                      "Project has been archived."
+                                  });
+                                }).catch(error => {
+                                  toast({
+                                    title: "Error",
+                                    description: "Failed to update project. Please try again.",
+                                    variant: "destructive",
+                                  });
                                 });
                               }}
                             >
@@ -467,7 +520,9 @@ export default function Dashboard() {
                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               className="text-red-600"
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
                                 setProjectToDelete(project);
                                 setIsDeleteDialogOpen(true);
                               }}
