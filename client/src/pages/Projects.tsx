@@ -42,7 +42,8 @@ import {
   DollarSign,
   Archive,
   Filter,
-  Clock
+  Clock,
+  ChevronDown
 } from "lucide-react";
 
 export default function Projects() {
@@ -94,25 +95,30 @@ export default function Projects() {
       labels.push("Invoice sent");
     }
     
-    if (project.isPaid) {
-      labels.push("Mark as paid");
+    if (project.isPaid || project.status === "Paid") {
+      labels.push("Paid" as ProjectLabel);
     }
     
     if (project.deadline && isPast(new Date(project.deadline))) {
-      labels.push("Past");
-      
-      if (project.status !== "Delivered" && project.status !== "Completed") {
+      // If deadline is in the past and project isn't complete, delivered, or paid
+      if (project.status !== "Delivered" && 
+          project.status !== "Completed" && 
+          project.status !== "Paid" && 
+          !project.isPaid) {
         labels.push("Overdue");
       }
-    }
-    
-    if (project.status === "In Progress") {
+    } else if (project.deadline && 
+               !isPast(new Date(project.deadline)) && 
+               differenceInDays(new Date(project.deadline), new Date()) <= 3 &&
+               project.status !== "Paid" && 
+               !project.isPaid) {
       labels.push("To be delivered");
-    }
-    
-    if (project.deadline && !isPast(new Date(project.deadline)) && 
-        differenceInDays(new Date(project.deadline), new Date()) <= 3) {
-      labels.push("Deadline approaching");
+    } else if (project.status !== "Delivered" && 
+               project.status !== "Completed" && 
+               project.status !== "Paid" && 
+               !project.isPaid) {
+      // If project is active and not yet due
+      labels.push("In Progress" as ProjectLabel);
     }
     
     if (!project.invoiceSent && 
@@ -294,7 +300,42 @@ export default function Projects() {
                         : "—"}
                     </TableCell>
                     <TableCell>
-                      <StatusBadge status={project.status} />
+                      <div className="relative inline-block">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="p-0 flex items-center">
+                              <StatusBadge status={project.status} />
+                              <ChevronDown className="ml-1 h-4 w-4 opacity-50" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent className="w-40">
+                            <div className="px-2 py-1.5 text-sm font-medium">Change Status</div>
+                            <DropdownMenuSeparator />
+                            {["Not started", "In Progress", "Delivered", "Completed", "Paid"].map((status) => (
+                              <DropdownMenuItem 
+                                key={status}
+                                onClick={() => {
+                                  if (status !== project.status) {
+                                    handleEditProject({
+                                      ...project,
+                                      status: status as any
+                                    });
+                                    
+                                    toast({
+                                      title: "Status updated",
+                                      description: `Project status changed to ${status}`,
+                                    });
+                                  }
+                                }}
+                                className={project.status === status ? "bg-gray-100" : ""}
+                              >
+                                <StatusBadge status={status as any} className="mr-2" />
+                                <span>{status}</span>
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
