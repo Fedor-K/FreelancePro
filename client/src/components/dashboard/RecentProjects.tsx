@@ -171,6 +171,11 @@ export function RecentProjects() {
                         <div>
                           <p className="text-sm font-medium text-primary truncate">{project.name}</p>
                           <p className="mt-1 text-sm text-gray-500 truncate">{getClientName(project.clientId)}</p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {getProjectLabels(project).map((label, idx) => (
+                              <ProjectLabelBadge key={idx} label={label} />
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>
