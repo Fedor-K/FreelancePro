@@ -417,61 +417,82 @@ export default function Dashboard() {
                       </TableCell>
                       <TableCell>
                         <div className="relative inline-block">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
+                          <div className="flex items-center gap-2">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button 
+                                  variant="ghost" 
+                                  className="p-0 flex items-center"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                  }}
+                                >
+                                  <StatusBadge status={project.status} />
+                                  <ChevronDown className="ml-1 h-4 w-4 opacity-50" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent className="w-40" onClick={(e) => e.stopPropagation()}>
+                                <div className="px-2 py-1.5 text-sm font-medium">Change Status</div>
+                                <DropdownMenuSeparator />
+                                {["In Progress", "Delivered", "Paid"].map((status) => (
+                                  <DropdownMenuItem 
+                                    key={status}
+                                    onClick={(e) => {
+                                      // Prevent event bubbling
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      
+                                      if (status !== project.status) {
+                                        // Update project status directly via API
+                                        apiRequest("PATCH", `/api/projects/${project.id}`, {
+                                          status: status
+                                        }).then(() => {
+                                          // Invalidate queries to refresh data
+                                          queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+                                          queryClient.invalidateQueries({ queryKey: ['/api/stats'] });
+                                          
+                                          toast({
+                                            title: "Status updated",
+                                            description: `Project status changed to ${status}`,
+                                          });
+                                        }).catch(error => {
+                                          toast({
+                                            title: "Error",
+                                            description: "Failed to update status. Please try again.",
+                                            variant: "destructive",
+                                          });
+                                        });
+                                      }
+                                    }}
+                                    className={project.status === status ? "bg-gray-100" : ""}
+                                  >
+                                    <StatusBadge status={status as any} className="mr-2" />
+                                    <span>{status}</span>
+                                  </DropdownMenuItem>
+                                ))}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                            
+                            {/* Show Send Invoice button for delivered projects without invoices and not paid */}
+                            {project.status === "Delivered" && !project.invoiceSent && !project.isPaid && (
                               <Button 
-                                variant="ghost" 
-                                className="p-0 flex items-center"
+                                size="sm" 
+                                variant="outline" 
+                                className="flex items-center gap-1 text-xs py-1 h-7 border-blue-400 text-blue-600 hover:bg-blue-50"
                                 onClick={(e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
+                                  
+                                  // Navigate to documents page with query params to create invoice
+                                  navigate(`/documents?projectId=${project.id}&type=invoice`);
                                 }}
                               >
-                                <StatusBadge status={project.status} />
-                                <ChevronDown className="ml-1 h-4 w-4 opacity-50" />
+                                <Receipt className="h-3 w-3" />
+                                Send Invoice
                               </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-40" onClick={(e) => e.stopPropagation()}>
-                              <div className="px-2 py-1.5 text-sm font-medium">Change Status</div>
-                              <DropdownMenuSeparator />
-                              {["In Progress", "Delivered", "Paid"].map((status) => (
-                                <DropdownMenuItem 
-                                  key={status}
-                                  onClick={(e) => {
-                                    // Prevent event bubbling
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    
-                                    if (status !== project.status) {
-                                      // Update project status directly via API
-                                      apiRequest("PATCH", `/api/projects/${project.id}`, {
-                                        status: status
-                                      }).then(() => {
-                                        // Invalidate queries to refresh data
-                                        queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
-                                        queryClient.invalidateQueries({ queryKey: ['/api/stats'] });
-                                        
-                                        toast({
-                                          title: "Status updated",
-                                          description: `Project status changed to ${status}`,
-                                        });
-                                      }).catch(error => {
-                                        toast({
-                                          title: "Error",
-                                          description: "Failed to update status. Please try again.",
-                                          variant: "destructive",
-                                        });
-                                      });
-                                    }
-                                  }}
-                                  className={project.status === status ? "bg-gray-100" : ""}
-                                >
-                                  <StatusBadge status={status as any} className="mr-2" />
-                                  <span>{status}</span>
-                                </DropdownMenuItem>
-                              ))}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                            )}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell className="text-right">

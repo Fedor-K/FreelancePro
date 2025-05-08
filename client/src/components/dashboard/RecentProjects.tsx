@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format, isPast, isToday } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { StatusBadge, ProjectLabelBadge, type ProjectLabel } from "@/components/ui/status-badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { FileText, Plus, ArrowRight, ChevronDown } from "lucide-react";
+import { FileText, Plus, ArrowRight, ChevronDown, Receipt } from "lucide-react";
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -178,7 +178,28 @@ export function RecentProjects() {
                               : 'No deadline'}
                           </p>
                         </div>
-                        <StatusBadge status={project.status} />
+                        <div className="flex items-center gap-2">
+                          <StatusBadge status={project.status} />
+                          
+                          {/* Show Send Invoice button for delivered projects without invoices and not paid */}
+                          {project.status === "Delivered" && !project.invoiceSent && !project.isPaid && (
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="flex items-center gap-1 text-xs py-1 h-6 border-blue-400 text-blue-600 hover:bg-blue-50"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                
+                                // Navigate to documents page with query params to create invoice
+                                navigate(`/documents?projectId=${project.id}&type=invoice`);
+                              }}
+                            >
+                              <Receipt className="h-3 w-3" />
+                              Invoice
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
