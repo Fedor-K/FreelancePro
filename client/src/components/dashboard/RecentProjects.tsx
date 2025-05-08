@@ -108,11 +108,9 @@ export function RecentProjects() {
         if (project.status !== "Paid" && !project.isPaid) {
           labels.push("To be delivered");
         }
-      } else if (project.status !== "Delivered" && 
-                 project.status !== "Completed" && 
-                 project.status !== "Paid" && 
+      } else if (project.status === "In Progress" && 
                  !project.isPaid) {
-        // If project is active and not yet due
+        // Only show In Progress label if the status is actually In Progress
         labels.push("In Progress" as ProjectLabel);
       }
     }
