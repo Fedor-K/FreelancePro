@@ -5,13 +5,23 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { FileText, Plus, ArrowRight } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { FileText, Plus, ArrowRight, ChevronDown } from "lucide-react";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
+} from "@/components/ui/dropdown-menu";
 import { ProjectForm } from "@/components/projects/ProjectForm";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Project } from "@shared/schema";
 
 export function RecentProjects() {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
   const { data: projects = [], isLoading } = useQuery<Project[]>({
@@ -24,7 +34,7 @@ export function RecentProjects() {
   }).slice(0, 4);
 
   // Get client data for each project
-  const { data: clients = [] } = useQuery({
+  const { data: clients = [] } = useQuery<any[]>({
     queryKey: ['/api/clients'],
   });
 

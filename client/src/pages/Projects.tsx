@@ -365,10 +365,25 @@ export default function Projects() {
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             onClick={() => {
-                              // Toggle archive status
-                              handleEditProject({
-                                ...project,
+                              // Toggle archive status directly via API
+                              apiRequest("PATCH", `/api/projects/${project.id}`, {
                                 isArchived: !project.isArchived
+                              }).then(() => {
+                                // Invalidate queries to refresh data
+                                queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+                                
+                                toast({
+                                  title: project.isArchived ? "Project unarchived" : "Project archived",
+                                  description: project.isArchived ? 
+                                    "Project has been moved to active projects." : 
+                                    "Project has been archived."
+                                });
+                              }).catch(error => {
+                                toast({
+                                  title: "Error",
+                                  description: "Failed to update project. Please try again.",
+                                  variant: "destructive",
+                                });
                               });
                             }}
                           >
