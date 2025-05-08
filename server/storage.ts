@@ -95,15 +95,21 @@ export class MemStorage implements IStorage {
     this.clients.set(client2.id, client2);
     this.clients.set(client3.id, client3);
 
-    // Sample projects
+    // Sample projects with language pairs and realistic deadlines
     const project1: Project = {
       id: this.projectId++,
       clientId: client1.id,
       name: "Website Translation - German",
       description: "Translate website content to German",
-      deadline: new Date(2023, 4, 25),
+      deadline: new Date(2025, 4, 25), // Future date
       amount: 950,
-      status: "In Progress"
+      volume: 15000,
+      sourceLang: "English",
+      targetLang: "German",
+      status: "In Progress",
+      invoiceSent: false,
+      isPaid: false,
+      isArchived: false
     };
 
     const project2: Project = {
@@ -111,9 +117,15 @@ export class MemStorage implements IStorage {
       clientId: client2.id,
       name: "Product Description Editing",
       description: "Edit product descriptions for clarity and SEO",
-      deadline: new Date(2023, 4, 30),
+      deadline: new Date(2025, 5, 10), // Future date
       amount: 480,
-      status: "New"
+      volume: 8000,
+      sourceLang: "English",
+      targetLang: "Spanish",
+      status: "Not started",
+      invoiceSent: false,
+      isPaid: false,
+      isArchived: false
     };
 
     const project3: Project = {
@@ -121,9 +133,15 @@ export class MemStorage implements IStorage {
       clientId: client3.id,
       name: "Marketing Copywriting",
       description: "Create marketing copy for new campaign",
-      deadline: new Date(2023, 4, 18),
+      deadline: new Date(2025, 4, 18), // Future date
       amount: 750,
-      status: "Completed"
+      volume: 5000,
+      sourceLang: "French",
+      targetLang: "English",
+      status: "Completed",
+      invoiceSent: true,
+      isPaid: false,
+      isArchived: false
     };
 
     const project4: Project = {
@@ -131,15 +149,39 @@ export class MemStorage implements IStorage {
       clientId: client2.id,
       name: "Blog Post Series",
       description: "Create a series of blog posts about travel",
-      deadline: new Date(2023, 4, 15),
+      deadline: new Date(2025, 4, 15), // Future date
       amount: 1200,
-      status: "Paid"
+      volume: 20000,
+      sourceLang: "Spanish",
+      targetLang: "English",
+      status: "Paid",
+      invoiceSent: true,
+      isPaid: true,
+      isArchived: false
+    };
+    
+    // Project with an overdue deadline
+    const project5: Project = {
+      id: this.projectId++,
+      clientId: client1.id,
+      name: "Technical Manual Translation",
+      description: "Translate technical manual for industrial equipment",
+      deadline: new Date(2025, 3, 10), // Past date relative to May
+      amount: 2500,
+      volume: 45000,
+      sourceLang: "English",
+      targetLang: "German",
+      status: "In Progress",
+      invoiceSent: false,
+      isPaid: false,
+      isArchived: false
     };
 
     this.projects.set(project1.id, project1);
     this.projects.set(project2.id, project2);
     this.projects.set(project3.id, project3);
     this.projects.set(project4.id, project4);
+    this.projects.set(project5.id, project5);
   }
 
   // Client methods
