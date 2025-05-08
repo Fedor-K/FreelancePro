@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { format, isPast, isToday } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { StatusBadge, ProjectLabelBadge, type ProjectLabel } from "@/components/ui/status-badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { FileText, Plus, ArrowRight, ChevronDown } from "lucide-react";
@@ -28,10 +28,44 @@ export function RecentProjects() {
     queryKey: ['/api/projects'],
   });
 
-  // Get the most recent 4 projects
-  const recentProjects = [...projects].sort((a, b) => {
-    return new Date(b.deadline || 0).getTime() - new Date(a.deadline || 0).getTime();
-  }).slice(0, 4);
+  // Function to get project urgency score (lower = more urgent)
+  const getProjectUrgencyScore = (project: Project): number => {
+    // Paid projects have lowest priority
+    if (project.isPaid || project.status === "Paid") {
+      return Number.MAX_SAFE_INTEGER;
+    }
+    
+    // Completed projects have second lowest priority
+    if (project.status === "Completed") {
+      return Number.MAX_SAFE_INTEGER - 1;
+    }
+    
+    // If no deadline, it's less urgent than any deadline
+    if (!project.deadline) {
+      return Number.MAX_SAFE_INTEGER - 2;
+    }
+    
+    const deadlineDate = new Date(project.deadline);
+    const today = new Date();
+    
+    // Calculate days until deadline (negative for past deadlines)
+    const daysToDeadline = Math.ceil(
+      (deadlineDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    
+    // Overdue projects are most urgent (more overdue = more urgent)
+    if (daysToDeadline < 0) {
+      return daysToDeadline; // Negative number, so lower = more overdue
+    }
+    
+    // For future deadlines, return days until deadline
+    return daysToDeadline;
+  };
+
+  // Get the most urgent 4 projects based on deadline and status
+  const recentProjects = [...projects]
+    .sort((a, b) => getProjectUrgencyScore(a) - getProjectUrgencyScore(b))
+    .slice(0, 4);
 
   // Get client data for each project
   const { data: clients = [] } = useQuery<any[]>({
@@ -41,6 +75,57 @@ export function RecentProjects() {
   const getClientName = (clientId: number) => {
     const client = clients.find(c => c.id === clientId);
     return client ? client.company || client.name : "Unknown Client";
+  };
+  
+  // Get project label based on status and dates
+  const getProjectLabels = (project: Project): ProjectLabel[] => {
+    const labels: ProjectLabel[] = [];
+    
+    // Payment status labels
+    if (project.invoiceSent) {
+      labels.push("Invoice sent");
+    }
+    
+    if (project.isPaid || project.status === "Paid") {
+      labels.push("Paid" as ProjectLabel);
+    }
+    
+    // Deadline and status labels
+    if (project.deadline) {
+      const deadlineDate = new Date(project.deadline);
+      const today = new Date();
+      
+      if (isPast(deadlineDate) && !isToday(deadlineDate)) {
+        // If deadline is in the past and project isn't complete, delivered, or paid
+        if (project.status !== "Delivered" && 
+            project.status !== "Completed" && 
+            project.status !== "Paid" && 
+            !project.isPaid) {
+          labels.push("Overdue");
+        }
+      } else if (isToday(deadlineDate)) {
+        // If deadline is today
+        if (project.status !== "Paid" && !project.isPaid) {
+          labels.push("To be delivered");
+        }
+      } else if (project.status !== "Delivered" && 
+                 project.status !== "Completed" && 
+                 project.status !== "Paid" && 
+                 !project.isPaid) {
+        // If project is active and not yet due
+        labels.push("In Progress" as ProjectLabel);
+      }
+    }
+    
+    // Show "Make invoice" for delivered/completed but not invoiced/paid projects
+    if (!project.invoiceSent && 
+        !project.isPaid && 
+        project.status !== "Paid" && 
+        (project.status === "Delivered" || project.status === "Completed")) {
+      labels.push("Make invoice");
+    }
+    
+    return labels;
   };
 
   const handleSuccess = () => {

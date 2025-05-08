@@ -144,19 +144,56 @@ export default function Projects() {
     }
   };
   
-  // Filter projects based on search term and archived status
-  const filteredProjects = projects.filter(project => {
-    // Filter by archived status
-    if (!showArchived && project.isArchived) return false;
+  // Function to get project urgency score (lower = more urgent)
+  const getProjectUrgencyScore = (project: Project): number => {
+    // Paid projects have lowest priority
+    if (project.isPaid || project.status === "Paid") {
+      return Number.MAX_SAFE_INTEGER;
+    }
     
-    // Filter by search term
-    return (
-      project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      project.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (getClientName(project.clientId).toLowerCase().includes(searchTerm.toLowerCase()))
+    // Completed projects have second lowest priority
+    if (project.status === "Completed") {
+      return Number.MAX_SAFE_INTEGER - 1;
+    }
+    
+    // If no deadline, it's less urgent than any deadline
+    if (!project.deadline) {
+      return Number.MAX_SAFE_INTEGER - 2;
+    }
+    
+    const deadlineDate = new Date(project.deadline);
+    const today = new Date();
+    
+    // Calculate days until deadline (negative for past deadlines)
+    const daysToDeadline = Math.ceil(
+      (deadlineDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
     );
-  });
+    
+    // Overdue projects are most urgent (more overdue = more urgent)
+    if (daysToDeadline < 0) {
+      return daysToDeadline; // Negative number, so lower = more overdue
+    }
+    
+    // For future deadlines, return days until deadline
+    return daysToDeadline;
+  };
+
+  // Filter projects based on search term and archived status
+  const filteredProjects = projects
+    .filter(project => {
+      // Filter by archived status
+      if (!showArchived && project.isArchived) return false;
+      
+      // Filter by search term
+      return (
+        project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        project.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (getClientName(project.clientId).toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    })
+    // Sort by urgency (overdue first, then by closest deadline)
+    .sort((a, b) => getProjectUrgencyScore(a) - getProjectUrgencyScore(b));
   
   return (
     <div className="py-6">
