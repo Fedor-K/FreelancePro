@@ -6,6 +6,13 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ResumeGenerator } from "@/components/resume/ResumeGenerator";
 import { CoverLetterGenerator } from "@/components/resume/CoverLetterGenerator";
 import { useQuery } from "@tanstack/react-query";
@@ -91,12 +98,22 @@ export default function Resume() {
         
         <TabsContent value="create">
           <div className="mb-6">
-            <Tabs value={documentType} onValueChange={(value) => setDocumentType(value as "resume" | "coverLetter")}>
-              <TabsList className="grid w-full max-w-md grid-cols-2">
-                <TabsTrigger value="resume">Resume</TabsTrigger>
-                <TabsTrigger value="coverLetter">Cover Letter</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <div className="grid gap-4 max-w-xl">
+              <div className="flex items-center space-x-4">
+                <h3 className="text-sm font-medium">Document Type:</h3>
+                <div className="w-[180px]">
+                  <Select value={documentType} onValueChange={(value) => setDocumentType(value as "resume" | "coverLetter")}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="resume">Resume</SelectItem>
+                      <SelectItem value="coverLetter">Cover Letter</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
           </div>
           
           {documentType === "resume" ? <ResumeGenerator /> : <CoverLetterGenerator />}
@@ -111,22 +128,24 @@ export default function Resume() {
               </CardDescription>
               
               <div className="mt-4">
-                <Tabs value={documentType} onValueChange={(value) => setDocumentType(value as "resume" | "coverLetter")}>
-                  <TabsList className="grid w-full max-w-md grid-cols-2">
-                    <TabsTrigger value="resume">
-                      Resumes
-                      <span className="ml-2 inline-flex h-5 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium">
-                        {resumes.filter(doc => doc.specialization !== "Cover Letter").length}
-                      </span>
-                    </TabsTrigger>
-                    <TabsTrigger value="coverLetter">
-                      Cover Letters
-                      <span className="ml-2 inline-flex h-5 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium">
-                        {resumes.filter(doc => doc.specialization === "Cover Letter").length}
-                      </span>
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
+                <div className="flex items-center space-x-4">
+                  <h3 className="text-sm font-medium">Document Type:</h3>
+                  <div className="w-[200px]">
+                    <Select value={documentType} onValueChange={(value) => setDocumentType(value as "resume" | "coverLetter")}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="resume">
+                          Resumes ({resumes.filter(doc => doc.specialization !== "Cover Letter").length})
+                        </SelectItem>
+                        <SelectItem value="coverLetter">
+                          Cover Letters ({resumes.filter(doc => doc.specialization === "Cover Letter").length})
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
