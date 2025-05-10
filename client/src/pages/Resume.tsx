@@ -98,13 +98,21 @@ export default function Resume() {
             </div>
           </div>
           
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
+          {/* Adding a key to force complete remount when tab or resumeToEdit changes */}
+          <Tabs 
+            key={`tabs-${activeTab}-${resumeToEdit ? `edit-${resumeToEdit.id}` : 'create'}`}
+            value={activeTab} 
+            onValueChange={setActiveTab}>
             <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
               <TabsTrigger value="create">Create Document</TabsTrigger>
               <TabsTrigger value="saved">Saved Documents</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="create">
+            <TabsContent 
+              value="create" 
+              // Add a key to force remount of TabsContent when resumeToEdit changes
+              key={`create-content-${resumeToEdit ? `edit-${resumeToEdit.id}` : 'new'}`}
+            >
               <div className="mb-6">
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Document Type</label>
@@ -120,21 +128,32 @@ export default function Resume() {
                 </div>
               </div>
               
-              {documentType === "resume" ? 
-                <ResumeGenerator 
-                  // Force complete remount when resumeToEdit changes
-                  key={resumeToEdit ? `edit-${resumeToEdit.id}` : 'new-resume'} 
-                  resumeToEdit={resumeToEdit} 
-                  onEditComplete={() => {
-                    console.log("[Resume] Edit complete");
-                    setResumeToEdit(null);
-                    refetch();
-                    setActiveTab("saved");
-                  }}
-                />
-              : 
+              {/* Explicitly handle different content based on document type */}
+              {documentType === "resume" && (
+                <div key={resumeToEdit ? `edit-mode-${resumeToEdit.id}` : 'create-mode'}>
+                  {resumeToEdit ? (
+                    // Editing an existing resume - explicitly manage this case
+                    <div className="border-l-4 border-blue-600 pl-4 mb-4">
+                      <p className="text-blue-700 font-medium">Editing Resume: {resumeToEdit.name}</p>
+                    </div>
+                  ) : null}
+                  
+                  <ResumeGenerator 
+                    key={resumeToEdit ? `edit-${resumeToEdit.id}-${Date.now()}` : `new-${Date.now()}`}
+                    resumeToEdit={resumeToEdit} 
+                    onEditComplete={() => {
+                      console.log("[Resume] Edit complete");
+                      setResumeToEdit(null);
+                      refetch();
+                      setActiveTab("saved");
+                    }}
+                  />
+                </div>
+              )}
+              
+              {documentType === "coverLetter" && (
                 <CoverLetterGenerator />
-              }
+              )}
             </TabsContent>
             
             <TabsContent value="saved">

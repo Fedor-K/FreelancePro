@@ -54,11 +54,23 @@ interface ResumeGeneratorProps {
 export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeGeneratorProps) {
   // Add component ID for tracking re-renders across logs
   const componentId = useRef(Math.random().toString(36).substring(7));
-  console.log(`[ResumeGenerator:${componentId.current}] Constructor called with resumeToEdit:`, resumeToEdit);
+  // Enhanced logging with full details - timestamp helps track execution order
+  console.log(`[ResumeGenerator:${componentId.current}] CONSTRUCTOR at ${new Date().toISOString()} - resumeToEdit:`, 
+    resumeToEdit ? {
+      id: resumeToEdit.id,
+      name: resumeToEdit.name,
+      content: resumeToEdit.content ? resumeToEdit.content.substring(0, 50) + "..." : null
+    } : null
+  );
+  
+  // Store initial resumeToEdit value to compare in useEffect
+  const initialResumeToEdit = useRef(resumeToEdit);
   
   const [isGenerating, setIsGenerating] = useState(false);
-  const [resume, setResume] = useState<{ id: number; content: string } | null>(null);
-  const [activeTab, setActiveTab] = useState("form");
+  const [resume, setResume] = useState<{ id: number; content: string } | null>(
+    resumeToEdit ? { id: resumeToEdit.id, content: resumeToEdit.content } : null
+  );
+  const [activeTab, setActiveTab] = useState(resumeToEdit ? "form" : "form");
   const [isEditing, setIsEditing] = useState(!!resumeToEdit);
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -74,19 +86,32 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
     },
   });
   
-  // Load resume settings from settings service
+  // Load resume data on component mount and when resumeToEdit changes
   useEffect(() => {
-    console.log(`[ResumeGenerator:${componentId.current}] useEffect triggered with resumeToEdit:`, resumeToEdit);
+    // Detailed tracking of useEffect execution with timestamp for debugging
+    console.log(`[ResumeGenerator:${componentId.current}] useEffect at ${new Date().toISOString()} - resumeToEdit:`, 
+      resumeToEdit ? {
+        id: resumeToEdit.id,
+        name: resumeToEdit.name,
+        hasContent: !!resumeToEdit.content
+      } : null
+    );
     
-    // Important: Clear form first to avoid any stale data
+    // First reset the form to avoid any stale data
     form.reset();
     
     const loadResumeData = async () => {
       try {
-        // If we're editing an existing resume, use its data
+        // If we're editing an existing resume, prioritize loading that data
         if (resumeToEdit) {
-          console.log(`[ResumeGenerator:${componentId.current}] Loading data for editing resume ID:${resumeToEdit.id}`);
+          console.log(`[ResumeGenerator:${componentId.current}] EDIT MODE - loading resume ID:${resumeToEdit.id}`);
           setIsEditing(true);
+          
+          // Set resume content for preview immediately
+          setResume({
+            id: resumeToEdit.id,
+            content: resumeToEdit.content
+          });
           
           // Set form values from the resume being edited
           console.log(`[ResumeGenerator:${componentId.current}] Setting form values:`, {
