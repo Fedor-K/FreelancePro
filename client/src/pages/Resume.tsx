@@ -1,6 +1,9 @@
 import { 
   Card, 
   CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -14,9 +17,9 @@ import { ResumeGenerator } from "@/components/resume/ResumeGenerator";
 import { CoverLetterGenerator } from "@/components/resume/CoverLetterGenerator";
 import { Resume as ResumeType } from "@shared/schema";
 import { Button } from "@/components/ui/button";
-import { FileText, Download, Copy, Trash2, Edit } from "lucide-react";
+import { FileText, Download, Copy, Trash2 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
@@ -25,14 +28,8 @@ export default function Resume() {
   const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [resumeToDelete, setResumeToDelete] = useState<ResumeType | null>(null);
-  const [resumeToEdit, setResumeToEdit] = useState<ResumeType | null>(null);
   const [activeTab, setActiveTab] = useState("create");
   const [documentType, setDocumentType] = useState<"resume" | "coverLetter">("resume");
-  
-  // Debug logging for state changes
-  useEffect(() => {
-    console.log("[Resume] State update - resumeToEdit:", resumeToEdit, "activeTab:", activeTab, "documentType:", documentType);
-  }, [resumeToEdit, activeTab, documentType]);
   
   const { data: resumes = [], isLoading, refetch } = useQuery<ResumeType[]>({
     queryKey: ['/api/resumes'],
@@ -82,228 +79,173 @@ export default function Resume() {
   return (
     <div className="space-y-6">
       <Card className="mb-6">
-        <CardContent className="pt-6">
-          <div className="flex items-center mb-6">
-            <div className="mr-4 p-3 bg-purple-100 rounded-md">
-              <FileText className="h-6 w-6 text-accent" />
-            </div>
-            <div>
-              <h3 className="text-lg font-medium leading-6 text-gray-900">Document Generator</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Create professional resumes and cover letters powered by AI to help you land your next freelance client.
-              </p>
+        <CardHeader>
+          <CardTitle>Document Generator</CardTitle>
+          <CardDescription>
+            Create professional resumes and cover letters powered by AI to help you land your next freelance client.
+          </CardDescription>
+        </CardHeader>
+      </Card>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
+          <TabsTrigger value="create">Create Document</TabsTrigger>
+          <TabsTrigger value="saved">Saved Documents</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="create">
+          <div className="mb-6">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Document Type
+              </label>
+              <Select 
+                value={documentType} 
+                onValueChange={(value) => setDocumentType(value as "resume" | "coverLetter")}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="resume">Resume</SelectItem>
+                  <SelectItem value="coverLetter">Cover Letter</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           
-          {/* COMPLETELY SEPARATED EDIT MODE AND NORMAL MODE */}
-          {resumeToEdit ? (
-            // EDIT MODE - Separate UI without tabs when editing
-            <div className="mb-6" key={`editing-resume-${resumeToEdit.id}-${Date.now()}`}>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold">Editing Resume</h3>
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setResumeToEdit(null);
-                    setActiveTab("create");
-                  }}
-                >
-                  Cancel Editing
-                </Button>
+          {documentType === "resume" && (
+            <ResumeGenerator 
+              key={`resume-generator-create-${Date.now()}`}
+              onEditComplete={() => {
+                refetch();
+                setActiveTab("saved");
+              }}
+            />
+          )}
+          
+          {documentType === "coverLetter" && (
+            <CoverLetterGenerator />
+          )}
+        </TabsContent>
+        
+        <TabsContent value="saved">
+          <Card>
+            <CardHeader>
+              <CardTitle>Saved Documents</CardTitle>
+              <CardDescription>
+                View, download, or manage your previously generated documents.
+              </CardDescription>
+              
+              <div className="mt-4">
+                <Tabs value={documentType} onValueChange={(value) => setDocumentType(value as "resume" | "coverLetter")}>
+                  <TabsList className="grid w-full max-w-md grid-cols-2">
+                    <TabsTrigger value="resume">
+                      Resumes
+                      <span className="ml-2 inline-flex h-5 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium">
+                        {resumes.filter(doc => doc.specialization !== "Cover Letter").length}
+                      </span>
+                    </TabsTrigger>
+                    <TabsTrigger value="coverLetter">
+                      Cover Letters
+                      <span className="ml-2 inline-flex h-5 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium">
+                        {resumes.filter(doc => doc.specialization === "Cover Letter").length}
+                      </span>
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
               </div>
-              <div className="border-l-4 border-blue-600 pl-4 mb-4">
-                <p className="text-blue-700 font-medium">Editing: {resumeToEdit.name}</p>
-              </div>
-              
-              <ResumeGenerator 
-                key={`edit-resume-${resumeToEdit.id}-${Date.now()}`}
-                resumeToEdit={resumeToEdit} 
-                onEditComplete={() => {
-                  console.log("[Resume] Edit complete");
-                  setResumeToEdit(null);
-                  refetch();
-                  setActiveTab("saved");
-                }}
-              />
-            </div>
-          ) : (
-            // NORMAL MODE - Standard tabs interface for create/view
-            <Tabs 
-              key={`tabs-${activeTab}`}
-              value={activeTab} 
-              onValueChange={(value) => setActiveTab(value)}>
-              <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
-                <TabsTrigger value="create">Create Document</TabsTrigger>
-                <TabsTrigger value="saved">Saved Documents</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent 
-                value="create" 
-                key="create-content"
-              >
-                <div className="mb-6">
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                      Document Type
-                    </label>
-                    <Select 
-                      value={documentType} 
-                      onValueChange={(value) => setDocumentType(value as "resume" | "coverLetter")}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="resume">Resume</SelectItem>
-                        <SelectItem value="coverLetter">Cover Letter</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+            </CardHeader>
+            
+            <CardContent>
+              {isLoading ? (
+                <p className="text-center py-8 text-gray-500">Loading documents...</p>
+              ) : resumes.length === 0 || !resumes.some(resume => 
+                  documentType === "resume" ? 
+                    resume.specialization !== "Cover Letter" : 
+                    resume.specialization === "Cover Letter"
+                ) ? (
+                <div className="text-center py-12 text-gray-500">
+                  <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  {resumes.length === 0 ? (
+                    <>
+                      <p className="text-lg font-medium">No documents yet</p>
+                      <p className="mt-1">Create your first AI-powered document to get started.</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-lg font-medium">No {documentType === "resume" ? "resumes" : "cover letters"} found</p>
+                      <p className="mt-1">
+                        {documentType === "resume" 
+                          ? "Generate a resume to showcase your skills and experience." 
+                          : "Create a cover letter to apply for a specific job or client."}
+                      </p>
+                    </>
+                  )}
                 </div>
-                
-                {documentType === "resume" && (
-                  <ResumeGenerator 
-                    key={`new-resume-${Date.now()}`}
-                    resumeToEdit={null} 
-                    onEditComplete={() => {
-                      refetch();
-                      setActiveTab("saved");
-                    }}
-                  />
-                )}
-                
-                {documentType === "coverLetter" && (
-                  <CoverLetterGenerator />
-                )}
-              </TabsContent>
-              
-              <TabsContent value="saved">
-                <div className="mb-6">
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                      Document Type
-                    </label>
-                    <Select 
-                      value={documentType} 
-                      onValueChange={(value) => setDocumentType(value as "resume" | "coverLetter")}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="resume">
-                          Resumes ({resumes.filter(doc => doc.specialization !== "Cover Letter").length})
-                        </SelectItem>
-                        <SelectItem value="coverLetter">
-                          Cover Letters ({resumes.filter(doc => doc.specialization === "Cover Letter").length})
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                {isLoading ? (
-                  <p className="text-center py-8 text-gray-500">Loading documents...</p>
-                ) : resumes.length === 0 || !resumes.some(resume => 
-                    documentType === "resume" ? 
+              ) : (
+                <div className="space-y-6">
+                  {resumes
+                    .filter(resume => documentType === "resume" ? 
                       resume.specialization !== "Cover Letter" : 
-                      resume.specialization === "Cover Letter"
-                  ) ? (
-                  <div className="text-center py-12 text-gray-500">
-                    <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                    {resumes.length === 0 ? (
-                      <>
-                        <p className="text-lg font-medium">No documents yet</p>
-                        <p className="mt-1">Create your first AI-powered document to get started.</p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-lg font-medium">No {documentType === "resume" ? "resumes" : "cover letters"} found</p>
-                        <p className="mt-1">
-                          {documentType === "resume" 
-                            ? "Generate a resume to showcase your skills and experience." 
-                            : "Create a cover letter to apply for a specific job or client."}
-                        </p>
-                      </>
-                    )}
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {resumes
-                      .filter(resume => documentType === "resume" ? 
-                        resume.specialization !== "Cover Letter" : 
-                        resume.specialization === "Cover Letter")
-                      .map((resume) => (
-                        <div key={resume.id} className="p-4 border rounded-md">
-                          <div className="flex justify-between items-start mb-4">
-                            <div>
-                              <h3 className="font-medium text-lg">{resume.name}</h3>
-                              <p className="text-sm text-gray-500">{resume.specialization}</p>
-                            </div>
-                            <div className="flex space-x-2">
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => handleCopyToClipboard(resume.content)}
-                              >
-                                <Copy className="h-4 w-4 mr-1" />
-                                Copy
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => handleDownload(resume)}
-                              >
-                                <Download className="h-4 w-4 mr-1" />
-                                Download
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="bg-gray-50 text-gray-700"
-                                onClick={() => {
-                                  console.log("[Resume] Edit button clicked for resume:", resume);
-                                  // Manually set all the required states for editing mode
-                                  setResumeToEdit({...resume});
-                                }}
-                              >
-                                <Edit className="h-4 w-4 mr-1" />
-                                Edit
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                onClick={() => {
-                                  setResumeToDelete(resume);
-                                  setIsDeleteDialogOpen(true);
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
+                      resume.specialization === "Cover Letter")
+                    .map((resume) => (
+                      <div key={resume.id} className="p-4 border rounded-md">
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <h3 className="font-medium text-lg">{resume.name}</h3>
+                            <p className="text-sm text-gray-500">{resume.specialization}</p>
                           </div>
-                          
-                          <div className="p-4 bg-gray-50 rounded-md whitespace-pre-wrap font-mono text-sm max-h-48 overflow-y-auto">
-                            {resume.content.length > 500 
-                              ? `${resume.content.substring(0, 500)}...`
-                              : resume.content}
-                          </div>
-                          
-                          <div className="mt-3 text-sm text-gray-500">
-                            <span className="font-medium">Experience:</span> {resume.experience.length > 100 
-                              ? `${resume.experience.substring(0, 100)}...`
-                              : resume.experience}
+                          <div className="flex space-x-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleCopyToClipboard(resume.content)}
+                            >
+                              <Copy className="h-4 w-4 mr-1" />
+                              Copy
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleDownload(resume)}
+                            >
+                              <Download className="h-4 w-4 mr-1" />
+                              Download
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => {
+                                setResumeToDelete(resume);
+                                setIsDeleteDialogOpen(true);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         </div>
-                      ))}
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
-          )}
-        </CardContent>
-      </Card>
+                        
+                        <div className="p-4 bg-gray-50 rounded-md whitespace-pre-wrap font-mono text-sm max-h-48 overflow-y-auto">
+                          {resume.content.length > 500 
+                            ? `${resume.content.substring(0, 500)}...`
+                            : resume.content}
+                        </div>
+                        
+                        <div className="mt-3 text-sm text-gray-500">
+                          <span className="font-medium">Experience:</span> {resume.experience.length > 100 
+                            ? `${resume.experience.substring(0, 100)}...`
+                            : resume.experience}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
       
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
