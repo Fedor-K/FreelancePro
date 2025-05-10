@@ -352,6 +352,11 @@ export function DocumentGenerator() {
                         </SelectContent>
                       </Select>
                       <FormMessage />
+                      {form.watch("type") === "invoice" && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Only delivered projects that haven't been invoiced yet are available for selection.
+                        </p>
+                      )}
                     </FormItem>
                   )}
                 />
