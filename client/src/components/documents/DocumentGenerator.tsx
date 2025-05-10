@@ -475,11 +475,18 @@ export function DocumentGenerator() {
                         Edit Document
                       </Button>
                       <Button 
+                        variant="outline"
+                        onClick={handleSaveEdit}
+                        disabled={isSaving || editedContent === document.content}
+                      >
+                        {isSaving ? "Saving..." : "Save"}
+                      </Button>
+                      <Button 
                         variant="outline" 
                         onClick={handleCopyToClipboard}
                       >
                         <Copy className="mr-2 h-4 w-4" />
-                        Copy to Clipboard
+                        Copy
                       </Button>
                       <Button onClick={handleDownloadPdf}>
                         <Download className="mr-2 h-4 w-4" />
