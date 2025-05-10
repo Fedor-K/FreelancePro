@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { ResumeSettings, getResumeSettings, saveResumeSettings } from "@/lib/settingsService";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -167,6 +168,20 @@ export default function Settings() {
       defaultTemplate: "professional",
     },
   });
+  
+  // Load resume settings on component mount
+  useEffect(() => {
+    const loadResumeSettings = async () => {
+      try {
+        const settings = await getResumeSettings();
+        resumeForm.reset(settings);
+      } catch (error) {
+        console.error("Failed to load resume settings:", error);
+      }
+    };
+    
+    loadResumeSettings();
+  }, [resumeForm]);
 
   // Form submit handlers
   const onProfileSubmit = (data: ProfileFormValues) => {
@@ -201,12 +216,22 @@ export default function Settings() {
     console.log("Invoice data:", data);
   };
 
-  const onResumeSubmit = (data: ResumeFormValues) => {
-    toast({
-      title: "Resume settings updated",
-      description: "Your resume settings have been saved.",
-    });
-    console.log("Resume data:", data);
+  const onResumeSubmit = async (data: ResumeFormValues) => {
+    try {
+      await saveResumeSettings(data);
+      
+      toast({
+        title: "Resume settings updated",
+        description: "Your resume settings have been saved and will be used in the Resume Builder.",
+      });
+    } catch (error) {
+      console.error("Failed to save resume settings:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save resume settings. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Helper to render the setting tab content

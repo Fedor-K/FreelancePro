@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -21,6 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { generateResume } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
 import { FileText, Wand2 } from "lucide-react";
+import { getResumeSettings } from "@/lib/settingsService";
 
 // Extend the schema with validation
 const formSchema = insertResumeSchema.extend({
