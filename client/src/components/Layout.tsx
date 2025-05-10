@@ -23,6 +23,8 @@ export default function Layout({ children }: LayoutProps) {
         return "Resume Builder";
       case "/documents":
         return "Documents";
+      case "/settings":
+        return "Settings";
       default:
         return "Dashboard";
     }
