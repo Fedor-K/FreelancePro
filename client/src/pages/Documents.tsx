@@ -23,7 +23,7 @@ export default function Documents() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<DocumentType | null>(null);
   const [activeTab, setActiveTab] = useState("create");
-  const [documentType, setDocumentType] = useState<"all" | "invoice" | "contract">("all");
+  const [documentType, setDocumentType] = useState<"invoice" | "contract">("invoice");
   const [location] = useLocation();
   
   // Check for URL parameters to determine if we should show the create tab
@@ -151,14 +151,8 @@ export default function Documents() {
               </CardDescription>
               
               <div className="mt-4">
-                <Tabs value={documentType} onValueChange={(value) => setDocumentType(value as "all" | "invoice" | "contract")}>
-                  <TabsList className="grid w-full max-w-md grid-cols-3">
-                    <TabsTrigger value="all">
-                      All
-                      <span className="ml-2 inline-flex h-5 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium">
-                        {documents.length}
-                      </span>
-                    </TabsTrigger>
+                <Tabs value={documentType} onValueChange={(value) => setDocumentType(value as "invoice" | "contract")}>
+                  <TabsList className="grid w-full max-w-md grid-cols-2">
                     <TabsTrigger value="invoice">
                       Invoices
                       <span className="ml-2 inline-flex h-5 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium">
@@ -178,7 +172,7 @@ export default function Documents() {
             <CardContent>
               {isLoading ? (
                 <p className="text-center py-8 text-gray-500">Loading documents...</p>
-              ) : documents.length === 0 || (documentType !== "all" && !documents.some(doc => doc.type === documentType)) ? (
+              ) : documents.length === 0 || !documents.some(doc => doc.type === documentType) ? (
                 <div className="text-center py-12 text-gray-500">
                   <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                   {documents.length === 0 ? (
@@ -200,7 +194,7 @@ export default function Documents() {
               ) : (
                 <div className="space-y-6">
                   {documents
-                    .filter(document => documentType === "all" || document.type === documentType)
+                    .filter(document => document.type === documentType)
                     .map((document) => (
                     <div key={document.id} className="p-4 border rounded-md">
                       <div className="flex justify-between items-start mb-4">
