@@ -218,9 +218,20 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
     }
   };
   
-  // Form submission - only generates preview
+  // Form submission - only generates preview without component refresh
   const onSubmit = async (data: FormValues) => {
+    console.log(`[ResumeGenerator:${instanceId}] onSubmit called, preventing remount`);
+    // Prevent the component from unmounting by not adding any side effects
+    // that would cause React to remount the component
     await generateResumeContent(data);
+    
+    // Set focus to the preview section for better UX
+    setTimeout(() => {
+      const previewSection = document.getElementById('resume-preview-section');
+      if (previewSection) {
+        previewSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
   }
   
   // Save the resume to the database
@@ -261,10 +272,17 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
       }
       
       // Save resume to database
-      await apiRequest('/api/resumes', {
-        method: isEditing ? 'PATCH' : 'POST',
-        data: payload,
-      });
+      if (isEditing && resumeToEdit) {
+        await apiRequest(`/api/resumes/${resumeToEdit.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify(payload)
+        });
+      } else {
+        await apiRequest('/api/resumes', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+      }
       
       // Invalidate queries
       queryClient.invalidateQueries({ queryKey: ['/api/resumes'] });
@@ -342,7 +360,7 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
         <div className="space-y-6">
           {/* Resume Content Preview - Only shown when content exists */}
           {resumeContent && (
-            <div className="mb-4">
+            <div id="resume-preview-section" className="mb-4">
               <h4 className="text-base font-medium mb-2">Resume Preview</h4>
               <div className="p-4 border rounded-md whitespace-pre-wrap font-mono text-sm max-h-80 overflow-y-auto">
                 {resumeContent}
