@@ -70,7 +70,8 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
   const [resume, setResume] = useState<{ id: number; content: string } | null>(
     resumeToEdit ? { id: resumeToEdit.id, content: resumeToEdit.content } : null
   );
-  const [activeTab, setActiveTab] = useState(resumeToEdit ? "form" : "form");
+  // Initialize to preview tab when we have content, form tab otherwise
+  const [activeTab, setActiveTab] = useState(resumeToEdit?.content ? "preview" : "form");
   const [isEditing, setIsEditing] = useState(!!resumeToEdit);
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -145,8 +146,14 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
             content: resumeToEdit.content
           });
           
-          // Show the form first
-          setActiveTab("form");
+          // Show the preview tab if we have content, otherwise show the form
+          if (resumeToEdit.content) {
+            console.log(`[ResumeGenerator:${componentId.current}] Setting tab to preview because content exists`);
+            setActiveTab("preview");
+          } else {
+            console.log(`[ResumeGenerator:${componentId.current}] Setting tab to form because no content exists`);
+            setActiveTab("form");
+          }
           
           // Trigger validation and show any errors immediately 
           form.trigger();
@@ -308,7 +315,11 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
           </div>
         </div>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs 
+          value={activeTab} 
+          onValueChange={setActiveTab}
+          defaultValue={resumeToEdit?.content ? "preview" : "form"}
+        >
           <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
             <TabsTrigger value="form">Information</TabsTrigger>
             <TabsTrigger value="preview" disabled={!resume}>Resume Preview</TabsTrigger>
