@@ -98,38 +98,34 @@ export function ProjectsSelector({ selectedProjects, onProjectsChange }: Project
                   const isSelected = projectEntries.includes(formattedProject);
                   
                   return (
-                    <CommandItem
-                      key={project.id}
-                      value={project.name}
-                      onSelect={() => {
+                    <div 
+                      key={project.id} 
+                      className="px-2 py-1.5 cursor-pointer hover:bg-accent hover:text-accent-foreground rounded-sm"
+                      onClick={() => {
                         toggleProject(project);
                         setOpen(false);
                       }}
-                      className="flex items-center justify-between"
                     >
-                      <div className="flex-grow truncate">
-                        <div className="flex items-center">
-                          <span className="font-medium">{project.name}</span>
-                          <span className="ml-2 text-muted-foreground text-xs">
-                            {project.status}
-                          </span>
-                          {isSelected && (
-                            <Badge variant="secondary" className="ml-2 text-xs">
-                              Selected
-                            </Badge>
-                          )}
+                      <div className="flex items-center justify-between">
+                        <div className="flex-grow truncate">
+                          <div className="flex items-center">
+                            <span className="font-medium">{project.name}</span>
+                            <span className="ml-2 text-muted-foreground text-xs">
+                              {project.status}
+                            </span>
+                            {isSelected && (
+                              <Badge variant="secondary" className="ml-2 text-xs">
+                                Selected
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {project.description || "No description"}
+                          </p>
                         </div>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {project.description || "No description"}
-                        </p>
+                        {isSelected && <Check className="ml-auto h-4 w-4" />}
                       </div>
-                      <Check
-                        className={cn(
-                          "ml-auto h-4 w-4",
-                          isSelected ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                    </CommandItem>
+                    </div>
                   );
                 })}
               </CommandGroup>
