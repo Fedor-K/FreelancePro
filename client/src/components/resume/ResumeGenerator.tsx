@@ -17,7 +17,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { generateResume } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
 import { FileText, Wand2, Settings, Copy, Download } from "lucide-react";
@@ -52,27 +51,16 @@ interface ResumeGeneratorProps {
 }
 
 export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeGeneratorProps) {
-  // Add component ID for tracking re-renders across logs
-  const componentId = useRef(Math.random().toString(36).substring(7));
-  // Enhanced logging with full details - timestamp helps track execution order
-  console.log(`[ResumeGenerator:${componentId.current}] CONSTRUCTOR at ${new Date().toISOString()} - resumeToEdit:`, 
-    resumeToEdit ? {
-      id: resumeToEdit.id,
-      name: resumeToEdit.name,
-      content: resumeToEdit.content ? resumeToEdit.content.substring(0, 50) + "..." : null
-    } : null
-  );
-  
-  // Store initial resumeToEdit value to compare in useEffect
-  const initialResumeToEdit = useRef(resumeToEdit);
+  // For debugging - track component instance
+  const instanceId = useRef(Math.random().toString(36).substring(7)).current;
+  console.log(`[ResumeGenerator:${instanceId}] Constructor called with resumeToEdit:`, 
+    resumeToEdit ? {id: resumeToEdit.id, name: resumeToEdit.name, hasContent: !!resumeToEdit.content} : null);
   
   const [isGenerating, setIsGenerating] = useState(false);
-  const [resume, setResume] = useState<{ id: number; content: string } | null>(
-    resumeToEdit ? { id: resumeToEdit.id, content: resumeToEdit.content } : null
+  const [resumeContent, setResumeContent] = useState<string | null>(
+    resumeToEdit?.content || null
   );
-  // Initialize to preview tab when we have content, form tab otherwise
-  const [activeTab, setActiveTab] = useState(resumeToEdit?.content ? "preview" : "form");
-  const [isEditing, setIsEditing] = useState(!!resumeToEdit);
+  const [isEditing] = useState(!!resumeToEdit);
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
@@ -87,41 +75,17 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
     },
   });
   
-  // Load resume data on component mount and when resumeToEdit changes
+  // Load resume settings or edited resume data
   useEffect(() => {
-    // Detailed tracking of useEffect execution with timestamp for debugging
-    console.log(`[ResumeGenerator:${componentId.current}] useEffect at ${new Date().toISOString()} - resumeToEdit:`, 
-      resumeToEdit ? {
-        id: resumeToEdit.id,
-        name: resumeToEdit.name,
-        hasContent: !!resumeToEdit.content
-      } : null
-    );
-    
-    // First reset the form to avoid any stale data
-    form.reset();
-    
-    const loadResumeData = async () => {
+    const loadData = async () => {
       try {
-        // If we're editing an existing resume, prioritize loading that data
+        // Clear form first
+        form.reset();
+        
         if (resumeToEdit) {
-          console.log(`[ResumeGenerator:${componentId.current}] EDIT MODE - loading resume ID:${resumeToEdit.id}`);
-          setIsEditing(true);
-          
-          // Set resume content for preview immediately
-          setResume({
-            id: resumeToEdit.id,
-            content: resumeToEdit.content
-          });
+          console.log(`[ResumeGenerator:${instanceId}] Loading data for editing resume:`, resumeToEdit.id);
           
           // Set form values from the resume being edited
-          console.log(`[ResumeGenerator:${componentId.current}] Setting form values:`, {
-            name: resumeToEdit.name,
-            specialization: resumeToEdit.specialization,
-            experience: resumeToEdit.experience,
-            projects: resumeToEdit.projects
-          });
-          
           form.setValue("name", resumeToEdit.name || "");
           form.setValue("specialization", resumeToEdit.specialization || "");
           form.setValue("experience", resumeToEdit.experience || "");
@@ -130,40 +94,21 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
           // Try to extract target project from the content or experience
           const targetProjectMatch = resumeToEdit.experience?.match(/NOTE: This resume is specifically tailored for the following job\/project: (.+?)(\n|$)/);
           if (targetProjectMatch && targetProjectMatch[1]) {
-            console.log(`[ResumeGenerator:${componentId.current}] Found target project in experience:`, targetProjectMatch[1]);
+            console.log(`[ResumeGenerator:${instanceId}] Found target project:`, targetProjectMatch[1]);
             form.setValue("targetProject", targetProjectMatch[1]);
           } else {
-            console.log(`[ResumeGenerator:${componentId.current}] No target project found, using default`);
             // Set a default value
             form.setValue("targetProject", "Please describe the project you're applying to");
           }
           
-          console.log(`[ResumeGenerator:${componentId.current}] Setting resume preview with content:`, resumeToEdit.content.substring(0, 100) + "...");
-          
-          // Set the resume preview immediately
-          setResume({
-            id: resumeToEdit.id,
-            content: resumeToEdit.content
-          });
-          
-          // Show the preview tab if we have content, otherwise show the form
-          if (resumeToEdit.content) {
-            console.log(`[ResumeGenerator:${componentId.current}] Setting tab to preview because content exists`);
-            setActiveTab("preview");
-          } else {
-            console.log(`[ResumeGenerator:${componentId.current}] Setting tab to form because no content exists`);
-            setActiveTab("form");
-          }
-          
-          // Trigger validation and show any errors immediately 
-          form.trigger();
+          // Set resume content immediately
+          setResumeContent(resumeToEdit.content);
         } else {
-          // Otherwise, load from settings
-          console.log(`[ResumeGenerator:${componentId.current}] No resumeToEdit, loading from settings`);
-          setIsEditing(false);
+          // Load from settings for new resume
+          console.log(`[ResumeGenerator:${instanceId}] Loading settings for new resume`);
           const settings = await getResumeSettings();
           
-          // Set the required fields from settings (these are hidden from the user)
+          // Set form values from settings
           form.setValue("name", settings.defaultTitle || "Professional Resume");
           form.setValue("specialization", settings.skills.split(',')[0] || "Translator");
           
@@ -171,123 +116,102 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
           const formattedExperience = `${settings.experience}\n\nLanguages: ${settings.languages}\n\nEducation: ${settings.education}`;
           form.setValue("experience", formattedExperience);
           
-          // Only update projects if it's empty (to avoid overwriting user input)
-          const currentProjects = form.getValues("projects");
-          if (!currentProjects) {
-            form.setValue("projects", settings.projects || "");
-          }
+          // Set projects if available
+          form.setValue("projects", settings.projects || "");
         }
+        
+        // Trigger validation
+        form.trigger();
       } catch (error) {
-        console.error(`[ResumeGenerator:${componentId.current}] Failed to load resume data:`, error);
+        console.error(`[ResumeGenerator:${instanceId}] Error loading data:`, error);
+        toast({
+          title: "Error loading data",
+          description: "Failed to load resume data. Please try again.",
+          variant: "destructive",
+        });
       }
     };
     
-    loadResumeData();
+    loadData();
     
-    // Add a cleanup function to detect component unmounting
     return () => {
-      console.log("[ResumeGenerator] Component unmounting, resumeToEdit was:", resumeToEdit);
+      console.log(`[ResumeGenerator:${instanceId}] Component unmounting, resumeToEdit:`, 
+        resumeToEdit ? resumeToEdit.id : null);
     };
-  }, [form, resumeToEdit]);
-
+  }, [form, resumeToEdit, toast, instanceId]);
+  
   const onSubmit = async (data: FormValues) => {
-    setIsGenerating(true);
     try {
-      let generatedResume;
+      setIsGenerating(true);
       
+      // Add the target project information to the experience field
+      let updatedExperience = data.experience;
+      updatedExperience = updatedExperience.replace(/NOTE: This resume is specifically tailored for the following job\/project:.+?(\n|$)/, '');
+      updatedExperience += `\n\nNOTE: This resume is specifically tailored for the following job/project: ${data.targetProject}`;
+      
+      const payload = {
+        // Basic fields
+        name: data.name,
+        specialization: data.specialization,
+        experience: updatedExperience,
+        projects: data.projects,
+        targetProject: data.targetProject,
+        useAdditionalSettings: true,
+      };
+      
+      // Add ID if editing
       if (isEditing && resumeToEdit) {
-        console.log("Submitting edited resume with ID:", resumeToEdit.id);
-        
-        // Add the target project information to the experience field
-        let updatedExperience = data.experience;
-        
-        // Remove any existing target project note if present
-        updatedExperience = updatedExperience.replace(/NOTE: This resume is specifically tailored for the following job\/project:.+?(\n|$)/, '');
-        
-        // Add the new target project note
-        updatedExperience += `\n\nNOTE: This resume is specifically tailored for the following job/project: ${data.targetProject}`;
-        
-        // Generate updated resume
-        generatedResume = await generateResume({
-          // Keep the original ID
-          id: resumeToEdit.id,
-          
-          // Use form data with enhanced experience
-          name: data.name,
-          specialization: data.specialization,
-          experience: updatedExperience,
-          projects: data.projects,
-          
-          // Target project for tailoring
-          targetProject: data.targetProject,
-          
-          // We're updating an existing resume
-          isEditing: true,
-          
-          // Tell the API to use additional settings if needed
-          useAdditionalSettings: true
-        });
-        
-        // Notify edit completion if callback provided
-        if (onEditComplete) {
-          onEditComplete();
-        }
-        
-        toast({
-          title: "Resume updated",
-          description: "Your resume has been updated and tailored for your target project.",
-        });
-      } else {
-        // Creating a new resume
-        generatedResume = await generateResume({
-          // Basic required fields for the API
-          name: data.name,
-          specialization: data.specialization,
-          experience: data.experience,
-          projects: data.projects,
-          
-          // Our additional field that will be used for tailoring
-          targetProject: data.targetProject,
-          
-          // Tell the API to use additional settings if needed
-          useAdditionalSettings: true
-        });
-        
-        toast({
-          title: "Resume generated",
-          description: "Your resume has been tailored for your target project using your resume settings.",
-        });
+        Object.assign(payload, { id: resumeToEdit.id, isEditing: true });
       }
       
-      setResume(generatedResume);
-      setActiveTab("preview");
+      // Generate resume
+      console.log(`[ResumeGenerator:${instanceId}] Generating resume with payload:`, {
+        ...payload,
+        experience: updatedExperience.substring(0, 50) + "...",
+      });
       
+      const generatedResume = await generateResume(payload);
+      
+      // Update UI with result
+      setResumeContent(generatedResume.content);
+      
+      // Call onEditComplete callback if in edit mode
+      if (isEditing && onEditComplete) {
+        onEditComplete();
+      }
+      
+      toast({
+        title: isEditing ? "Resume updated" : "Resume generated",
+        description: isEditing 
+          ? "Your resume has been updated successfully."
+          : "Your resume has been generated successfully.",
+      });
     } catch (error) {
-      console.error("Resume generation error:", error);
+      console.error(`[ResumeGenerator:${instanceId}] Error generating resume:`, error);
       toast({
         title: "Error",
-        description: "Failed to generate resume. Please try again later.",
+        description: "Failed to generate resume. Please try again.",
         variant: "destructive",
       });
     } finally {
       setIsGenerating(false);
     }
   };
-
+  
   const handleCopyToClipboard = () => {
-    if (resume?.content) {
-      navigator.clipboard.writeText(resume.content);
+    if (resumeContent) {
+      navigator.clipboard.writeText(resumeContent);
       toast({
         title: "Copied to clipboard",
         description: "Resume content has been copied to clipboard.",
       });
     }
   };
-
+  
   const handleDownload = () => {
-    if (resume?.content) {
+    if (resumeContent) {
       const element = document.createElement("a");
-      const file = new Blob([resume.content], { type: "text/plain" });
+      const file = new Blob([resumeContent], { type: "text/plain" });
       element.href = URL.createObjectURL(file);
       
       // Use the name from form or fallback to 'professional-resume'
@@ -299,7 +223,7 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
       document.body.removeChild(element);
     }
   };
-
+  
   return (
     <Card className="mt-6">
       <CardContent className="pt-6">
@@ -308,40 +232,66 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
             <FileText className="h-6 w-6 text-accent" />
           </div>
           <div>
-            <h3 className="text-lg font-medium leading-6 text-gray-900">Resume Generator</h3>
+            <h3 className="text-lg font-medium leading-6 text-gray-900">
+              {isEditing ? "Edit Resume" : "Resume Generator"}
+            </h3>
             <p className="mt-1 text-sm text-gray-500">
-              Create a professional resume tailored for your freelance specialty. Pre-populated with your Resume settings and AI-powered to highlight your best skills.
+              {isEditing 
+                ? `Editing resume: ${resumeToEdit?.name}`
+                : "Create a professional resume tailored for your freelance specialty."
+              }
             </p>
           </div>
         </div>
         
-        <Tabs 
-          value={activeTab} 
-          onValueChange={setActiveTab}
-          defaultValue={resumeToEdit?.content ? "preview" : "form"}
-        >
-          <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
-            <TabsTrigger value="form">Information</TabsTrigger>
-            <TabsTrigger value="preview" disabled={!resume}>Resume Preview</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="form">
-            <div className="mb-4 flex justify-between items-center">
-              <p className="text-sm text-muted-foreground">
-                This form is pre-populated from your resume settings
-              </p>
-              <Link href="/settings">
+        {/* Two main sections - Content preview (if available) and Form */}
+        <div className="space-y-6">
+          {/* Resume Content Preview - Only shown when content exists */}
+          {resumeContent && (
+            <div className="mb-4">
+              <h4 className="text-base font-medium mb-2">Resume Preview</h4>
+              <div className="p-4 border rounded-md whitespace-pre-wrap font-mono text-sm max-h-80 overflow-y-auto">
+                {resumeContent}
+              </div>
+              <div className="flex justify-end mt-4 space-x-3">
                 <Button 
                   variant="outline" 
-                  size="sm" 
-                  className="flex items-center text-xs"
-                  onClick={() => {}}
+                  onClick={handleCopyToClipboard}
                 >
-                  <Settings className="mr-1 h-3 w-3" />
-                  Edit Resume Settings
+                  <Copy className="h-4 w-4 mr-1" />
+                  Copy
                 </Button>
-              </Link>
+                <Button 
+                  variant="outline" 
+                  onClick={handleDownload}
+                >
+                  <Download className="h-4 w-4 mr-1" />
+                  Download
+                </Button>
+              </div>
             </div>
+          )}
+          
+          {/* Form for editing or creating resume */}
+          <div className="mb-4">
+            {!isEditing && (
+              <div className="mb-4 flex justify-between items-center">
+                <p className="text-sm text-muted-foreground">
+                  This form is pre-populated from your resume settings
+                </p>
+                <Link href="/settings">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex items-center text-xs"
+                  >
+                    <Settings className="mr-1 h-3 w-3" />
+                    Edit Settings
+                  </Button>
+                </Link>
+              </div>
+            )}
+            
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
@@ -400,45 +350,15 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
                   className="w-full mt-2 bg-accent hover:bg-accent/90"
                 >
                   <Wand2 className="mr-2 h-4 w-4" />
-                  {isGenerating ? "Generating Resume..." : "Generate Resume"}
+                  {isGenerating 
+                    ? isEditing ? "Updating Resume..." : "Generating Resume..." 
+                    : isEditing ? "Update Resume" : "Generate Resume"
+                  }
                 </Button>
               </form>
             </Form>
-          </TabsContent>
-          
-          <TabsContent value="preview">
-            {resume && (
-              <div>
-                <div className="p-6 bg-white border rounded-md whitespace-pre-wrap font-mono text-sm">
-                  {resume.content}
-                </div>
-                <div className="flex justify-end mt-4 space-x-3">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setActiveTab("form")}
-                    className="bg-gray-50 text-gray-700"
-                  >
-                    Edit Document
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={handleCopyToClipboard}
-                  >
-                    <Copy className="mr-2 h-4 w-4" />
-                    Copy to Clipboard
-                  </Button>
-                  <Button 
-                    onClick={handleDownload}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    <Download className="mr-2 h-4 w-4" />
-                    Download Resume
-                  </Button>
-                </div>
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
