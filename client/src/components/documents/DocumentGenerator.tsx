@@ -247,31 +247,26 @@ export function DocumentGenerator() {
     setIsSaving(true);
     try {
       // Update the document in the API
-      const response = await apiRequest(
+      await apiRequest(
         "PATCH", 
         `/api/documents/${document.id}`, 
         { content: editedContent }
       );
       
-      // Update local state with correct typing
-      if (response) {
-        // Create a new document object based on the response
-        const updatedDoc: Document = {
-          id: document.id,
-          type: document.type,
-          projectId: document.projectId,
-          content: editedContent, // Use our edited content
-          createdAt: document.createdAt
-        };
-        
-        setDocument(updatedDoc);
-        setIsEditing(false);
-        
-        toast({
-          title: "Document updated",
-          description: "Your changes have been saved successfully.",
-        });
-      }
+      // Create a new document object by copying the original and updating the content
+      const updatedDoc = {
+        ...document,
+        content: editedContent
+      };
+      
+      // Update local state
+      setDocument(updatedDoc);
+      setIsEditing(false);
+      
+      toast({
+        title: "Document updated",
+        description: "Your changes have been saved successfully.",
+      });
     } catch (error) {
       toast({
         title: "Error",
