@@ -264,7 +264,7 @@ export default function Settings() {
                 value="invoicing" 
                 className="flex items-center justify-start px-3 py-2 data-[state=active]:bg-muted"
               >
-                <DatabaseIcon className="h-4 w-4 mr-2" />
+                <Database className="h-4 w-4 mr-2" />
                 Invoicing
               </TabsTrigger>
               <TabsTrigger 
