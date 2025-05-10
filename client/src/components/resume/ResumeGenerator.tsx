@@ -23,6 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { FileText, Wand2, Settings } from "lucide-react";
 import { Link } from "wouter";
 import { getResumeSettings } from "@/lib/settingsService";
+import { ProjectsSelector } from "./ProjectsSelector";
 
 // Extend the schema with validation
 const formSchema = insertResumeSchema.extend({
@@ -223,15 +224,23 @@ export function ResumeGenerator() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Notable Projects</FormLabel>
+                      <div className="mb-2">
+                        <ProjectsSelector 
+                          selectedProjects={field.value.split('\n').filter(line => line.trim())} 
+                          onProjectsChange={(projects) => {
+                            field.onChange(projects.join('\n'));
+                          }}
+                        />
+                      </div>
                       <FormControl>
                         <Textarea 
                           placeholder="List your most notable freelance projects or achievements"
-                          rows={5} 
+                          rows={3} 
                           {...field} 
                         />
                       </FormControl>
                       <FormDescription>
-                        Include client names (if allowed), project scope, and your specific contributions
+                        Select from your existing projects or manually add project details
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

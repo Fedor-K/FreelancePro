@@ -94,6 +94,7 @@ const resumeFormSchema = z.object({
   languages: z.string().max(200, { message: "Languages must not exceed 200 characters" }),
   education: z.string().max(500, { message: "Education must not exceed 500 characters" }),
   experience: z.string().max(1000, { message: "Experience must not exceed 1000 characters" }),
+  projects: z.string().max(1000, { message: "Projects must not exceed 1000 characters" }),
   defaultTemplate: z.string().default("professional"),
 });
 
