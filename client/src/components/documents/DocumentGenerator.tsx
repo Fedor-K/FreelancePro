@@ -44,6 +44,7 @@ export function DocumentGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [document, setDocument] = useState<DocumentType | null>(null);
   const [activeTab, setActiveTab] = useState("form");
+  const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [location] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -76,17 +77,28 @@ export function DocumentGenerator() {
   
   // Effect to handle form pre-population from URL parameters
   useEffect(() => {
+    console.log("DocumentGenerator - projects loaded:", projects.length > 0);
+    console.log("DocumentGenerator - projectIdParam:", projectIdParam);
+    console.log("DocumentGenerator - Form current values:", form.getValues());
+
     if (projects.length > 0 && projectIdParam) {
+      console.log("DocumentGenerator - All projects:", projects);
       const project = projects.find(p => p.id.toString() === projectIdParam);
+      console.log("DocumentGenerator - Project match attempt:", { projectIdParam, found: !!project });
       
       if (project) {
-        console.log("Project found:", project);
+        console.log("DocumentGenerator - Project found:", project);
         // Set form values
+        console.log("DocumentGenerator - Setting projectId to:", projectIdParam);
         form.setValue("projectId", projectIdParam);
         
         if (typeParam) {
+          console.log("DocumentGenerator - Setting type to:", typeParam);
           form.setValue("type", typeParam);
         }
+        
+        // Force form update
+        console.log("DocumentGenerator - Values after setting:", form.getValues());
       }
     }
   }, [projectIdParam, typeParam, projects.length, form]);
@@ -256,6 +268,7 @@ export function DocumentGenerator() {
                       <Select
                         onValueChange={field.onChange}
                         value={field.value}
+                        defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>

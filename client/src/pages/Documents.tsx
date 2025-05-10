@@ -27,12 +27,16 @@ export default function Documents() {
   
   // Check for URL parameters to determine if we should show the create tab
   useEffect(() => {
+    console.log("Documents page - Processing URL:", location);
     const searchParams = new URLSearchParams(location.split("?")[1] || "");
     const projectId = searchParams.get("projectId");
     const type = searchParams.get("type");
     
+    console.log("Documents page - URL params:", { projectId, type });
+    
     if (projectId && type) {
       // If project ID and document type are provided, switch to create tab
+      console.log("Documents page - Switching to create tab");
       setActiveTab("create");
     }
   }, [location]);
