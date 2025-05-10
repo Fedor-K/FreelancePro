@@ -24,7 +24,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { File, FileText, Download, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Project, Document as DocumentType } from "@shared/schema";
+import { Project, Document as DocumentType, Client } from "@shared/schema";
 import { generateDocument, exportToPdf, copyToClipboard } from "@/lib/docGenerator";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -59,9 +59,12 @@ export function DocumentGenerator() {
   });
   
   // Parse query parameters
+  console.log("Location:", location);
   const searchParams = new URLSearchParams(location.split("?")[1] || "");
+  console.log("Search params:", Object.fromEntries(searchParams.entries()));
   const projectIdParam = searchParams.get("projectId");
   const typeParam = searchParams.get("type") as "invoice" | "contract" | null;
+  console.log("Extracted params:", { projectIdParam, typeParam });
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -76,8 +79,12 @@ export function DocumentGenerator() {
     // If projectId and type are specified, auto-generate the document
     if (projectIdParam && typeParam && projects.length > 0) {
       // Auto-select the form values
-      form.setValue("projectId", projectIdParam);
-      form.setValue("type", typeParam);
+      if (projectIdParam) {
+        form.setValue("projectId", projectIdParam);
+      }
+      if (typeParam) {
+        form.setValue("type", typeParam);
+      }
       
       console.log("Setting form values:", {
         projectId: projectIdParam,
@@ -126,7 +133,7 @@ export function DocumentGenerator() {
   }, [projectIdParam, typeParam, projects.length, document]);
 
   const getClientName = (clientId: number) => {
-    const client = clients.find((c: Client) => c.id === clientId);
+    const client = clients.find((c) => c.id === clientId);
     return client ? client.name : "Unknown Client";
   };
 
@@ -219,7 +226,7 @@ export function DocumentGenerator() {
                       <FormLabel>Document Type</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
+                        value={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -244,7 +251,7 @@ export function DocumentGenerator() {
                       <FormLabel>Project</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
+                        value={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
