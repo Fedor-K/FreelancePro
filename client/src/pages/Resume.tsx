@@ -130,9 +130,10 @@ export default function Resume() {
               
               {documentType === "resume" ? 
                 <ResumeGenerator 
+                  key={resumeToEdit ? `edit-resume-${resumeToEdit.id}` : 'new-resume'}
                   resumeToEdit={resumeToEdit} 
                   onEditComplete={() => {
-                    console.log("Edit complete, clearing resumeToEdit state");
+                    console.log("[Resume] Edit complete, clearing resumeToEdit state");
                     setResumeToEdit(null);
                     refetch();
                     // Force a delay before showing the saved tab to allow for the refetch to complete
@@ -223,7 +224,7 @@ export default function Resume() {
                               size="sm"
                               className="bg-gray-50 text-gray-700"
                               onClick={() => {
-                                console.log("Edit button clicked for resume:", resume);
+                                console.log("[Resume] Edit button clicked for resume:", resume);
                                 setResumeToEdit({...resume});
                                 setDocumentType("resume"); // Ensure document type is set to resume
                                 setActiveTab("create");
