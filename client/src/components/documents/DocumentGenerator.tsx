@@ -87,19 +87,28 @@ export function DocumentGenerator() {
       console.log("DocumentGenerator - Project match attempt:", { projectIdParam, found: !!project });
       
       if (project) {
-        console.log("DocumentGenerator - Project found:", project);
-        // Set local state
-        setSelectedProject(projectIdParam);
-        
-        // Set form values
-        console.log("DocumentGenerator - Setting projectId to:", projectIdParam);
-        form.setValue("projectId", projectIdParam);
-        
-        // Force update the form to apply the changes
-        setTimeout(() => {
-          console.log("DocumentGenerator - Applying projectId again:", projectIdParam);
+        // Check if this project is valid for the current document type
+        const currentType = form.getValues().type || typeParam || "invoice";
+        const isValidForType = currentType !== "invoice" || 
+          (project.status === "Delivered" && !project.invoiceSent && !project.isPaid);
+          
+        if (isValidForType) {
+          console.log("DocumentGenerator - Project found and valid for type:", project);
+          // Set local state
+          setSelectedProject(projectIdParam);
+          
+          // Set form values
+          console.log("DocumentGenerator - Setting projectId to:", projectIdParam);
           form.setValue("projectId", projectIdParam);
-        }, 50);
+          
+          // Force update the form to apply the changes
+          setTimeout(() => {
+            console.log("DocumentGenerator - Applying projectId again:", projectIdParam);
+            form.setValue("projectId", projectIdParam);
+          }, 50);
+        } else {
+          console.log("DocumentGenerator - Project found but not valid for invoice");
+        }
         
         if (typeParam) {
           console.log("DocumentGenerator - Setting type to:", typeParam);
@@ -111,6 +120,30 @@ export function DocumentGenerator() {
       }
     }
   }, [projectIdParam, typeParam, projects.length, form]);
+  
+  // Watch for document type changes and update project selection if needed
+  useEffect(() => {
+    // Get the current form values
+    const currentValues = form.getValues();
+    const currentType = currentValues.type;
+    const currentProjectId = currentValues.projectId;
+    
+    if (currentProjectId && projects.length > 0) {
+      const project = projects.find(p => p.id.toString() === currentProjectId);
+      
+      // If we have a project and the document type is invoice
+      if (project && currentType === "invoice") {
+        // Check if the project is valid for invoices
+        const isValidForInvoice = project.status === "Delivered" && !project.invoiceSent && !project.isPaid;
+        
+        // If not valid, clear the project selection
+        if (!isValidForInvoice) {
+          form.setValue("projectId", "");
+          setSelectedProject(null);
+        }
+      }
+    }
+  }, [form.watch("type"), projects]);
   
   // Separate effect for auto-generating invoice
   useEffect(() => {
@@ -288,11 +321,34 @@ export function DocumentGenerator() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {projects.map((project) => (
-                            <SelectItem key={project.id} value={project.id.toString()}>
-                              {project.name} ({getClientName(project.clientId)})
-                            </SelectItem>
-                          ))}
+                          {(() => {
+                            // Filter projects based on document type
+                            const currentType = form.getValues().type;
+                            const filteredProjects = projects.filter(project => {
+                              if (currentType === "invoice") {
+                                return project.status === "Delivered" && !project.invoiceSent && !project.isPaid;
+                              }
+                              return true; // For other document types, show all projects
+                            });
+                            
+                            if (filteredProjects.length === 0) {
+                              // No eligible projects available
+                              return (
+                                <div className="py-6 text-center text-sm text-muted-foreground">
+                                  {currentType === "invoice" 
+                                    ? "No delivered projects available for invoicing. Projects must be marked as 'Delivered' to create an invoice."
+                                    : "No projects available."}
+                                </div>
+                              );
+                            }
+                            
+                            // Return the list of eligible projects
+                            return filteredProjects.map((project) => (
+                              <SelectItem key={project.id} value={project.id.toString()}>
+                                {project.name} ({getClientName(project.clientId)})
+                              </SelectItem>
+                            ));
+                          })()}
                         </SelectContent>
                       </Select>
                       <FormMessage />
