@@ -48,10 +48,17 @@ interface ResumeGeneratorProps {
     projects: string;
     content: string;
   } | null;
+  previewOnly?: boolean;
   onEditComplete?: () => void;
+  onPreviewGenerated?: (content: string, data: any) => void;
 }
 
-export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeGeneratorProps) {
+export function ResumeGenerator({ 
+  resumeToEdit = null, 
+  previewOnly = false, 
+  onEditComplete,
+  onPreviewGenerated
+}: ResumeGeneratorProps) {
   // For debugging - track component instance
   const instanceId = useRef(Math.random().toString(36).substring(7)).current;
   console.log(`[ResumeGenerator:${instanceId}] Constructor called with resumeToEdit:`, 
@@ -218,97 +225,83 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
     }
   };
   
-  // Form submission - only generates preview without component refresh
+  // Form submission - generate the resume content
   const onSubmit = async (data: FormValues) => {
-    console.log(`[ResumeGenerator:${instanceId}] onSubmit called, preventing remount`);
-    // Prevent the component from unmounting by not adding any side effects
-    // that would cause React to remount the component
-    await generateResumeContent(data);
-    
-    // Set focus to the preview section for better UX
-    setTimeout(() => {
-      const previewSection = document.getElementById('resume-preview-section');
-      if (previewSection) {
-        previewSection.scrollIntoView({ behavior: 'smooth' });
-      }
-    }, 100);
-  }
-  
-  // Save the resume to the database
-  const saveResume = async () => {
-    if (!resumeContent) {
-      toast({
-        title: "No content to save",
-        description: "Please generate a resume first.",
-        variant: "destructive",
-      });
-      return;
-    }
+    console.log(`[ResumeGenerator:${instanceId}] onSubmit called with previewOnly=${previewOnly}`);
     
     try {
       setIsGenerating(true);
       
-      const formData = form.getValues();
-      
       // Add the target project information to the experience field
-      let updatedExperience = formData.experience;
+      let updatedExperience = data.experience;
       updatedExperience = updatedExperience.replace(/NOTE: This resume is specifically tailored for the following job\/project:.+?(\n|$)/, '');
-      updatedExperience += `\n\nNOTE: This resume is specifically tailored for the following job/project: ${formData.targetProject}`;
+      updatedExperience += `\n\nNOTE: This resume is specifically tailored for the following job/project: ${data.targetProject}`;
       
       const payload = {
         // Basic fields
-        name: formData.name,
-        specialization: formData.specialization,
+        name: data.name,
+        specialization: data.specialization,
         experience: updatedExperience,
-        projects: formData.projects,
-        targetProject: formData.targetProject,
+        projects: data.projects,
+        targetProject: data.targetProject,
         useAdditionalSettings: true,
-        content: resumeContent,
       };
       
-      // Add ID if editing
-      if (isEditing && resumeToEdit) {
-        Object.assign(payload, { id: resumeToEdit.id, isEditing: true });
-      }
-      
-      // Save resume to database
-      if (isEditing && resumeToEdit) {
-        await apiRequest(`/api/resumes/${resumeToEdit.id}`, {
-          method: 'PATCH',
-          body: JSON.stringify(payload)
+      if (previewOnly && onPreviewGenerated) {
+        // Generate resume but don't save to database
+        console.log(`[ResumeGenerator:${instanceId}] Generating preview only`);
+        const generatedResume = await generateResume(payload);
+        
+        // For preview mode, notify parent component instead of updating local state
+        onPreviewGenerated(generatedResume.content, payload);
+        
+        toast({
+          title: "Resume preview generated",
+          description: "You can now review your resume before saving it.",
+          duration: 3000,
         });
       } else {
-        await apiRequest('/api/resumes', {
-          method: 'POST',
-          body: JSON.stringify(payload)
+        // Regular flow - generate and update local state
+        console.log(`[ResumeGenerator:${instanceId}] Generating full resume`);
+        
+        // Add ID if editing
+        if (isEditing && resumeToEdit) {
+          Object.assign(payload, { id: resumeToEdit.id, isEditing: true });
+        }
+        
+        const generatedResume = await generateResume(payload);
+        
+        // Update UI with result
+        setResumeContent(generatedResume.content);
+        
+        // Store the generated resume in localStorage for persistence
+        localStorage.setItem('lastGeneratedResume', generatedResume.content);
+        
+        // Call onEditComplete callback
+        if (onEditComplete) {
+          onEditComplete();
+        }
+        
+        toast({
+          title: isEditing ? "Resume updated" : "Resume generated",
+          description: isEditing 
+            ? "Your resume has been updated successfully."
+            : "Your resume has been generated successfully.",
         });
       }
-      
-      // Invalidate queries
-      queryClient.invalidateQueries({ queryKey: ['/api/resumes'] });
-      
-      // Call onEditComplete callback
-      if (onEditComplete) {
-        onEditComplete();
-      }
-      
-      toast({
-        title: isEditing ? "Resume updated" : "Resume saved",
-        description: isEditing 
-          ? "Your resume has been updated successfully."
-          : "Your resume has been saved successfully.",
-      });
     } catch (error) {
-      console.error(`[ResumeGenerator:${instanceId}] Error saving resume:`, error);
+      console.error(`[ResumeGenerator:${instanceId}] Error generating resume:`, error);
       toast({
         title: "Error",
-        description: "Failed to save resume. Please try again.",
+        description: "Failed to generate resume. Please try again.",
         variant: "destructive",
       });
     } finally {
       setIsGenerating(false);
     }
-  };
+  }
+  
+  // No longer needed as we're handling saving at the parent level
   
   const handleCopyToClipboard = () => {
     if (resumeContent) {
@@ -358,8 +351,8 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
         
         {/* Two main sections - Content preview (if available) and Form */}
         <div className="space-y-6">
-          {/* Resume Content Preview - Only shown when content exists */}
-          {resumeContent && (
+          {/* Resume Content Preview - Only shown when content exists and not in previewOnly mode */}
+          {resumeContent && !previewOnly && (
             <div id="resume-preview-section" className="mb-4">
               <h4 className="text-base font-medium mb-2">Resume Preview</h4>
               <div className="p-4 border rounded-md whitespace-pre-wrap font-mono text-sm max-h-80 overflow-y-auto">
@@ -379,15 +372,6 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
                 >
                   <Download className="h-4 w-4 mr-1" />
                   Download
-                </Button>
-                <Button 
-                  variant="default"
-                  onClick={saveResume}
-                  disabled={isGenerating}
-                  className="bg-accent hover:bg-accent/90"
-                >
-                  <FileText className="h-4 w-4 mr-1" />
-                  {isGenerating ? "Saving..." : "Save to Collection"}
                 </Button>
               </div>
             </div>
@@ -473,7 +457,7 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
                   <Wand2 className="mr-2 h-4 w-4" />
                   {isGenerating 
                     ? isEditing ? "Updating Resume..." : "Generating Resume..." 
-                    : isEditing ? "Update Resume" : "Generate Resume"
+                    : isEditing ? "Update Resume" : (previewOnly ? "Generate Preview" : "Generate Resume")
                   }
                 </Button>
               </form>
