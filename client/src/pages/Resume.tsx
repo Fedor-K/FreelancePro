@@ -68,23 +68,6 @@ export default function Resume() {
 
   return (
     <div className="space-y-6">
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Resume Builder</CardTitle>
-          <CardDescription>
-            Create professional resumes tailored for your freelance specialty. AI-powered to highlight your best skills.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center">
-            <img 
-              src="https://images.unsplash.com/photo-1586281380349-632531db7ed4?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" 
-              alt="Resume example" 
-              className="object-cover w-1/2 h-48 rounded-md"
-            />
-          </div>
-        </CardContent>
-      </Card>
 
       <Tabs defaultValue="create" className="w-full">
         <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
