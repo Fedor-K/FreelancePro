@@ -374,28 +374,36 @@ export default function Resume() {
                             <Button 
                               variant="outline" 
                               size="sm"
-                              onClick={() => {
-                                // Switch to create tab
-                                console.log("Edit button clicked for resume:", resume.id);
-                                setActiveTab("create");
-                                
-                                // Set editing mode
-                                setIsEditing(true);
-                                
-                                // Start with the form instead of content
-                                setCurrentResumeContent(null);
-                                
-                                const resumeData = {
-                                  id: resume.id,
-                                  name: resume.name,
-                                  specialization: resume.specialization,
-                                  experience: resume.experience,
-                                  projects: resume.projects,
-                                  targetProject: ""
-                                };
-                                
-                                console.log("Setting currentResumeData for editing:", resumeData);
-                                setCurrentResumeData(resumeData);
+                              onClick={async () => {
+                                try {
+                                  console.log("Edit button clicked for resume:", resume.id);
+                                  
+                                  // Let's take a direct PATCH approach rather than going through edit UI
+                                  const updatedContent = prompt("Edit the content:", resume.content);
+                                  
+                                  if (updatedContent !== null && updatedContent !== resume.content) {
+                                    // Send update directly 
+                                    await apiRequest("PATCH", `/api/resumes/${resume.id}`, {
+                                      id: resume.id,
+                                      content: updatedContent
+                                    });
+                                    
+                                    // Refresh the list
+                                    await refetch();
+                                    
+                                    toast({
+                                      title: "Resume updated",
+                                      description: "Your resume has been updated successfully."
+                                    });
+                                  }
+                                } catch (error) {
+                                  console.error("Error updating resume:", error);
+                                  toast({
+                                    title: "Error",
+                                    description: "Failed to update resume. Please try again.",
+                                    variant: "destructive"
+                                  });
+                                }
                               }}
                             >
                               <FileText className="h-4 w-4 mr-1" />
