@@ -267,8 +267,13 @@ export function ResumeGenerator({
     try {
       setIsGenerating(true);
       
+      // Ensure we have the mandatory fields
+      if (!data.name) data.name = "Professional Resume";
+      if (!data.specialization) data.specialization = "Translator";
+      if (!data.targetProject) data.targetProject = "freelance project";
+      
       // Add the target project information to the experience field
-      let updatedExperience = data.experience;
+      let updatedExperience = data.experience || "";
       updatedExperience = updatedExperience.replace(/NOTE: This resume is specifically tailored for the following job\/project:.+?(\n|$)/, '');
       updatedExperience += `\n\nNOTE: This resume is specifically tailored for the following job/project: ${data.targetProject}`;
       
@@ -277,10 +282,19 @@ export function ResumeGenerator({
         name: data.name,
         specialization: data.specialization,
         experience: updatedExperience,
-        projects: data.projects,
+        projects: data.projects || "",
         targetProject: data.targetProject,
         useAdditionalSettings: true,
       };
+      
+      // Log the payload to help with debugging
+      console.log(`[ResumeGenerator:${instanceId}] Submitting with payload:`, {
+        name: payload.name,
+        specialization: payload.specialization,
+        targetProject: payload.targetProject,
+        experienceLength: payload.experience?.length || 0,
+        projectsLength: payload.projects?.length || 0
+      });
       
       if (previewOnly && onPreviewGenerated) {
         // Generate resume but don't save to database
