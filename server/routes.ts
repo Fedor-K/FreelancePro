@@ -332,21 +332,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid resume data", errors: result.error.format() });
       }
       
-      // Generate resume content using OpenAI
+      // Generate resume or cover letter content using OpenAI
       try {
-        const prompt = `Create a professional resume for a ${result.data.specialization} freelancer named ${result.data.name} with the following experience: ${result.data.experience}
+        let prompt;
         
-        Include these projects: ${result.data.projects}
-        
-        Format the resume in a professional manner with clear sections for:
-        1. Contact Information
-        2. Professional Summary
-        3. Skills
-        4. Experience
-        5. Education
-        6. Projects
-        
-        The resume should highlight freelance expertise and be optimized for getting freelance clients in the field of ${result.data.specialization}.`;
+        // Check if we're generating a cover letter (identified by specialization)
+        if (result.data.specialization === "Cover Letter") {
+          // Extract additional data that might be passed for cover letter
+          const targetCompany = (req.body.targetCompany as string) || "the prospective client";
+          const jobDescription = (req.body.jobDescription as string) || "the freelance position";
+          
+          // Create a prompt for cover letter generation
+          prompt = `Create a professional cover letter for ${result.data.name}, a freelance professional applying to ${targetCompany}.
+          
+          Professional Background: ${result.data.experience}
+          
+          Relevant Projects: ${result.data.projects}
+          
+          Job/Project Description: ${jobDescription}
+          
+          Format it professionally as a formal cover letter with:
+          1. Current date
+          2. Appropriate greeting
+          3. Introduction paragraph mentioning the position
+          4. Body paragraphs highlighting relevant skills and experience
+          5. Closing paragraph with call to action
+          6. Professional signature
+          
+          The cover letter should be persuasive and tailored to the specific opportunity, highlighting freelance expertise.`;
+        } else {
+          // Create a prompt for resume generation
+          prompt = `Create a professional resume for a ${result.data.specialization} freelancer named ${result.data.name} with the following experience: ${result.data.experience}
+          
+          Include these projects: ${result.data.projects}
+          
+          Format the resume in a professional manner with clear sections for:
+          1. Contact Information
+          2. Professional Summary
+          3. Skills
+          4. Experience
+          5. Education
+          6. Projects
+          
+          The resume should highlight freelance expertise and be optimized for getting freelance clients in the field of ${result.data.specialization}.`;
+        }
         
         const response = await openai.chat.completions.create({
           model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
