@@ -34,6 +34,7 @@ export interface IStorage {
   getDocumentsByProject(projectId: number): Promise<Document[]>;
   getDocument(id: number): Promise<Document | undefined>;
   createDocument(document: InsertDocument): Promise<Document>;
+  updateDocument(id: number, document: Partial<{ content: string }>): Promise<Document | undefined>;
   deleteDocument(id: number): Promise<boolean>;
   
   // External data operations

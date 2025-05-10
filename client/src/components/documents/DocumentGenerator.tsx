@@ -42,7 +42,10 @@ type FormValues = z.infer<typeof formSchema>;
 
 export function DocumentGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [document, setDocument] = useState<DocumentType | null>(null);
+  const [editedContent, setEditedContent] = useState<string>("");
   const [activeTab, setActiveTab] = useState("form");
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [location] = useLocation();
@@ -211,6 +214,7 @@ export function DocumentGenerator() {
       );
       
       setDocument(generatedDocument);
+      setEditedContent(generatedDocument.content); // Initialize edited content
       setActiveTab("preview");
       
       toast({
@@ -225,6 +229,38 @@ export function DocumentGenerator() {
       });
     } finally {
       setIsGenerating(false);
+    }
+  };
+  
+  // Handler for saving edited document content
+  const handleSaveEdit = async () => {
+    if (!document) return;
+    
+    setIsSaving(true);
+    try {
+      // Update the document in the API
+      const updatedDocument = await apiRequest(
+        "PATCH", 
+        `/api/documents/${document.id}`, 
+        { content: editedContent }
+      );
+      
+      // Update local state
+      setDocument(updatedDocument);
+      setIsEditing(false);
+      
+      toast({
+        title: "Document updated",
+        description: "Your changes have been saved successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save changes. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -382,22 +418,57 @@ export function DocumentGenerator() {
           <TabsContent value="preview">
             {document && (
               <div>
-                <div className="p-6 bg-white border rounded-md whitespace-pre-wrap font-mono text-sm">
-                  {document.content}
-                </div>
-                <div className="flex justify-end mt-4 space-x-3">
-                  <Button 
-                    variant="outline" 
-                    onClick={handleCopyToClipboard}
-                  >
-                    <Copy className="mr-2 h-4 w-4" />
-                    Copy to Clipboard
-                  </Button>
-                  <Button onClick={handleDownloadPdf}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Download PDF
-                  </Button>
-                </div>
+                {isEditing ? (
+                  <div className="mb-4">
+                    <textarea
+                      className="w-full h-96 p-6 bg-white border rounded-md font-mono text-sm resize-none"
+                      value={editedContent}
+                      onChange={(e) => setEditedContent(e.target.value)}
+                    />
+                    <div className="flex justify-end mt-4 space-x-3">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          setIsEditing(false);
+                          setEditedContent(document.content);
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        onClick={handleSaveEdit}
+                        disabled={isSaving}
+                      >
+                        {isSaving ? "Saving..." : "Save Changes"}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="p-6 bg-white border rounded-md whitespace-pre-wrap font-mono text-sm">
+                      {editedContent || document.content}
+                    </div>
+                    <div className="flex justify-end mt-4 space-x-3">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setIsEditing(true)}
+                      >
+                        Edit Document
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={handleCopyToClipboard}
+                      >
+                        <Copy className="mr-2 h-4 w-4" />
+                        Copy to Clipboard
+                      </Button>
+                      <Button onClick={handleDownloadPdf}>
+                        <Download className="mr-2 h-4 w-4" />
+                        Download PDF
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </TabsContent>

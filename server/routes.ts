@@ -425,6 +425,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch document" });
     }
   });
+  
+  app.patch("/api/documents/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid document ID" });
+      }
+      
+      const document = await storage.getDocument(id);
+      if (!document) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+      
+      // Only allow updating content for now
+      const updateData = { 
+        content: req.body.content
+      };
+      
+      // Update the document content
+      const updatedDocument = {
+        ...document,
+        content: updateData.content
+      };
+      
+      // Store the updated document
+      const result = await storage.updateDocument(id, updateData);
+      if (!result) {
+        return res.status(500).json({ message: "Failed to update document" });
+      }
+      
+      res.json(updatedDocument);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update document" });
+    }
+  });
 
   app.post("/api/documents", async (req: Request, res: Response) => {
     try {
