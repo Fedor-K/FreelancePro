@@ -39,10 +39,23 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export function ResumeGenerator() {
+interface ResumeGeneratorProps {
+  resumeToEdit?: {
+    id: number;
+    name: string;
+    specialization: string;
+    experience: string;
+    projects: string;
+    content: string;
+  } | null;
+  onEditComplete?: () => void;
+}
+
+export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [resume, setResume] = useState<{ id: number; content: string } | null>(null);
   const [activeTab, setActiveTab] = useState("form");
+  const [isEditing, setIsEditing] = useState(!!resumeToEdit);
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
@@ -59,59 +72,126 @@ export function ResumeGenerator() {
   
   // Load resume settings from settings service
   useEffect(() => {
-    const loadResumeSettings = async () => {
+    const loadResumeData = async () => {
       try {
-        const settings = await getResumeSettings();
-        
-        // Set the required fields from settings (these are hidden from the user)
-        form.setValue("name", settings.defaultTitle || "Professional Resume");
-        form.setValue("specialization", settings.skills.split(',')[0] || "Translator");
-        
-        // Create a formatted experience string from the settings
-        const formattedExperience = `${settings.experience}\n\nLanguages: ${settings.languages}\n\nEducation: ${settings.education}`;
-        form.setValue("experience", formattedExperience);
-        
-        // Only update projects if it's empty (to avoid overwriting user input)
-        const currentProjects = form.getValues("projects");
-        if (!currentProjects) {
-          form.setValue("projects", settings.projects || "");
+        // If we're editing an existing resume, use its data
+        if (resumeToEdit) {
+          // Set form values from the resume being edited
+          form.setValue("name", resumeToEdit.name);
+          form.setValue("specialization", resumeToEdit.specialization);
+          form.setValue("experience", resumeToEdit.experience);
+          form.setValue("projects", resumeToEdit.projects);
+          
+          // Try to extract target project from the content or experience
+          const targetProjectMatch = resumeToEdit.experience.match(/NOTE: This resume is specifically tailored for the following job\/project: (.+?)(\n|$)/);
+          if (targetProjectMatch && targetProjectMatch[1]) {
+            form.setValue("targetProject", targetProjectMatch[1]);
+          } else {
+            // Set a default value or try to find it in the content
+            form.setValue("targetProject", "Please describe the project you're applying to");
+          }
+          
+          // Set the resume preview
+          setResume(resumeToEdit);
+        } else {
+          // Otherwise, load from settings
+          const settings = await getResumeSettings();
+          
+          // Set the required fields from settings (these are hidden from the user)
+          form.setValue("name", settings.defaultTitle || "Professional Resume");
+          form.setValue("specialization", settings.skills.split(',')[0] || "Translator");
+          
+          // Create a formatted experience string from the settings
+          const formattedExperience = `${settings.experience}\n\nLanguages: ${settings.languages}\n\nEducation: ${settings.education}`;
+          form.setValue("experience", formattedExperience);
+          
+          // Only update projects if it's empty (to avoid overwriting user input)
+          const currentProjects = form.getValues("projects");
+          if (!currentProjects) {
+            form.setValue("projects", settings.projects || "");
+          }
         }
       } catch (error) {
-        console.error("Failed to load resume settings:", error);
+        console.error("Failed to load resume data:", error);
       }
     };
     
-    loadResumeSettings();
-  }, [form]);
+    loadResumeData();
+  }, [form, resumeToEdit]);
 
   const onSubmit = async (data: FormValues) => {
     setIsGenerating(true);
     try {
-      // The form already has name, specialization, and experience populated from settings
-      // We just need to add the targetProject information
+      let generatedResume;
       
-      // Generate resume with the form data + target project info
-      const generatedResume = await generateResume({
-        // Basic required fields for the API
-        name: data.name,
-        specialization: data.specialization,
-        experience: data.experience,
-        projects: data.projects,
+      if (isEditing && resumeToEdit) {
+        // If we're editing an existing resume, just update the targetProject
+        // and regenerate the resume content
         
-        // Our additional field that will be used for tailoring
-        targetProject: data.targetProject,
+        // Add the target project information to the experience field
+        let updatedExperience = data.experience;
         
-        // Tell the API to use additional settings if needed
-        useAdditionalSettings: true
-      });
+        // Remove any existing target project note if present
+        updatedExperience = updatedExperience.replace(/NOTE: This resume is specifically tailored for the following job\/project:.+?(\n|$)/, '');
+        
+        // Add the new target project note
+        updatedExperience += `\n\nNOTE: This resume is specifically tailored for the following job/project: ${data.targetProject}`;
+        
+        // Generate updated resume
+        generatedResume = await generateResume({
+          // Keep the original ID
+          id: resumeToEdit.id,
+          
+          // Use form data with enhanced experience
+          name: data.name,
+          specialization: data.specialization,
+          experience: updatedExperience,
+          projects: data.projects,
+          
+          // Target project for tailoring
+          targetProject: data.targetProject,
+          
+          // We're updating an existing resume
+          isEditing: true,
+          
+          // Tell the API to use additional settings if needed
+          useAdditionalSettings: true
+        });
+        
+        // Notify edit completion if callback provided
+        if (onEditComplete) {
+          onEditComplete();
+        }
+        
+        toast({
+          title: "Resume updated",
+          description: "Your resume has been updated and tailored for your target project.",
+        });
+      } else {
+        // Creating a new resume
+        generatedResume = await generateResume({
+          // Basic required fields for the API
+          name: data.name,
+          specialization: data.specialization,
+          experience: data.experience,
+          projects: data.projects,
+          
+          // Our additional field that will be used for tailoring
+          targetProject: data.targetProject,
+          
+          // Tell the API to use additional settings if needed
+          useAdditionalSettings: true
+        });
+        
+        toast({
+          title: "Resume generated",
+          description: "Your resume has been tailored for your target project using your resume settings.",
+        });
+      }
       
       setResume(generatedResume);
       setActiveTab("preview");
       
-      toast({
-        title: "Resume generated",
-        description: "Your resume has been tailored for your target project using your resume settings.",
-      });
     } catch (error) {
       console.error("Resume generation error:", error);
       toast({

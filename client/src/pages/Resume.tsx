@@ -18,7 +18,7 @@ import { CoverLetterGenerator } from "@/components/resume/CoverLetterGenerator";
 import { useQuery } from "@tanstack/react-query";
 import { Resume as ResumeType } from "@shared/schema";
 import { Button } from "@/components/ui/button";
-import { FileText, Download, Copy, Trash2 } from "lucide-react";
+import { FileText, Download, Copy, Trash2, Edit } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -28,6 +28,7 @@ export default function Resume() {
   const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [resumeToDelete, setResumeToDelete] = useState<ResumeType | null>(null);
+  const [resumeToEdit, setResumeToEdit] = useState<ResumeType | null>(null);
   const [activeTab, setActiveTab] = useState("create");
   const [documentType, setDocumentType] = useState<"resume" | "coverLetter">("resume");
   
@@ -114,7 +115,16 @@ export default function Resume() {
                 </div>
               </div>
               
-              {documentType === "resume" ? <ResumeGenerator /> : <CoverLetterGenerator />}
+              {documentType === "resume" ? 
+                <ResumeGenerator 
+                  resumeToEdit={resumeToEdit} 
+                  onEditComplete={() => {
+                    setResumeToEdit(null);
+                    refetch();
+                  }}
+                /> : 
+                <CoverLetterGenerator />
+              }
             </TabsContent>
             
             <TabsContent value="saved">
@@ -191,6 +201,18 @@ export default function Resume() {
                             >
                               <Download className="h-4 w-4 mr-1" />
                               Download
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                              onClick={() => {
+                                setResumeToEdit(resume);
+                                setActiveTab("create");
+                              }}
+                            >
+                              <Edit className="h-4 w-4 mr-1" />
+                              Edit
                             </Button>
                             <Button 
                               variant="outline" 
