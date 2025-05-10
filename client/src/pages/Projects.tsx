@@ -264,7 +264,30 @@ export default function Projects() {
         </div>
       </div>
       
-      <Card className="mt-6">
+      <Tabs defaultValue="In Progress" value={activeTab} onValueChange={(value) => setActiveTab(value as TabValue)} className="w-full mb-4 mt-6">
+        <TabsList className="grid w-full max-w-md grid-cols-3">
+          <TabsTrigger value="In Progress">
+            In Progress
+            <span className="ml-1 inline-flex h-5 items-center justify-center rounded-full bg-yellow-100 px-2 text-xs font-medium text-yellow-800">
+              {inProgressCount}
+            </span>
+          </TabsTrigger>
+          <TabsTrigger value="Delivered">
+            Delivered
+            <span className="ml-1 inline-flex h-5 items-center justify-center rounded-full bg-blue-100 px-2 text-xs font-medium text-blue-800">
+              {deliveredCount}
+            </span>
+          </TabsTrigger>
+          <TabsTrigger value="Paid">
+            Paid
+            <span className="ml-1 inline-flex h-5 items-center justify-center rounded-full bg-green-100 px-2 text-xs font-medium text-green-800">
+              {paidCount}
+            </span>
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+      
+      <Card>
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -291,9 +314,7 @@ export default function Projects() {
                   <TableCell colSpan={8} className="text-center py-10 text-gray-500">
                     {searchTerm 
                       ? "No projects match your search. Try a different term."
-                      : showArchived 
-                        ? "No archived projects found."
-                        : "No projects found. Add a project to get started."}
+                      : `No ${activeTab} projects found.${activeTab === "In Progress" ? " Add a project to get started." : ""}`}
                   </TableCell>
                 </TableRow>
               ) : (
