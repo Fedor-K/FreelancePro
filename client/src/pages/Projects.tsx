@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table, 
   TableBody, 
@@ -96,10 +97,8 @@ export default function Projects() {
       const deadlineDate = new Date(project.deadline);
       
       if (isPast(deadlineDate)) {
-        // If deadline is in the past and project isn't delivered or paid
-        if (project.status !== "Delivered" && 
-            project.status !== "Paid" && 
-            !project.isPaid) {
+        // If deadline is in the past and project is in progress
+        if (project.status === "In Progress" && !project.isPaid) {
           labels.push("Overdue");
           return labels;
         }
@@ -184,11 +183,19 @@ export default function Projects() {
     return daysToDeadline;
   };
 
-  // Filter projects based on search term and archived status
+  // Get counts for tabs
+  const inProgressCount = projects.filter(p => p.status === "In Progress" && (!p.isArchived || showArchived)).length;
+  const deliveredCount = projects.filter(p => p.status === "Delivered" && (!p.isArchived || showArchived)).length;
+  const paidCount = projects.filter(p => p.status === "Paid" && (!p.isArchived || showArchived)).length;
+  
+  // Filter projects based on search term, archived status, and active tab
   const filteredProjects = projects
     .filter(project => {
       // Filter by archived status
       if (!showArchived && project.isArchived) return false;
+      
+      // Filter by active tab
+      if (project.status !== activeTab) return false;
       
       // Filter by search term
       return (
