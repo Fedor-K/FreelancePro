@@ -88,9 +88,18 @@ export function DocumentGenerator() {
       
       if (project) {
         console.log("DocumentGenerator - Project found:", project);
+        // Set local state
+        setSelectedProject(projectIdParam);
+        
         // Set form values
         console.log("DocumentGenerator - Setting projectId to:", projectIdParam);
         form.setValue("projectId", projectIdParam);
+        
+        // Force update the form to apply the changes
+        setTimeout(() => {
+          console.log("DocumentGenerator - Applying projectId again:", projectIdParam);
+          form.setValue("projectId", projectIdParam);
+        }, 50);
         
         if (typeParam) {
           console.log("DocumentGenerator - Setting type to:", typeParam);
@@ -266,9 +275,12 @@ export function DocumentGenerator() {
                     <FormItem>
                       <FormLabel>Project</FormLabel>
                       <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                        defaultValue={field.value}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          setSelectedProject(value);
+                        }}
+                        value={selectedProject || field.value}
+                        defaultValue={selectedProject || field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
