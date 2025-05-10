@@ -69,6 +69,7 @@ export default function Dashboard() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const [showArchived, setShowArchived] = useState(false);
+  const [activeTab, setActiveTab] = useState("all");
 
   const { data: stats, isLoading: isLoadingStats } = useQuery<DashboardStats>({
     queryKey: ['/api/stats'],
@@ -118,11 +119,16 @@ export default function Dashboard() {
     return daysToDeadline;
   };
 
-  // Filter projects based on search term and archived status
+  // Filter projects based on search term, archived status, and active tab
   const filteredProjects = projects
     .filter(project => {
       // Filter by archived status
       if (!showArchived && project.isArchived) return false;
+      
+      // Filter by active tab
+      if (activeTab !== "all") {
+        if (project.status !== activeTab) return false;
+      }
       
       // Filter by search term
       return (
@@ -323,6 +329,15 @@ export default function Dashboard() {
             </Dialog>
           </div>
         </div>
+        
+        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full mb-4">
+          <TabsList className="grid w-full max-w-md grid-cols-4">
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="In Progress">In Progress</TabsTrigger>
+            <TabsTrigger value="Delivered">Delivered</TabsTrigger>
+            <TabsTrigger value="Paid">Paid</TabsTrigger>
+          </TabsList>
+        </Tabs>
         
         <Card>
           <div className="rounded-md border">
