@@ -35,6 +35,13 @@ export default function Resume() {
   // Add logging for state changes
   useEffect(() => {
     console.log("[Resume] resumeToEdit changed:", resumeToEdit);
+    
+    // When resumeToEdit changes and is not null, ensure we're in edit mode
+    if (resumeToEdit) {
+      console.log("[Resume] Ensuring we're in edit mode with documentType=resume and activeTab=create");
+      setDocumentType("resume");
+      setActiveTab("create");
+    }
   }, [resumeToEdit]);
   
   useEffect(() => {
@@ -225,9 +232,10 @@ export default function Resume() {
                               className="bg-gray-50 text-gray-700"
                               onClick={() => {
                                 console.log("[Resume] Edit button clicked for resume:", resume);
-                                setResumeToEdit({...resume});
-                                setDocumentType("resume"); // Ensure document type is set to resume
-                                setActiveTab("create");
+                                const resumeCopy = {...resume};
+                                console.log("[Resume] Setting resumeToEdit state to:", resumeCopy);
+                                // Let the useEffect handle the tab and document type changes
+                                setResumeToEdit(resumeCopy);
                               }}
                             >
                               <Edit className="h-4 w-4 mr-1" />
