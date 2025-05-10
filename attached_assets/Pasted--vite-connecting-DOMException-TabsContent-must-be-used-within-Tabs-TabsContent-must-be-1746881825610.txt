@@ -1,0 +1,64 @@
+[vite] connecting...
+DOMException {}
+
+`TabsContent` must be used within `Tabs`
+`TabsContent` must be used within `Tabs`
+`TabsContent` must be used within `Tabs`
+`TabsContent` must be used within `Tabs`
+`TabsContent` must be used within `Tabs`
+`TabsContent` must be used within `Tabs`
+`TabsContent` must be used within `Tabs`
+`TabsContent` must be used within `Tabs`
+`TabsContent` must be used within `Tabs`
+`TabsContent` must be used within `Tabs`
+`TabsContent` must be used within `Tabs`
+`TabsContent` must be used within `Tabs`
+The above error occurred in the <TabsContent> component:
+
+    at https://d83e8e33-b6f8-466a-a35a-717f16a30d63-00-1zvd98hcv1e9k.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=2cecd382:173:13
+    at _c5 (https://d83e8e33-b6f8-466a-a35a-717f16a30d63-00-1zvd98hcv1e9k.riker.replit.dev/src/components/ui/tabs.tsx:72:12)
+    at div
+    at div
+    at div
+    at Settings (https://d83e8e33-b6f8-466a-a35a-717f16a30d63-00-1zvd98hcv1e9k.riker.replit.dev/src/pages/Settings.tsx:106:21)
+    at Route (https://d83e8e33-b6f8-466a-a35a-717f16a30d63-00-1zvd98hcv1e9k.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=2cecd382:191:16)
+    at Switch (https://d83e8e33-b6f8-466a-a35a-717f16a30d63-00-1zvd98hcv1e9k.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=2cecd382:247:17)
+    at div
+    at div
+    at main
+    at div
+    at div
+    at Layout (https://d83e8e33-b6f8-466a-a35a-717f16a30d63-00-1zvd98hcv1e9k.riker.replit.dev/src/components/Layout.tsx:23:34)
+    at App
+    at Provider (https://d83e8e33-b6f8-466a-a35a-717f16a30d63-00-1zvd98hcv1e9k.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-E7IAXTU4.js?v=2cecd382:38:15)
+    at TooltipProvider (https://d83e8e33-b6f8-466a-a35a-717f16a30d63-00-1zvd98hcv1e9k.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=2cecd382:61:5)
+    at QueryClientProvider (https://d83e8e33-b6f8-466a-a35a-717f16a30d63-00-1zvd98hcv1e9k.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=2cecd382:2805:3)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+at https://d83e8e33-b6f8-466a-a35a-717f16a30d63-00-1zvd98hcv1e9k.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=2cecd382:173:13
+at _c5 (https://d83e8e33-b6f8-466a-a35a-717f16a30d63-00-1zvd98hcv1e9k.riker.replit.dev/src/components/ui/tabs.tsx:72:12)
+at div
+at div
+at div
+at Settings (https://d83e8e33-b6f8-466a-a35a-717f16a30d63-00-1zvd98hcv1e9k.riker.replit.dev/src/pages/Settings.tsx:106:21)
+at Route (https://d83e8e33-b6f8-466a-a35a-717f16a30d63-00-1zvd98hcv1e9k.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=2cecd382:191:16)
+at Switch (https://d83e8e33-b6f8-466a-a35a-717f16a30d63-00-1zvd98hcv1e9k.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=2cecd382:247:17)
+at div
+at div
+at main
+at div
+at div
+at Layout (https://d83e8e33-b6f8-466a-a35a-717f16a30d63-00-1zvd98hcv1e9k.riker.replit.dev/src/components/Layout.tsx:23:34)
+at App
+at Provider (https://d83e8e33-b6f8-466a-a35a-717f16a30d63-00-1zvd98hcv1e9k.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-E7IAXTU4.js?v=2cecd382:38:15)
+at TooltipProvider (https://d83e8e33-b6f8-466a-a35a-717f16a30d63-00-1zvd98hcv1e9k.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=2cecd382:61:5)
+at QueryClientProvider (https://d83e8e33-b6f8-466a-a35a-717f16a30d63-00-1zvd98hcv1e9k.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=2cecd382:2805:3)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+at t.value (https://d83e8e33-b6f8-466a-a35a-717f16a30d63-00-1zvd98hcv1e9k.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://d83e8e33-b6f8-466a-a35a-717f16a30d63-00-1zvd98hcv1e9k.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://d83e8e33-b6f8-466a-a35a-717f16a30d63-00-1zvd98hcv1e9k.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://d83e8e33-b6f8-466a-a35a-717f16a30d63-00-1zvd98hcv1e9k.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400

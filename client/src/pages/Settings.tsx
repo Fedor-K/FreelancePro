@@ -231,13 +231,13 @@ export default function Settings() {
       </p>
       
       <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-8 lg:space-y-0">
-        <aside className="lg:w-1/5">
-          <Tabs 
-            orientation="vertical" 
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="w-full"
-          >
+        <Tabs 
+          orientation="vertical" 
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="w-full flex flex-col lg:flex-row space-y-8 lg:space-y-0 lg:space-x-8"
+        >
+          <aside className="lg:w-64">
             <TabsList className="flex flex-col h-auto items-stretch justify-start bg-transparent p-0 space-y-1">
               <TabsTrigger 
                 value="profile" 
@@ -282,21 +282,20 @@ export default function Settings() {
                 Integrations
               </TabsTrigger>
             </TabsList>
-          </Tabs>
-        </aside>
-        
-        <div className="flex-1 lg:max-w-3xl">
-          <TabsContent value="profile" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile</CardTitle>
-                <CardDescription>
-                  Update your personal information. This information will be displayed on your invoices and documents.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Form {...profileForm}>
-                  <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
+          </aside>
+          
+          <div className="flex-1 lg:max-w-3xl">
+            <TabsContent value="profile" className="space-y-6 mt-0">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Profile</CardTitle>
+                  <CardDescription>
+                    Update your personal information. This information will be displayed on your invoices and documents.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Form {...profileForm}>
+                    <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
                     <FormField
                       control={profileForm.control}
                       name="name"
@@ -1050,7 +1049,8 @@ export default function Settings() {
               </CardContent>
             </Card>
           </TabsContent>
-        </div>
+          </div>
+        </Tabs>
       </div>
     </div>
   );
