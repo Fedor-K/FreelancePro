@@ -69,7 +69,8 @@ export function ResumeGenerator() {
           const formattedExperience = `${settings.experience}\n\nLanguages: ${settings.languages}\n\nEducation: ${settings.education}`;
           form.setValue("experience", formattedExperience);
           
-          // For projects, keep it empty as this is specific to each resume
+          // Pre-populate projects from settings
+          form.setValue("projects", settings.projects || "")
         }
       } catch (error) {
         console.error("Failed to load resume settings:", error);
