@@ -20,7 +20,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { generateResume } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Wand2 } from "lucide-react";
+import { FileText, Wand2, Settings } from "lucide-react";
+import { Link } from "wouter";
 import { getResumeSettings } from "@/lib/settingsService";
 
 // Extend the schema with validation
@@ -49,18 +50,49 @@ export function ResumeGenerator() {
       projects: "",
     },
   });
+  
+  // Load resume settings from settings service
+  useEffect(() => {
+    const loadResumeSettings = async () => {
+      try {
+        const settings = await getResumeSettings();
+        
+        // Only update the form if it's empty (to avoid overwriting user input)
+        const currentExperience = form.getValues("experience");
+        if (!currentExperience) {
+          // Pre-populate form with settings
+          form.setValue("name", settings.defaultTitle);
+          form.setValue("specialization", settings.skills.split(',')[0] || "Translator");
+          
+          // Create a formatted experience string from the settings
+          const formattedExperience = `${settings.experience}\n\nLanguages: ${settings.languages}\n\nEducation: ${settings.education}`;
+          form.setValue("experience", formattedExperience);
+          
+          // For projects, keep it empty as this is specific to each resume
+        }
+      } catch (error) {
+        console.error("Failed to load resume settings:", error);
+      }
+    };
+    
+    loadResumeSettings();
+  }, [form]);
 
   const onSubmit = async (data: FormValues) => {
     setIsGenerating(true);
     try {
-      const generatedResume = await generateResume(data);
+      // Pass useAdditionalSettings: true to enhance the resume with settings data
+      const generatedResume = await generateResume({
+        ...data,
+        useAdditionalSettings: true
+      });
       
       setResume(generatedResume);
       setActiveTab("preview");
       
       toast({
         title: "Resume generated",
-        description: "Your professional resume has been generated successfully.",
+        description: "Your professional resume has been generated using your settings preferences.",
       });
     } catch (error) {
       toast({
@@ -105,7 +137,7 @@ export function ResumeGenerator() {
           <div>
             <h3 className="text-lg font-medium leading-6 text-gray-900">Resume Generator</h3>
             <p className="mt-1 text-sm text-gray-500">
-              Create a professional resume tailored for your freelance specialty. AI-powered to highlight your best skills.
+              Create a professional resume tailored for your freelance specialty. Pre-populated with your Resume settings and AI-powered to highlight your best skills.
             </p>
           </div>
         </div>
@@ -117,6 +149,22 @@ export function ResumeGenerator() {
           </TabsList>
           
           <TabsContent value="form">
+            <div className="mb-4 flex justify-between items-center">
+              <p className="text-sm text-muted-foreground">
+                This form is pre-populated from your resume settings
+              </p>
+              <Link href="/settings">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex items-center text-xs"
+                  onClick={() => {}}
+                >
+                  <Settings className="mr-1 h-3 w-3" />
+                  Edit Resume Settings
+                </Button>
+              </Link>
+            </div>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
