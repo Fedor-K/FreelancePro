@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResumeGenerator } from "@/components/resume/ResumeGenerator";
+import { CoverLetterGenerator } from "@/components/resume/CoverLetterGenerator";
 import { useQuery } from "@tanstack/react-query";
 import { Resume as ResumeType } from "@shared/schema";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,8 @@ export default function Resume() {
   const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [resumeToDelete, setResumeToDelete] = useState<ResumeType | null>(null);
+  const [activeTab, setActiveTab] = useState("create");
+  const [documentType, setDocumentType] = useState<"resume" | "coverLetter">("resume");
   
   const { data: resumes = [], isLoading, refetch } = useQuery<ResumeType[]>({
     queryKey: ['/api/resumes'],
@@ -68,37 +71,97 @@ export default function Resume() {
 
   return (
     <div className="space-y-6">
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Document Generator</CardTitle>
+          <CardDescription>
+            Create professional resumes and cover letters powered by AI to help you land your next freelance client.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {/* Document generator content will be shown in the tabs below */}
+        </CardContent>
+      </Card>
 
-      <Tabs defaultValue="create" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
-          <TabsTrigger value="create">Create Resume</TabsTrigger>
-          <TabsTrigger value="saved">Saved Resumes</TabsTrigger>
+          <TabsTrigger value="create">Create Document</TabsTrigger>
+          <TabsTrigger value="saved">Saved Documents</TabsTrigger>
         </TabsList>
         
         <TabsContent value="create">
-          <ResumeGenerator />
+          <div className="mb-6">
+            <Tabs value={documentType} onValueChange={(value) => setDocumentType(value as "resume" | "coverLetter")}>
+              <TabsList className="grid w-full max-w-md grid-cols-2">
+                <TabsTrigger value="resume">Resume</TabsTrigger>
+                <TabsTrigger value="coverLetter">Cover Letter</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+          
+          {documentType === "resume" ? <ResumeGenerator /> : <CoverLetterGenerator />}
         </TabsContent>
         
         <TabsContent value="saved">
           <Card>
             <CardHeader>
-              <CardTitle>Saved Resumes</CardTitle>
+              <CardTitle>Saved Documents</CardTitle>
               <CardDescription>
-                View, download, or manage your previously generated resumes.
+                View, download, or manage your previously generated resumes and cover letters.
               </CardDescription>
+              
+              <div className="mt-4">
+                <Tabs value={documentType} onValueChange={(value) => setDocumentType(value as "resume" | "coverLetter")}>
+                  <TabsList className="grid w-full max-w-md grid-cols-2">
+                    <TabsTrigger value="resume">
+                      Resumes
+                      <span className="ml-2 inline-flex h-5 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium">
+                        {resumes.filter(doc => doc.specialization !== "Cover Letter").length}
+                      </span>
+                    </TabsTrigger>
+                    <TabsTrigger value="coverLetter">
+                      Cover Letters
+                      <span className="ml-2 inline-flex h-5 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium">
+                        {resumes.filter(doc => doc.specialization === "Cover Letter").length}
+                      </span>
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
             </CardHeader>
             <CardContent>
               {isLoading ? (
-                <p className="text-center py-8 text-gray-500">Loading resumes...</p>
-              ) : resumes.length === 0 ? (
+                <p className="text-center py-8 text-gray-500">Loading documents...</p>
+              ) : resumes.length === 0 || !resumes.some(resume => 
+                  documentType === "resume" ? 
+                    resume.specialization !== "Cover Letter" : 
+                    resume.specialization === "Cover Letter"
+                ) ? (
                 <div className="text-center py-12 text-gray-500">
                   <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                  <p className="text-lg font-medium">No resumes yet</p>
-                  <p className="mt-1">Create your first AI-powered resume to get started.</p>
+                  {resumes.length === 0 ? (
+                    <>
+                      <p className="text-lg font-medium">No documents yet</p>
+                      <p className="mt-1">Create your first AI-powered document to get started.</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-lg font-medium">No {documentType === "resume" ? "resumes" : "cover letters"} found</p>
+                      <p className="mt-1">
+                        {documentType === "resume" 
+                          ? "Generate a resume to showcase your skills and experience." 
+                          : "Create a cover letter to apply for a specific job or client."}
+                      </p>
+                    </>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {resumes.map((resume) => (
+                  {resumes
+                    .filter(resume => documentType === "resume" ? 
+                      resume.specialization !== "Cover Letter" : 
+                      resume.specialization === "Cover Letter")
+                    .map((resume) => (
                     <div key={resume.id} className="p-4 border rounded-md">
                       <div className="flex justify-between items-start mb-4">
                         <div>
