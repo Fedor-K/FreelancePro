@@ -89,6 +89,18 @@ export const insertResumeSchema = createInsertSchema(resumes).omit({
   content: true,
 });
 
+// Create a schema for resume updates that includes the content field
+export const resumeUpdateSchema = z.object({
+  name: z.string().optional(),
+  specialization: z.string().optional(),
+  experience: z.string().optional(),
+  projects: z.string().optional(),
+  content: z.string().optional(),
+  targetProject: z.string().optional(), // Used for resume generation but not stored
+  isEditing: z.boolean().optional(), // Flag to indicate edit operation
+  useAdditionalSettings: z.boolean().optional(), // Flag for using additional settings
+});
+
 // Document schema
 export const documents = pgTable("documents", {
   id: serial("id").primaryKey(),

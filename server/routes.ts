@@ -5,6 +5,7 @@ import {
   insertClientSchema, 
   insertProjectSchema,
   insertResumeSchema,
+  resumeUpdateSchema,
   insertDocumentSchema,
   insertExternalDataSchema,
   webhookPayloadSchema
@@ -432,30 +433,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Resume not found" });
       }
       
+      // Log the incoming request data for debugging
+      console.log("Resume update request body:", req.body);
+      
       // Validate input data
-      const result = insertResumeSchema.partial().safeParse(req.body);
+      const result = resumeUpdateSchema.safeParse(req.body);
       if (!result.success) {
         return res.status(400).json({ message: "Invalid resume data", errors: result.error.format() });
       }
       
       // Generate updated resume content using OpenAI
       try {
-        // Only regenerate content if relevant fields have changed
-        if (result.data.name || result.data.specialization || result.data.experience || result.data.projects) {
+        // Create an update object that will hold the data to update
+        const updateData: Record<string, any> = {};
+        
+        // Copy the validated fields to update
+        if (result.data.name) updateData.name = result.data.name;
+        if (result.data.specialization) updateData.specialization = result.data.specialization;
+        if (result.data.experience) updateData.experience = result.data.experience;
+        if (result.data.projects) updateData.projects = result.data.projects;
+        if (result.data.content) updateData.content = result.data.content;
+        
+        // If we have the isEditing flag or content needs regeneration
+        if (result.data.isEditing || (Object.keys(updateData).length > 0 && !updateData.content)) {
+          console.log("Generating new resume content with OpenAI");
+          
+          // Get the target project info if provided
+          const targetProject = result.data.targetProject || "freelance work";
+          
           // Create a prompt for resume generation
-          const prompt = `Create a professional resume for a ${result.data.specialization || existingResume.specialization} freelancer named ${result.data.name || existingResume.name} with the following experience: ${result.data.experience || existingResume.experience}
-          
-          Include these projects: ${result.data.projects || existingResume.projects}
-          
-          Format the resume in a professional manner with clear sections for:
-          1. Contact Information
-          2. Professional Summary
-          3. Skills
-          4. Experience
-          5. Education
-          6. Projects
-          
-          The resume should highlight freelance expertise and be optimized for getting freelance clients in the field of ${result.data.specialization || existingResume.specialization}.`;
+          const prompt = `
+Create a professional resume for a ${result.data.specialization || existingResume.specialization} freelancer with the following experience:
+
+${result.data.experience || existingResume.experience}
+
+Include these projects:
+${result.data.projects || existingResume.projects}
+
+Format the resume in a professional manner with clear sections for:
+1. Contact Information
+2. Professional Summary (tailored for ${targetProject})
+3. Skills
+4. Experience
+5. Education
+6. Projects
+
+The resume should highlight freelance expertise and be optimized for getting freelance clients in the field of ${result.data.specialization || existingResume.specialization}.`;
           
           const response = await openai.chat.completions.create({
             model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
@@ -466,11 +489,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const resumeContent = response.choices[0].message.content || "Failed to generate resume content.";
           
           // Add content to the update data
-          (result.data as any).content = resumeContent;
+          updateData.content = resumeContent;
         }
         
+        console.log("Final update data for resume:", updateData);
+        
         // Update the resume
-        const updatedResume = await storage.updateResume(id, result.data);
+        const updatedResume = await storage.updateResume(id, updateData);
         res.json(updatedResume);
       } catch (error) {
         console.error("OpenAI error:", error);
