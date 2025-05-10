@@ -7,6 +7,7 @@ export interface ResumeSettings {
   languages: string;
   education: string;
   experience: string;
+  projects: string;
   defaultTemplate: string;
 }
 
@@ -17,6 +18,7 @@ const defaultResumeSettings: ResumeSettings = {
   languages: "English (Native), French (Fluent), Spanish (Intermediate)",
   education: "BA in Linguistics, University of California, 2018",
   experience: "Freelance Translator (2018-Present)\n- Translated over 50 documents for various clients\n- Specialized in technical and marketing content",
+  projects: "Website Translation for ABC Corp\n- Translated company website from English to Spanish\n- Adapted marketing content for cultural relevance",
   defaultTemplate: "professional",
 };
 

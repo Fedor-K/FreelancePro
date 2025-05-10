@@ -166,6 +166,7 @@ export default function Settings() {
       languages: "English (Native), French (Fluent), Spanish (Intermediate)",
       education: "BA in Linguistics, University of California, 2018",
       experience: "Freelance Translator (2018-Present)\n- Translated over 50 documents for various clients\n- Specialized in technical and marketing content",
+      projects: "Website Translation for ABC Corp\n- Translated company website from English to Spanish\n- Adapted marketing content for cultural relevance",
       defaultTemplate: "professional",
     },
   });
@@ -725,6 +726,27 @@ export default function Settings() {
                         </FormControl>
                         <FormDescription>
                           Your work history and achievements to include in resumes.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={resumeForm.control}
+                    name="projects"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Notable Projects</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="List your most notable freelance projects or achievements" 
+                            className="h-32"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Include client names (if allowed), project scope, and your specific contributions.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
