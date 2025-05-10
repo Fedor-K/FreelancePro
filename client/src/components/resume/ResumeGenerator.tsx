@@ -57,9 +57,19 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
     resumeToEdit ? {id: resumeToEdit.id, name: resumeToEdit.name, hasContent: !!resumeToEdit.content} : null);
   
   const [isGenerating, setIsGenerating] = useState(false);
-  const [resumeContent, setResumeContent] = useState<string | null>(
-    resumeToEdit?.content || null
-  );
+  // Initialize content from props or localStorage
+  const [resumeContent, setResumeContent] = useState<string | null>(() => {
+    if (resumeToEdit?.content) {
+      return resumeToEdit.content;
+    }
+    // Try to retrieve from localStorage if no direct content provided
+    try {
+      const savedContent = localStorage.getItem('lastGeneratedResume');
+      return savedContent;
+    } catch (e) {
+      return null;
+    }
+  });
   const [isEditing] = useState(!!resumeToEdit);
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -103,9 +113,18 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
           
           // Set resume content immediately
           setResumeContent(resumeToEdit.content);
+          
+          // Store current edited resume in localStorage
+          localStorage.setItem('lastGeneratedResume', resumeToEdit.content);
         } else {
           // Load from settings for new resume
           console.log(`[ResumeGenerator:${instanceId}] Loading settings for new resume`);
+          
+          // If we're creating a new resume (not editing), clear any previous cached resume
+          if (!isEditing && !resumeToEdit) {
+            localStorage.removeItem('lastGeneratedResume');
+          }
+          
           const settings = await getResumeSettings();
           
           // Set form values from settings
@@ -175,8 +194,11 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
       // Update UI with result
       setResumeContent(generatedResume.content);
       
-      // Call onEditComplete callback if in edit mode
-      if (isEditing && onEditComplete) {
+      // Store the generated resume in localStorage for persistence
+      localStorage.setItem('lastGeneratedResume', generatedResume.content);
+      
+      // Call onEditComplete callback
+      if (onEditComplete) {
         onEditComplete();
       }
       
