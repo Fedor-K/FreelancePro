@@ -76,17 +76,17 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
   
   // Load resume settings from settings service
   useEffect(() => {
-    console.log(`[ResumeGenerator:${componentId.current}] useEffect triggered, resumeToEdit:`, resumeToEdit);
+    console.log(`[ResumeGenerator:${componentId.current}] useEffect triggered with resumeToEdit:`, resumeToEdit);
+    
+    // Important: Clear form first to avoid any stale data
+    form.reset();
     
     const loadResumeData = async () => {
       try {
         // If we're editing an existing resume, use its data
         if (resumeToEdit) {
-          console.log(`[ResumeGenerator:${componentId.current}] Loading data for editing resume:`, resumeToEdit);
+          console.log(`[ResumeGenerator:${componentId.current}] Loading data for editing resume ID:${resumeToEdit.id}`);
           setIsEditing(true);
-          
-          // Reset form before setting values
-          form.reset();
           
           // Set form values from the resume being edited
           console.log(`[ResumeGenerator:${componentId.current}] Setting form values:`, {
@@ -112,20 +112,19 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
             form.setValue("targetProject", "Please describe the project you're applying to");
           }
           
-          // Set the resume preview
+          console.log(`[ResumeGenerator:${componentId.current}] Setting resume preview with content:`, resumeToEdit.content.substring(0, 100) + "...");
+          
+          // Set the resume preview immediately
           setResume({
             id: resumeToEdit.id,
             content: resumeToEdit.content
           });
           
-          // Set active tab to form so user can edit
+          // Show the form first
           setActiveTab("form");
           
-          // Force re-render of form fields
-          setTimeout(() => {
-            console.log(`[ResumeGenerator:${componentId.current}] Triggering form validation after timeout`);
-            form.trigger();
-          }, 100);
+          // Trigger validation and show any errors immediately 
+          form.trigger();
         } else {
           // Otherwise, load from settings
           console.log(`[ResumeGenerator:${componentId.current}] No resumeToEdit, loading from settings`);

@@ -32,25 +32,10 @@ export default function Resume() {
   const [activeTab, setActiveTab] = useState("create");
   const [documentType, setDocumentType] = useState<"resume" | "coverLetter">("resume");
   
-  // Add logging for state changes
+  // Simplified state management - just log and don't try to manage state
   useEffect(() => {
-    console.log("[Resume] resumeToEdit changed:", resumeToEdit);
-    
-    // When resumeToEdit changes and is not null, ensure we're in edit mode
-    if (resumeToEdit) {
-      console.log("[Resume] Ensuring we're in edit mode with documentType=resume and activeTab=create");
-      setDocumentType("resume");
-      setActiveTab("create");
-    }
-  }, [resumeToEdit]);
-  
-  useEffect(() => {
-    console.log("[Resume] activeTab changed:", activeTab);
-  }, [activeTab]);
-  
-  useEffect(() => {
-    console.log("[Resume] documentType changed:", documentType);
-  }, [documentType]);
+    console.log("[Resume] State update - resumeToEdit:", resumeToEdit, "activeTab:", activeTab, "documentType:", documentType);
+  }, [resumeToEdit, activeTab, documentType]);
   
   const { data: resumes = [], isLoading, refetch } = useQuery<ResumeType[]>({
     queryKey: ['/api/resumes'],
@@ -135,35 +120,21 @@ export default function Resume() {
                 </div>
               </div>
               
-              {documentType === "resume" ? (
-                resumeToEdit ? (
-                  // When editing a resume, mount a completely separate component instance
-                  <ResumeGenerator 
-                    key={`edit-resume-${resumeToEdit.id}-${Date.now()}`} // Add timestamp to ensure uniqueness
-                    resumeToEdit={resumeToEdit} 
-                    onEditComplete={() => {
-                      console.log("[Resume] Edit complete, clearing resumeToEdit state");
-                      setResumeToEdit(null);
-                      refetch();
-                      // Force a delay before showing the saved tab to allow for the refetch to complete
-                      setTimeout(() => setActiveTab("saved"), 500);
-                    }}
-                  />
-                ) : (
-                  // When creating a new resume
-                  <ResumeGenerator 
-                    key={`new-resume-${Date.now()}`} // Add timestamp to ensure uniqueness
-                    resumeToEdit={null} 
-                    onEditComplete={() => {
-                      refetch();
-                      // Force a delay before showing the saved tab to allow for the refetch to complete
-                      setTimeout(() => setActiveTab("saved"), 500);
-                    }}
-                  />
-                )
-              ) : (
+              {documentType === "resume" ? 
+                <ResumeGenerator 
+                  // Force complete remount when resumeToEdit changes
+                  key={resumeToEdit ? `edit-${resumeToEdit.id}` : 'new-resume'} 
+                  resumeToEdit={resumeToEdit} 
+                  onEditComplete={() => {
+                    console.log("[Resume] Edit complete");
+                    setResumeToEdit(null);
+                    refetch();
+                    setActiveTab("saved");
+                  }}
+                />
+              : 
                 <CoverLetterGenerator />
-              )}
+              }
             </TabsContent>
             
             <TabsContent value="saved">
@@ -247,10 +218,10 @@ export default function Resume() {
                               className="bg-gray-50 text-gray-700"
                               onClick={() => {
                                 console.log("[Resume] Edit button clicked for resume:", resume);
-                                const resumeCopy = {...resume};
-                                console.log("[Resume] Setting resumeToEdit state to:", resumeCopy);
-                                // Let the useEffect handle the tab and document type changes
-                                setResumeToEdit(resumeCopy);
+                                // Manually set all the required states for editing mode
+                                setResumeToEdit({...resume});
+                                setDocumentType("resume");
+                                setActiveTab("create");
                               }}
                             >
                               <Edit className="h-4 w-4 mr-1" />
