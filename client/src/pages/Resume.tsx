@@ -94,6 +94,11 @@ export default function Resume() {
   
   // Function to save the resume to the database
   const handleSaveResume = async () => {
+    console.log("handleSaveResume called with data:", { 
+      hasContent: !!currentResumeContent,
+      currentResumeData
+    });
+    
     if (!currentResumeContent || !currentResumeData) {
       toast({
         title: "No content to save",
@@ -112,6 +117,8 @@ export default function Resume() {
       
       // Check if we're updating an existing resume
       const isEditing = payload.id !== undefined;
+      console.log("Save payload:", payload);
+      console.log("isEditing:", isEditing, "Resume ID:", payload.id);
       
       // Save/update resume
       if (isEditing) {
@@ -206,9 +213,8 @@ export default function Resume() {
                     specialization: currentResumeData.specialization || "",
                     experience: currentResumeData.experience || "",
                     projects: currentResumeData.projects || "",
-                    content: "",
-                    createdAt: new Date()
-                  } : undefined}
+                    content: ""
+                  } as Resume : undefined}
                   onPreviewGenerated={handlePreviewGenerated}
                 />
               )}
@@ -353,17 +359,23 @@ export default function Resume() {
                               size="sm"
                               onClick={() => {
                                 // Switch to create tab
+                                console.log("Edit button clicked for resume:", resume.id);
                                 setActiveTab("create");
+                                
                                 // Set resume for editing
                                 setCurrentResumeContent(resume.content);
-                                setCurrentResumeData({
+                                
+                                const resumeData = {
                                   id: resume.id,
                                   name: resume.name,
                                   specialization: resume.specialization,
                                   experience: resume.experience,
                                   projects: resume.projects,
                                   targetProject: ""
-                                });
+                                };
+                                
+                                console.log("Setting currentResumeData for editing:", resumeData);
+                                setCurrentResumeData(resumeData);
                               }}
                             >
                               <FileText className="h-4 w-4 mr-1" />
