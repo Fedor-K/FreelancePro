@@ -31,6 +31,10 @@ export default function Resume() {
   const [activeTab, setActiveTab] = useState("create");
   const [documentType, setDocumentType] = useState<"resume" | "coverLetter">("resume");
   
+  // New state for two-step resume generation
+  const [currentResumeContent, setCurrentResumeContent] = useState<string | null>(null);
+  const [currentResumeData, setCurrentResumeData] = useState<any | null>(null);
+  
   const { data: resumes = [], isLoading, refetch } = useQuery<ResumeType[]>({
     queryKey: ['/api/resumes'],
   });
@@ -75,6 +79,54 @@ export default function Resume() {
       });
     }
   };
+  
+  // Function to handle preview generation
+  const handlePreviewGenerated = (content: string, data: any) => {
+    setCurrentResumeContent(content);
+    setCurrentResumeData(data);
+  };
+  
+  // Function to save the resume to the database
+  const handleSaveResume = async () => {
+    if (!currentResumeContent || !currentResumeData) {
+      toast({
+        title: "No content to save",
+        description: "Please generate a resume first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      // Create payload with content
+      const payload = {
+        ...currentResumeData,
+        content: currentResumeContent
+      };
+      
+      // Save resume
+      await apiRequest("POST", '/api/resumes', payload);
+      
+      // Refresh the list
+      await refetch();
+      
+      // Show success notification
+      toast({
+        title: "Resume saved",
+        description: "Your resume has been saved to your collection.",
+      });
+      
+      // Switch to saved tab
+      setActiveTab("saved");
+      
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save resume. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -115,13 +167,71 @@ export default function Resume() {
           </div>
           
           {documentType === "resume" && (
-            <ResumeGenerator 
-              key={`resume-generator-create-${Date.now()}`}
-              onEditComplete={() => {
-                refetch();
-                // Don't automatically switch tabs
-              }}
-            />
+            <>
+              {/* Step 1: Show resume form if no content is generated yet */}
+              {!currentResumeContent && (
+                <ResumeGenerator 
+                  key={`resume-generator-create-${Date.now()}`}
+                  previewOnly={true}
+                  onPreviewGenerated={handlePreviewGenerated}
+                />
+              )}
+              
+              {/* Step 2: Show preview with save/edit options */}
+              {currentResumeContent && (
+                <Card className="mt-6">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center mb-6">
+                      <div className="mr-4 p-3 bg-purple-100 rounded-md">
+                        <FileText className="h-6 w-6 text-accent" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-medium leading-6">Resume Preview</h3>
+                        <p className="mt-1 text-sm text-gray-500">
+                          Review your resume before saving it
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 border rounded-md whitespace-pre-wrap font-mono text-sm max-h-80 overflow-y-auto">
+                      {currentResumeContent}
+                    </div>
+                    
+                    <div className="flex justify-end mt-4 space-x-3">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setCurrentResumeContent(null)}
+                      >
+                        Edit
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          if (currentResumeContent) {
+                            navigator.clipboard.writeText(currentResumeContent);
+                            toast({
+                              title: "Copied to clipboard",
+                              description: "Resume content has been copied to clipboard.",
+                            });
+                          }
+                        }}
+                      >
+                        <Copy className="h-4 w-4 mr-1" />
+                        Copy
+                      </Button>
+                      <Button 
+                        variant="default"
+                        onClick={handleSaveResume}
+                        className="bg-accent hover:bg-accent/90"
+                      >
+                        <FileText className="h-4 w-4 mr-1" />
+                        Save to Collection
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </>
           )}
           
           {documentType === "coverLetter" && (
