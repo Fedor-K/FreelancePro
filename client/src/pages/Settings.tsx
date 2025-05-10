@@ -45,12 +45,8 @@ import {
   Settings as SettingsIcon, 
   User, 
   CreditCard, 
-  Bell, 
-  Globe, 
-  Lock, 
-  Plug, 
-  Palette,
-  Database
+  Database,
+  FileText
 } from "lucide-react";
 
 // Profile settings schema
@@ -90,25 +86,25 @@ const invoiceFormSchema = z.object({
   sendReminders: z.boolean().default(true),
 });
 
-// Integration settings schema
-const integrationFormSchema = z.object({
-  linkedInEnabled: z.boolean().default(false),
-  googleCalendarEnabled: z.boolean().default(false),
-  openAIEnabled: z.boolean().default(true),
-  slackEnabled: z.boolean().default(false),
+// Resume settings schema
+const resumeFormSchema = z.object({
+  defaultTitle: z.string().min(2, { message: "Title must be at least 2 characters" }),
+  skills: z.string().max(500, { message: "Skills must not exceed 500 characters" }),
+  languages: z.string().max(200, { message: "Languages must not exceed 200 characters" }),
+  education: z.string().max(500, { message: "Education must not exceed 500 characters" }),
+  experience: z.string().max(1000, { message: "Experience must not exceed 1000 characters" }),
+  defaultTemplate: z.string().default("professional"),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 type BusinessFormValues = z.infer<typeof businessFormSchema>;
 type NotificationFormValues = z.infer<typeof notificationFormSchema>;
 type InvoiceFormValues = z.infer<typeof invoiceFormSchema>;
-type IntegrationFormValues = z.infer<typeof integrationFormSchema>;
+type ResumeFormValues = z.infer<typeof resumeFormSchema>;
 
 export default function Settings() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("profile");
-  const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
-  const [language, setLanguage] = useState("en-US");
   
   // Profile form
   const profileForm = useForm<ProfileFormValues>({
@@ -158,15 +154,17 @@ export default function Settings() {
       sendReminders: true,
     },
   });
-
-  // Integration form
-  const integrationForm = useForm<IntegrationFormValues>({
-    resolver: zodResolver(integrationFormSchema),
+  
+  // Resume form
+  const resumeForm = useForm<ResumeFormValues>({
+    resolver: zodResolver(resumeFormSchema),
     defaultValues: {
-      linkedInEnabled: false,
-      googleCalendarEnabled: false,
-      openAIEnabled: true,
-      slackEnabled: false,
+      defaultTitle: "Professional Translator Resume",
+      skills: "Translation, Editing, Proofreading, Content Writing, Localization",
+      languages: "English (Native), French (Fluent), Spanish (Intermediate)",
+      education: "BA in Linguistics, University of California, 2018",
+      experience: "Freelance Translator (2018-Present)\n- Translated over 50 documents for various clients\n- Specialized in technical and marketing content",
+      defaultTemplate: "professional",
     },
   });
 
@@ -203,20 +201,12 @@ export default function Settings() {
     console.log("Invoice data:", data);
   };
 
-  const onIntegrationSubmit = (data: IntegrationFormValues) => {
+  const onResumeSubmit = (data: ResumeFormValues) => {
     toast({
-      title: "Integration settings updated",
-      description: "Your integration settings have been saved.",
+      title: "Resume settings updated",
+      description: "Your resume settings have been saved.",
     });
-    console.log("Integration data:", data);
-  };
-  
-  const onAppearanceSubmit = () => {
-    toast({
-      title: "Appearance settings updated",
-      description: "Your appearance settings have been saved.",
-    });
-    console.log("Appearance data:", { theme, language });
+    console.log("Resume data:", data);
   };
 
   // Helper to render the setting tab content
@@ -600,6 +590,159 @@ export default function Settings() {
           </Card>
         );
         
+      case "resume":
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Resume Settings</CardTitle>
+              <CardDescription>
+                Configure your default resume content and preferences for resume generation.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...resumeForm}>
+                <form onSubmit={resumeForm.handleSubmit(onResumeSubmit)} className="space-y-6">
+                  <FormField
+                    control={resumeForm.control}
+                    name="defaultTitle"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Default Resume Title</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Professional Translator Resume" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          This title will be used as the default for new resumes.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      control={resumeForm.control}
+                      name="skills"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Professional Skills</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="List your professional skills, separated by commas" 
+                              className="h-24"
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            These skills will appear in your resume skills section.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={resumeForm.control}
+                      name="languages"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Languages</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="List languages and proficiency levels" 
+                              className="h-24"
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Languages you speak and your proficiency levels.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <FormField
+                    control={resumeForm.control}
+                    name="education"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Education</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Enter your educational background" 
+                            className="h-24"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Your educational history to include in resumes.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={resumeForm.control}
+                    name="experience"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Professional Experience</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Enter your work experience" 
+                            className="h-32"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Your work history and achievements to include in resumes.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={resumeForm.control}
+                    name="defaultTemplate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Default Resume Template</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a template" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="professional">Professional</SelectItem>
+                            <SelectItem value="creative">Creative</SelectItem>
+                            <SelectItem value="minimalist">Minimalist</SelectItem>
+                            <SelectItem value="modern">Modern</SelectItem>
+                            <SelectItem value="academic">Academic</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          The default template style for your resume.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <Button type="submit">Save Resume Settings</Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        );
+        
       default:
         return null;
     }
@@ -640,6 +783,13 @@ export default function Settings() {
             >
               <Database className="h-4 w-4 mr-2" />
               Invoicing
+            </button>
+            <button 
+              className={`flex items-center justify-start px-3 py-2 text-sm ${activeTab === "resume" ? "bg-muted font-medium" : "text-muted-foreground hover:bg-muted/50"} rounded-md transition-colors`}
+              onClick={() => setActiveTab("resume")}
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Resume
             </button>
           </div>
         </aside>
