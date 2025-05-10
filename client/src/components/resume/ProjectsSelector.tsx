@@ -34,6 +34,11 @@ export function ProjectsSelector({ selectedProjects, onProjectsChange }: Project
     queryKey: ['/api/projects'],
   });
   
+  // Query to get client information
+  const { data: clients = [] } = useQuery<any[]>({
+    queryKey: ['/api/clients'],
+  });
+  
   useEffect(() => {
     // Update local state when selectedProjects changes from outside
     setProjectEntries(selectedProjects);
@@ -59,11 +64,9 @@ export function ProjectsSelector({ selectedProjects, onProjectsChange }: Project
   
   // Helper to format project description
   const formatProjectDescription = (project: Project): string => {
-    let clientName = "Unknown Client";
-    const client = projects.find(c => c.id === project.clientId);
-    if (client) {
-      clientName = client.name;
-    }
+    // Find the client name for this project
+    const client = clients.find(c => c.id === project.clientId);
+    const clientName = client ? client.name : "Unknown Client";
     
     return `${project.name} for ${clientName} - ${project.description || "No description"}`;
   };
@@ -98,14 +101,24 @@ export function ProjectsSelector({ selectedProjects, onProjectsChange }: Project
                     <CommandItem
                       key={project.id}
                       value={project.name}
-                      onSelect={() => toggleProject(project)}
+                      onSelect={() => {
+                        toggleProject(project);
+                        setOpen(false);
+                      }}
                       className="flex items-center justify-between"
                     >
                       <div className="flex-grow truncate">
-                        <span className="font-medium">{project.name}</span>
-                        <span className="ml-2 text-muted-foreground text-xs">
-                          {project.status}
-                        </span>
+                        <div className="flex items-center">
+                          <span className="font-medium">{project.name}</span>
+                          <span className="ml-2 text-muted-foreground text-xs">
+                            {project.status}
+                          </span>
+                          {isSelected && (
+                            <Badge variant="secondary" className="ml-2 text-xs">
+                              Selected
+                            </Badge>
+                          )}
+                        </div>
                         <p className="text-xs text-muted-foreground truncate">
                           {project.description || "No description"}
                         </p>
