@@ -51,13 +51,13 @@ export default function Documents() {
   
   const isLoading = isLoadingDocuments || isLoadingProjects || isLoadingClients;
 
-  const getProjectName = (projectId?: number) => {
+  const getProjectName = (projectId?: number | null) => {
     if (!projectId) return "N/A";
     const project = projects.find(p => p.id === projectId);
     return project?.name || "Unknown Project";
   };
 
-  const getClientName = (projectId?: number) => {
+  const getClientName = (projectId?: number | null) => {
     if (!projectId) return "N/A";
     const project = projects.find(p => p.id === projectId);
     if (!project) return "Unknown Client";
@@ -76,7 +76,7 @@ export default function Documents() {
 
   const handleDownloadPdf = (document: DocumentType) => {
     const type = document.type.charAt(0).toUpperCase() + document.type.slice(1);
-    const projectName = getProjectName(document.projectId);
+    const projectName = getProjectName(document.projectId as number);
     
     exportToPdf(document.content, `${type}-${projectName.replace(/\s+/g, "-")}`);
     
@@ -164,9 +164,9 @@ export default function Documents() {
                           <div className="ml-3">
                             <h3 className="font-medium text-lg capitalize">{document.type}</h3>
                             <p className="text-sm text-gray-500">
-                              Project: {getProjectName(document.projectId)}
+                              Project: {getProjectName(document.projectId as number)}
                               <span className="mx-1">•</span>
-                              Client: {getClientName(document.projectId)}
+                              Client: {getClientName(document.projectId as number)}
                             </p>
                             {document.createdAt && (
                               <p className="text-xs text-gray-500">
