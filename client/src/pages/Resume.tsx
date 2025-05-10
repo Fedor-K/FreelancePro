@@ -30,6 +30,7 @@ export default function Resume() {
   const [resumeToDelete, setResumeToDelete] = useState<ResumeType | null>(null);
   const [activeTab, setActiveTab] = useState("create");
   const [documentType, setDocumentType] = useState<"resume" | "coverLetter">("resume");
+  const [isEditing, setIsEditing] = useState(false);
   
   // New state for two-step resume generation
   const [currentResumeContent, setCurrentResumeContent] = useState<string | null>(null);
@@ -88,8 +89,24 @@ export default function Resume() {
   
   // Function to handle preview generation
   const handlePreviewGenerated = (content: string, data: any) => {
+    console.log("Preview generated with data:", { 
+      content: content.substring(0, 30) + "...",
+      dataId: data.id,
+      isEditing,
+      currentId: currentResumeData?.id
+    });
+    
     setCurrentResumeContent(content);
-    setCurrentResumeData(data);
+    
+    // If we're editing, make sure to preserve the resume ID
+    if (isEditing && currentResumeData?.id) {
+      setCurrentResumeData({
+        ...data,
+        id: currentResumeData.id
+      });
+    } else {
+      setCurrentResumeData(data);
+    }
   };
   
   // Function to save the resume to the database
@@ -214,7 +231,7 @@ export default function Resume() {
                     experience: currentResumeData.experience || "",
                     projects: currentResumeData.projects || "",
                     content: ""
-                  } as Resume : undefined}
+                  } as ResumeType : undefined}
                   onPreviewGenerated={handlePreviewGenerated}
                 />
               )}
@@ -362,8 +379,11 @@ export default function Resume() {
                                 console.log("Edit button clicked for resume:", resume.id);
                                 setActiveTab("create");
                                 
-                                // Set resume for editing
-                                setCurrentResumeContent(resume.content);
+                                // Set editing mode
+                                setIsEditing(true);
+                                
+                                // Start with the form instead of content
+                                setCurrentResumeContent(null);
                                 
                                 const resumeData = {
                                   id: resume.id,
