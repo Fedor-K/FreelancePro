@@ -70,8 +70,8 @@ export default function Dashboard() {
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const [showArchived, setShowArchived] = useState(false);
   // Define a type for the tab values based on projectStatusEnum
-  type TabValue = "all" | "In Progress" | "Delivered" | "Paid";
-  const [activeTab, setActiveTab] = useState<TabValue>("all");
+  type TabValue = "In Progress" | "Delivered" | "Paid";
+  const [activeTab, setActiveTab] = useState<TabValue>("In Progress");
 
   const { data: stats, isLoading: isLoadingStats } = useQuery<DashboardStats>({
     queryKey: ['/api/stats'],
@@ -133,9 +133,7 @@ export default function Dashboard() {
       if (!showArchived && project.isArchived) return false;
       
       // Filter by active tab
-      if (activeTab !== "all") {
-        if (project.status !== activeTab) return false;
-      }
+      if (project.status !== activeTab) return false;
       
       // Filter by search term
       return (
@@ -335,14 +333,8 @@ export default function Dashboard() {
           </div>
         </div>
         
-        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full mb-4">
-          <TabsList className="grid w-full max-w-md grid-cols-4">
-            <TabsTrigger value="all">
-              All
-              <span className="ml-1 inline-flex h-5 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium text-gray-600">
-                {projects.filter(p => !p.isArchived || showArchived).length}
-              </span>
-            </TabsTrigger>
+        <Tabs defaultValue="In Progress" value={activeTab} onValueChange={(value) => setActiveTab(value as TabValue)} className="w-full mb-4">
+          <TabsList className="grid w-full max-w-md grid-cols-3">
             <TabsTrigger value="In Progress">
               In Progress
               <span className="ml-1 inline-flex h-5 items-center justify-center rounded-full bg-yellow-100 px-2 text-xs font-medium text-yellow-800">
@@ -391,11 +383,7 @@ export default function Dashboard() {
                     <TableCell colSpan={8} className="text-center py-10 text-gray-500">
                       {searchTerm 
                         ? "No projects match your search. Try a different term."
-                        : activeTab !== "all"
-                          ? `No ${activeTab} projects found.`
-                          : showArchived 
-                            ? "No archived projects found."
-                            : "No projects found. Add a project to get started."}
+                        : `No ${activeTab} projects found.${activeTab === "In Progress" ? " Add a project to get started." : ""}`}
                     </TableCell>
                   </TableRow>
                 ) : (
