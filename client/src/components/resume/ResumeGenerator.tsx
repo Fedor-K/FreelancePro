@@ -23,6 +23,7 @@ import { FileText, Wand2, Settings, Copy, Download } from "lucide-react";
 import { Link } from "wouter";
 import { getResumeSettings } from "@/lib/settingsService";
 import { ProjectsSelector } from "./ProjectsSelector";
+import { apiRequest } from "@/lib/queryClient";
 
 // Extend the schema with validation
 const formSchema = z.object({
@@ -159,9 +160,11 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
     };
   }, [form, resumeToEdit, toast, instanceId]);
   
-  const onSubmit = async (data: FormValues) => {
+  // Generate resume content without saving to database
+  const generateResumeContent = async (data: FormValues) => {
     try {
       setIsGenerating(true);
+      console.log(`[ResumeGenerator:${instanceId}] Generating resume content`);
       
       // Add the target project information to the experience field
       let updatedExperience = data.experience;
@@ -178,11 +181,6 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
         useAdditionalSettings: true,
       };
       
-      // Add ID if editing
-      if (isEditing && resumeToEdit) {
-        Object.assign(payload, { id: resumeToEdit.id, isEditing: true });
-      }
-      
       // Generate resume
       console.log(`[ResumeGenerator:${instanceId}] Generating resume with payload:`, {
         ...payload,
@@ -197,22 +195,96 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
       // Store the generated resume in localStorage for persistence
       localStorage.setItem('lastGeneratedResume', generatedResume.content);
       
+      toast({
+        title: "Resume preview generated",
+        description: "You can now review your resume before saving it.",
+        duration: 3000,
+      });
+      
+      return {
+        content: generatedResume.content,
+        updatedExperience
+      };
+    } catch (error) {
+      console.error(`[ResumeGenerator:${instanceId}] Error generating resume:`, error);
+      toast({
+        title: "Error generating resume",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+  
+  // Form submission - only generates preview
+  const onSubmit = async (data: FormValues) => {
+    await generateResumeContent(data);
+  }
+  
+  // Save the resume to the database
+  const saveResume = async () => {
+    if (!resumeContent) {
+      toast({
+        title: "No content to save",
+        description: "Please generate a resume first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      setIsGenerating(true);
+      
+      const formData = form.getValues();
+      
+      // Add the target project information to the experience field
+      let updatedExperience = formData.experience;
+      updatedExperience = updatedExperience.replace(/NOTE: This resume is specifically tailored for the following job\/project:.+?(\n|$)/, '');
+      updatedExperience += `\n\nNOTE: This resume is specifically tailored for the following job/project: ${formData.targetProject}`;
+      
+      const payload = {
+        // Basic fields
+        name: formData.name,
+        specialization: formData.specialization,
+        experience: updatedExperience,
+        projects: formData.projects,
+        targetProject: formData.targetProject,
+        useAdditionalSettings: true,
+        content: resumeContent,
+      };
+      
+      // Add ID if editing
+      if (isEditing && resumeToEdit) {
+        Object.assign(payload, { id: resumeToEdit.id, isEditing: true });
+      }
+      
+      // Save resume to database
+      await apiRequest('/api/resumes', {
+        method: isEditing ? 'PATCH' : 'POST',
+        data: payload,
+      });
+      
+      // Invalidate queries
+      queryClient.invalidateQueries({ queryKey: ['/api/resumes'] });
+      
       // Call onEditComplete callback
       if (onEditComplete) {
         onEditComplete();
       }
       
       toast({
-        title: isEditing ? "Resume updated" : "Resume generated",
+        title: isEditing ? "Resume updated" : "Resume saved",
         description: isEditing 
           ? "Your resume has been updated successfully."
-          : "Your resume has been generated successfully.",
+          : "Your resume has been saved successfully.",
       });
     } catch (error) {
-      console.error(`[ResumeGenerator:${instanceId}] Error generating resume:`, error);
+      console.error(`[ResumeGenerator:${instanceId}] Error saving resume:`, error);
       toast({
         title: "Error",
-        description: "Failed to generate resume. Please try again.",
+        description: "Failed to save resume. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -289,6 +361,15 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
                 >
                   <Download className="h-4 w-4 mr-1" />
                   Download
+                </Button>
+                <Button 
+                  variant="default"
+                  onClick={saveResume}
+                  disabled={isGenerating}
+                  className="bg-accent hover:bg-accent/90"
+                >
+                  <FileText className="h-4 w-4 mr-1" />
+                  {isGenerating ? "Saving..." : "Save to Collection"}
                 </Button>
               </div>
             </div>

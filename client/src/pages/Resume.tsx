@@ -119,7 +119,7 @@ export default function Resume() {
               key={`resume-generator-create-${Date.now()}`}
               onEditComplete={() => {
                 refetch();
-                setActiveTab("saved");
+                // Don't automatically switch tabs
               }}
             />
           )}
