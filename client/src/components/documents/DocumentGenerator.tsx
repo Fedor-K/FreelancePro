@@ -74,25 +74,29 @@ export function DocumentGenerator() {
     },
   });
   
-  // Effect to handle invoice creation from other pages
+  // Effect to handle form pre-population from URL parameters
   useEffect(() => {
-    // If projectId and type are specified, auto-generate the document
-    if (projectIdParam && typeParam && projects.length > 0) {
-      // Auto-select the form values
-      if (projectIdParam) {
+    if (projects.length > 0 && projectIdParam) {
+      const project = projects.find(p => p.id.toString() === projectIdParam);
+      
+      if (project) {
+        console.log("Project found:", project);
+        // Set form values
         form.setValue("projectId", projectIdParam);
+        
+        if (typeParam) {
+          form.setValue("type", typeParam);
+        }
       }
-      if (typeParam) {
-        form.setValue("type", typeParam);
-      }
+    }
+  }, [projectIdParam, typeParam, projects.length, form]);
+  
+  // Separate effect for auto-generating invoice
+  useEffect(() => {
+    if (!document && typeParam === "invoice" && projectIdParam && projects.length > 0) {
+      const project = projects.find(p => p.id.toString() === projectIdParam);
       
-      console.log("Setting form values:", {
-        projectId: projectIdParam,
-        type: typeParam
-      });
-      
-      // Only auto-generate if the document hasn't been generated yet
-      if (!document && typeParam === "invoice") {
+      if (project) {
         // Auto-submit the form
         form.handleSubmit(async (data) => {
           setIsGenerating(true);
@@ -130,7 +134,7 @@ export function DocumentGenerator() {
         })();
       }
     }
-  }, [projectIdParam, typeParam, projects.length, document]);
+  }, [document, projectIdParam, typeParam, projects.length, form, queryClient]);
 
   const getClientName = (clientId: number) => {
     const client = clients.find((c) => c.id === clientId);
