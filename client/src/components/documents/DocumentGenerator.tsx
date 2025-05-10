@@ -148,6 +148,13 @@ export function DocumentGenerator() {
     }
   }, [form.watch("type"), projects]);
   
+  // Effect to initialize edited content when document changes
+  useEffect(() => {
+    if (document) {
+      setEditedContent(document.content);
+    }
+  }, [document]);
+  
   // Separate effect for auto-generating invoice
   useEffect(() => {
     if (!document && typeParam === "invoice" && projectIdParam && projects.length > 0) {
@@ -170,6 +177,7 @@ export function DocumentGenerator() {
             );
             
             setDocument(generatedDocument);
+            setEditedContent(generatedDocument.content); // Initialize edited content
             setActiveTab("preview");
             
             // Invalidate projects to refresh data
@@ -239,20 +247,31 @@ export function DocumentGenerator() {
     setIsSaving(true);
     try {
       // Update the document in the API
-      const updatedDocument = await apiRequest(
+      const response = await apiRequest(
         "PATCH", 
         `/api/documents/${document.id}`, 
         { content: editedContent }
       );
       
-      // Update local state
-      setDocument(updatedDocument);
-      setIsEditing(false);
-      
-      toast({
-        title: "Document updated",
-        description: "Your changes have been saved successfully.",
-      });
+      // Update local state with correct typing
+      if (response) {
+        // Create a new document object based on the response
+        const updatedDoc: Document = {
+          id: document.id,
+          type: document.type,
+          projectId: document.projectId,
+          content: editedContent, // Use our edited content
+          createdAt: document.createdAt
+        };
+        
+        setDocument(updatedDoc);
+        setIsEditing(false);
+        
+        toast({
+          title: "Document updated",
+          description: "Your changes have been saved successfully.",
+        });
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -265,8 +284,11 @@ export function DocumentGenerator() {
   };
 
   const handleCopyToClipboard = () => {
-    if (document?.content) {
-      copyToClipboard(document.content);
+    // Use edited content if available, otherwise use original document content
+    const contentToCopy = isEditing ? editedContent : (document?.content || "");
+    
+    if (contentToCopy) {
+      copyToClipboard(contentToCopy);
       toast({
         title: "Copied to clipboard",
         description: "Document content has been copied to clipboard.",
@@ -275,11 +297,13 @@ export function DocumentGenerator() {
   };
 
   const handleDownloadPdf = () => {
-    if (document?.content) {
+    if (document) {
+      // Use edited content if available, otherwise use original document content
+      const contentToExport = isEditing ? editedContent : document.content;
       const type = document.type.charAt(0).toUpperCase() + document.type.slice(1);
       const projectName = getProjectName(document.projectId?.toString() || "");
       
-      exportToPdf(document.content, `${type}-${projectName.replace(/\s+/g, "-")}`);
+      exportToPdf(contentToExport, `${type}-${projectName.replace(/\s+/g, "-")}`);
       
       toast({
         title: "PDF downloaded",
