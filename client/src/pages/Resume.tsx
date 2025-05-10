@@ -1,9 +1,6 @@
 import { 
   Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+  CardContent,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -17,11 +14,11 @@ import { ResumeGenerator } from "@/components/resume/ResumeGenerator";
 import { CoverLetterGenerator } from "@/components/resume/CoverLetterGenerator";
 import { Resume as ResumeType } from "@shared/schema";
 import { Button } from "@/components/ui/button";
-import { FileText, Download, Copy, Trash2, Edit, Pencil } from "lucide-react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { FileText, Download, Copy, Trash2, Edit } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
 
 export default function Resume() {
@@ -32,7 +29,7 @@ export default function Resume() {
   const [activeTab, setActiveTab] = useState("create");
   const [documentType, setDocumentType] = useState<"resume" | "coverLetter">("resume");
   
-  // Simplified state management - just log and don't try to manage state
+  // Debug logging for state changes
   useEffect(() => {
     console.log("[Resume] State update - resumeToEdit:", resumeToEdit, "activeTab:", activeTab, "documentType:", documentType);
   }, [resumeToEdit, activeTab, documentType]);
@@ -98,185 +95,213 @@ export default function Resume() {
             </div>
           </div>
           
-          {/* Adding a key to force complete remount when tab or resumeToEdit changes */}
-          <Tabs 
-            key={`tabs-${activeTab}-${resumeToEdit ? `edit-${resumeToEdit.id}` : 'create'}`}
-            value={activeTab} 
-            onValueChange={setActiveTab}>
-            <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
-              <TabsTrigger value="create">Create Document</TabsTrigger>
-              <TabsTrigger value="saved">Saved Documents</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent 
-              value="create" 
-              // Add a key to force remount of TabsContent when resumeToEdit changes
-              key={`create-content-${resumeToEdit ? `edit-${resumeToEdit.id}` : 'new'}`}
-            >
-              <div className="mb-6">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Document Type</label>
-                  <Select value={documentType} onValueChange={(value) => setDocumentType(value as "resume" | "coverLetter")}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="resume">Resume</SelectItem>
-                      <SelectItem value="coverLetter">Cover Letter</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+          {/* COMPLETELY SEPARATED EDIT MODE AND NORMAL MODE */}
+          {resumeToEdit ? (
+            // EDIT MODE - Separate UI without tabs when editing
+            <div className="mb-6" key={`editing-resume-${resumeToEdit.id}-${Date.now()}`}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold">Editing Resume</h3>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setResumeToEdit(null);
+                    setActiveTab("create");
+                  }}
+                >
+                  Cancel Editing
+                </Button>
+              </div>
+              <div className="border-l-4 border-blue-600 pl-4 mb-4">
+                <p className="text-blue-700 font-medium">Editing: {resumeToEdit.name}</p>
               </div>
               
-              {/* Explicitly handle different content based on document type */}
-              {documentType === "resume" && (
-                <div key={resumeToEdit ? `edit-mode-${resumeToEdit.id}` : 'create-mode'}>
-                  {resumeToEdit ? (
-                    // Editing an existing resume - explicitly manage this case
-                    <div className="border-l-4 border-blue-600 pl-4 mb-4">
-                      <p className="text-blue-700 font-medium">Editing Resume: {resumeToEdit.name}</p>
-                    </div>
-                  ) : null}
-                  
+              <ResumeGenerator 
+                key={`edit-resume-${resumeToEdit.id}-${Date.now()}`}
+                resumeToEdit={resumeToEdit} 
+                onEditComplete={() => {
+                  console.log("[Resume] Edit complete");
+                  setResumeToEdit(null);
+                  refetch();
+                  setActiveTab("saved");
+                }}
+              />
+            </div>
+          ) : (
+            // NORMAL MODE - Standard tabs interface for create/view
+            <Tabs 
+              key={`tabs-${activeTab}`}
+              value={activeTab} 
+              onValueChange={(value) => setActiveTab(value)}>
+              <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
+                <TabsTrigger value="create">Create Document</TabsTrigger>
+                <TabsTrigger value="saved">Saved Documents</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent 
+                value="create" 
+                key="create-content"
+              >
+                <div className="mb-6">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      Document Type
+                    </label>
+                    <Select 
+                      value={documentType} 
+                      onValueChange={(value) => setDocumentType(value as "resume" | "coverLetter")}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="resume">Resume</SelectItem>
+                        <SelectItem value="coverLetter">Cover Letter</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                {documentType === "resume" && (
                   <ResumeGenerator 
-                    key={resumeToEdit ? `edit-${resumeToEdit.id}-${Date.now()}` : `new-${Date.now()}`}
-                    resumeToEdit={resumeToEdit} 
+                    key={`new-resume-${Date.now()}`}
+                    resumeToEdit={null} 
                     onEditComplete={() => {
-                      console.log("[Resume] Edit complete");
-                      setResumeToEdit(null);
                       refetch();
                       setActiveTab("saved");
                     }}
                   />
-                </div>
-              )}
+                )}
+                
+                {documentType === "coverLetter" && (
+                  <CoverLetterGenerator />
+                )}
+              </TabsContent>
               
-              {documentType === "coverLetter" && (
-                <CoverLetterGenerator />
-              )}
-            </TabsContent>
-            
-            <TabsContent value="saved">
-              <div className="mb-6">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Document Type</label>
-                  <Select value={documentType} onValueChange={(value) => setDocumentType(value as "resume" | "coverLetter")}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="resume">
-                        Resumes ({resumes.filter(doc => doc.specialization !== "Cover Letter").length})
-                      </SelectItem>
-                      <SelectItem value="coverLetter">
-                        Cover Letters ({resumes.filter(doc => doc.specialization === "Cover Letter").length})
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+              <TabsContent value="saved">
+                <div className="mb-6">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      Document Type
+                    </label>
+                    <Select 
+                      value={documentType} 
+                      onValueChange={(value) => setDocumentType(value as "resume" | "coverLetter")}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="resume">
+                          Resumes ({resumes.filter(doc => doc.specialization !== "Cover Letter").length})
+                        </SelectItem>
+                        <SelectItem value="coverLetter">
+                          Cover Letters ({resumes.filter(doc => doc.specialization === "Cover Letter").length})
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-              </div>
-              
-              {isLoading ? (
-                <p className="text-center py-8 text-gray-500">Loading documents...</p>
-              ) : resumes.length === 0 || !resumes.some(resume => 
-                  documentType === "resume" ? 
-                    resume.specialization !== "Cover Letter" : 
-                    resume.specialization === "Cover Letter"
-                ) ? (
-                <div className="text-center py-12 text-gray-500">
-                  <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                  {resumes.length === 0 ? (
-                    <>
-                      <p className="text-lg font-medium">No documents yet</p>
-                      <p className="mt-1">Create your first AI-powered document to get started.</p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-lg font-medium">No {documentType === "resume" ? "resumes" : "cover letters"} found</p>
-                      <p className="mt-1">
-                        {documentType === "resume" 
-                          ? "Generate a resume to showcase your skills and experience." 
-                          : "Create a cover letter to apply for a specific job or client."}
-                      </p>
-                    </>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {resumes
-                    .filter(resume => documentType === "resume" ? 
+                
+                {isLoading ? (
+                  <p className="text-center py-8 text-gray-500">Loading documents...</p>
+                ) : resumes.length === 0 || !resumes.some(resume => 
+                    documentType === "resume" ? 
                       resume.specialization !== "Cover Letter" : 
-                      resume.specialization === "Cover Letter")
-                    .map((resume) => (
-                      <div key={resume.id} className="p-4 border rounded-md">
-                        <div className="flex justify-between items-start mb-4">
-                          <div>
-                            <h3 className="font-medium text-lg">{resume.name}</h3>
-                            <p className="text-sm text-gray-500">{resume.specialization}</p>
+                      resume.specialization === "Cover Letter"
+                  ) ? (
+                  <div className="text-center py-12 text-gray-500">
+                    <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                    {resumes.length === 0 ? (
+                      <>
+                        <p className="text-lg font-medium">No documents yet</p>
+                        <p className="mt-1">Create your first AI-powered document to get started.</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-lg font-medium">No {documentType === "resume" ? "resumes" : "cover letters"} found</p>
+                        <p className="mt-1">
+                          {documentType === "resume" 
+                            ? "Generate a resume to showcase your skills and experience." 
+                            : "Create a cover letter to apply for a specific job or client."}
+                        </p>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {resumes
+                      .filter(resume => documentType === "resume" ? 
+                        resume.specialization !== "Cover Letter" : 
+                        resume.specialization === "Cover Letter")
+                      .map((resume) => (
+                        <div key={resume.id} className="p-4 border rounded-md">
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <h3 className="font-medium text-lg">{resume.name}</h3>
+                              <p className="text-sm text-gray-500">{resume.specialization}</p>
+                            </div>
+                            <div className="flex space-x-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleCopyToClipboard(resume.content)}
+                              >
+                                <Copy className="h-4 w-4 mr-1" />
+                                Copy
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleDownload(resume)}
+                              >
+                                <Download className="h-4 w-4 mr-1" />
+                                Download
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="bg-gray-50 text-gray-700"
+                                onClick={() => {
+                                  console.log("[Resume] Edit button clicked for resume:", resume);
+                                  // Manually set all the required states for editing mode
+                                  setResumeToEdit({...resume});
+                                }}
+                              >
+                                <Edit className="h-4 w-4 mr-1" />
+                                Edit
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                onClick={() => {
+                                  setResumeToDelete(resume);
+                                  setIsDeleteDialogOpen(true);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
-                          <div className="flex space-x-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleCopyToClipboard(resume.content)}
-                            >
-                              <Copy className="h-4 w-4 mr-1" />
-                              Copy
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleDownload(resume)}
-                            >
-                              <Download className="h-4 w-4 mr-1" />
-                              Download
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="bg-gray-50 text-gray-700"
-                              onClick={() => {
-                                console.log("[Resume] Edit button clicked for resume:", resume);
-                                // Manually set all the required states for editing mode
-                                setResumeToEdit({...resume});
-                                setDocumentType("resume");
-                                setActiveTab("create");
-                              }}
-                            >
-                              <Edit className="h-4 w-4 mr-1" />
-                              Edit Document
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                              onClick={() => {
-                                setResumeToDelete(resume);
-                                setIsDeleteDialogOpen(true);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                          
+                          <div className="p-4 bg-gray-50 rounded-md whitespace-pre-wrap font-mono text-sm max-h-48 overflow-y-auto">
+                            {resume.content.length > 500 
+                              ? `${resume.content.substring(0, 500)}...`
+                              : resume.content}
+                          </div>
+                          
+                          <div className="mt-3 text-sm text-gray-500">
+                            <span className="font-medium">Experience:</span> {resume.experience.length > 100 
+                              ? `${resume.experience.substring(0, 100)}...`
+                              : resume.experience}
                           </div>
                         </div>
-                        
-                        <div className="p-4 bg-gray-50 rounded-md whitespace-pre-wrap font-mono text-sm max-h-48 overflow-y-auto">
-                          {resume.content.length > 500 
-                            ? `${resume.content.substring(0, 500)}...`
-                            : resume.content}
-                        </div>
-                        
-                        <div className="mt-3 text-sm text-gray-500">
-                          <span className="font-medium">Experience:</span> {resume.experience.length > 100 
-                            ? `${resume.experience.substring(0, 100)}...`
-                            : resume.experience}
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
+                      ))}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          )}
         </CardContent>
       </Card>
       
