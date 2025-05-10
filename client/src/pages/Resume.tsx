@@ -79,31 +79,31 @@ export default function Resume() {
   return (
     <div className="space-y-6">
       <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Document Generator</CardTitle>
-          <CardDescription>
-            Create professional resumes and cover letters powered by AI to help you land your next freelance client.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {/* Document generator content will be shown in the tabs below */}
-        </CardContent>
-      </Card>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
-          <TabsTrigger value="create">Create Document</TabsTrigger>
-          <TabsTrigger value="saved">Saved Documents</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="create">
-          <div className="mb-6">
-            <div className="grid gap-4 max-w-xl">
-              <div className="flex items-center space-x-4">
-                <h3 className="text-sm font-medium">Document Type:</h3>
-                <div className="w-[180px]">
+        <CardContent className="pt-6">
+          <div className="flex items-center mb-6">
+            <div className="mr-4 p-3 bg-purple-100 rounded-md">
+              <FileText className="h-6 w-6 text-accent" />
+            </div>
+            <div>
+              <h3 className="text-lg font-medium leading-6 text-gray-900">Document Generator</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Create professional resumes and cover letters powered by AI to help you land your next freelance client.
+              </p>
+            </div>
+          </div>
+          
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
+              <TabsTrigger value="create">Create Document</TabsTrigger>
+              <TabsTrigger value="saved">Saved Documents</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="create">
+              <div className="mb-6">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Document Type</label>
                   <Select value={documentType} onValueChange={(value) => setDocumentType(value as "resume" | "coverLetter")}>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -113,42 +113,30 @@ export default function Resume() {
                   </Select>
                 </div>
               </div>
-            </div>
-          </div>
-          
-          {documentType === "resume" ? <ResumeGenerator /> : <CoverLetterGenerator />}
-        </TabsContent>
-        
-        <TabsContent value="saved">
-          <Card>
-            <CardHeader>
-              <CardTitle>Saved Documents</CardTitle>
-              <CardDescription>
-                View, download, or manage your previously generated resumes and cover letters.
-              </CardDescription>
               
-              <div className="mt-4">
-                <div className="flex items-center space-x-4">
-                  <h3 className="text-sm font-medium">Document Type:</h3>
-                  <div className="w-[200px]">
-                    <Select value={documentType} onValueChange={(value) => setDocumentType(value as "resume" | "coverLetter")}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="resume">
-                          Resumes ({resumes.filter(doc => doc.specialization !== "Cover Letter").length})
-                        </SelectItem>
-                        <SelectItem value="coverLetter">
-                          Cover Letters ({resumes.filter(doc => doc.specialization === "Cover Letter").length})
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+              {documentType === "resume" ? <ResumeGenerator /> : <CoverLetterGenerator />}
+            </TabsContent>
+            
+            <TabsContent value="saved">
+              <div className="mb-6">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Document Type</label>
+                  <Select value={documentType} onValueChange={(value) => setDocumentType(value as "resume" | "coverLetter")}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="resume">
+                        Resumes ({resumes.filter(doc => doc.specialization !== "Cover Letter").length})
+                      </SelectItem>
+                      <SelectItem value="coverLetter">
+                        Cover Letters ({resumes.filter(doc => doc.specialization === "Cover Letter").length})
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent>
+              
               {isLoading ? (
                 <p className="text-center py-8 text-gray-500">Loading documents...</p>
               ) : resumes.length === 0 || !resumes.some(resume => 
@@ -181,95 +169,95 @@ export default function Resume() {
                       resume.specialization !== "Cover Letter" : 
                       resume.specialization === "Cover Letter")
                     .map((resume) => (
-                    <div key={resume.id} className="p-4 border rounded-md">
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <h3 className="font-medium text-lg">{resume.name}</h3>
-                          <p className="text-sm text-gray-500">{resume.specialization}</p>
+                      <div key={resume.id} className="p-4 border rounded-md">
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <h3 className="font-medium text-lg">{resume.name}</h3>
+                            <p className="text-sm text-gray-500">{resume.specialization}</p>
+                          </div>
+                          <div className="flex space-x-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleCopyToClipboard(resume.content)}
+                            >
+                              <Copy className="h-4 w-4 mr-1" />
+                              Copy
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleDownload(resume)}
+                            >
+                              <Download className="h-4 w-4 mr-1" />
+                              Download
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => {
+                                setResumeToDelete(resume);
+                                setIsDeleteDialogOpen(true);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
-                        <div className="flex space-x-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleCopyToClipboard(resume.content)}
-                          >
-                            <Copy className="h-4 w-4 mr-1" />
-                            Copy
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleDownload(resume)}
-                          >
-                            <Download className="h-4 w-4 mr-1" />
-                            Download
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            onClick={() => {
-                              setResumeToDelete(resume);
-                              setIsDeleteDialogOpen(true);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                        
+                        <div className="p-4 bg-gray-50 rounded-md whitespace-pre-wrap font-mono text-sm max-h-48 overflow-y-auto">
+                          {resume.content.length > 500 
+                            ? `${resume.content.substring(0, 500)}...`
+                            : resume.content}
+                        </div>
+                        
+                        <div className="mt-3 text-sm text-gray-500">
+                          <span className="font-medium">Experience:</span> {resume.experience.length > 100 
+                            ? `${resume.experience.substring(0, 100)}...`
+                            : resume.experience}
                         </div>
                       </div>
-                      
-                      <div className="p-4 bg-gray-50 rounded-md whitespace-pre-wrap font-mono text-sm max-h-48 overflow-y-auto">
-                        {resume.content.length > 500 
-                          ? `${resume.content.substring(0, 500)}...`
-                          : resume.content}
-                      </div>
-                      
-                      <div className="mt-3 text-sm text-gray-500">
-                        <span className="font-medium">Experience:</span> {resume.experience.length > 100 
-                          ? `${resume.experience.substring(0, 100)}...`
-                          : resume.experience}
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               )}
-            </CardContent>
-          </Card>
-          
-          {/* Delete Confirmation Dialog */}
-          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-            <DialogContent className="sm:max-w-[425px]">
-              <div className="flex flex-col items-center gap-4 py-4">
-                <div className="p-3 rounded-full bg-red-100">
-                  <Trash2 className="h-6 w-6 text-red-600" />
-                </div>
-                <h2 className="text-xl font-semibold text-center">Delete Resume</h2>
-                <p className="text-center text-gray-500">
-                  Are you sure you want to delete this resume for {resumeToDelete?.name}? 
-                  This action cannot be undone.
-                </p>
-                <div className="flex justify-end w-full space-x-3 pt-4">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => {
-                      setIsDeleteDialogOpen(false);
-                      setResumeToDelete(null);
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    variant="destructive" 
-                    onClick={handleDeleteResume}
-                  >
-                    Delete
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </TabsContent>
-      </Tabs>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+      
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <div className="flex flex-col items-center gap-4 py-4">
+            <div className="p-3 rounded-full bg-red-100">
+              <Trash2 className="h-6 w-6 text-red-600" />
+            </div>
+            <h2 className="text-xl font-semibold text-center">Delete Resume</h2>
+            <p className="text-center text-gray-500">
+              Are you sure you want to delete this resume for {resumeToDelete?.name}? 
+              This action cannot be undone.
+            </p>
+            <div className="flex justify-end w-full space-x-3 pt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setIsDeleteDialogOpen(false);
+                  setResumeToDelete(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={handleDeleteResume}
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
