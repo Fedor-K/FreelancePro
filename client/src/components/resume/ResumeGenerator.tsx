@@ -87,8 +87,8 @@ export function ResumeGenerator({
   
   // Use memo to optimize this calculation
   const defaultValues = useMemo(() => {
-    // If initialFormValues is provided, use it
-    if (Object.keys(initialFormValues).length > 0) {
+    // If initialFormValues is provided and not null
+    if (initialFormValues && typeof initialFormValues === 'object' && Object.keys(initialFormValues).length > 0) {
       console.log(`[ResumeGenerator:${instanceId}] Using provided initial values:`, initialFormValues);
       return {
         name: initialFormValues.name || "",
@@ -121,7 +121,19 @@ export function ResumeGenerator({
         // Clear form first
         form.reset();
         
-        if (resumeToEdit) {
+        // If we have initialFormValues with data, use them (highest priority)
+        if (initialFormValues && typeof initialFormValues === 'object' && Object.keys(initialFormValues).length > 0) {
+          console.log(`[ResumeGenerator:${instanceId}] Loading from initialFormValues`);
+          
+          // Set form values from props
+          if (initialFormValues.name) form.setValue("name", initialFormValues.name);
+          if (initialFormValues.specialization) form.setValue("specialization", initialFormValues.specialization);
+          if (initialFormValues.experience) form.setValue("experience", initialFormValues.experience);
+          if (initialFormValues.projects) form.setValue("projects", initialFormValues.projects);
+          if (initialFormValues.targetProject) form.setValue("targetProject", initialFormValues.targetProject);
+          
+        // If editing an existing resume, use resumeToEdit (second priority)
+        } else if (resumeToEdit) {
           console.log(`[ResumeGenerator:${instanceId}] Loading data for editing resume:`, resumeToEdit.id);
           
           // Set form values from the resume being edited
@@ -145,6 +157,8 @@ export function ResumeGenerator({
           
           // Store current edited resume in localStorage
           localStorage.setItem('lastGeneratedResume', resumeToEdit.content);
+        
+        // Otherwise, load from settings (lowest priority)
         } else {
           // Load from settings for new resume
           console.log(`[ResumeGenerator:${instanceId}] Loading settings for new resume`);
@@ -186,7 +200,7 @@ export function ResumeGenerator({
       console.log(`[ResumeGenerator:${instanceId}] Component unmounting, resumeToEdit:`, 
         resumeToEdit ? resumeToEdit.id : null);
     };
-  }, [form, resumeToEdit, toast, instanceId]);
+  }, [form, resumeToEdit, initialFormValues, toast, instanceId]);
   
   // Generate resume content without saving to database
   const generateResumeContent = async (data: FormValues) => {

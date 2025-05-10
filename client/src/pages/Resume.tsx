@@ -33,7 +33,13 @@ export default function Resume() {
   
   // New state for two-step resume generation
   const [currentResumeContent, setCurrentResumeContent] = useState<string | null>(null);
-  const [currentResumeData, setCurrentResumeData] = useState<any | null>(null);
+  const [currentResumeData, setCurrentResumeData] = useState<any>({
+    name: "",
+    specialization: "",
+    experience: "",
+    projects: "",
+    targetProject: ""
+  });
   
   const { data: resumes = [], isLoading, refetch } = useQuery<ResumeType[]>({
     queryKey: ['/api/resumes'],
@@ -171,7 +177,6 @@ export default function Resume() {
               {/* Step 1: Show resume form if no content is generated yet */}
               {!currentResumeContent && (
                 <ResumeGenerator 
-                  key={`resume-generator-create-${Date.now()}`}
                   previewOnly={true}
                   initialFormValues={currentResumeData} // Pass the saved form data back
                   onPreviewGenerated={handlePreviewGenerated}
