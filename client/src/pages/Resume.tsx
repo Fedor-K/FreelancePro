@@ -173,6 +173,7 @@ export default function Resume() {
                 <ResumeGenerator 
                   key={`resume-generator-create-${Date.now()}`}
                   previewOnly={true}
+                  initialFormValues={currentResumeData} // Pass the saved form data back
                   onPreviewGenerated={handlePreviewGenerated}
                 />
               )}
