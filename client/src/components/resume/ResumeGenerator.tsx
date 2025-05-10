@@ -26,9 +26,15 @@ import { getResumeSettings } from "@/lib/settingsService";
 import { ProjectsSelector } from "./ProjectsSelector";
 
 // Extend the schema with validation
-const formSchema = insertResumeSchema.extend({
-  targetProject: z.string().min(10, { message: "Target project description must be at least 10 characters" }),
+const formSchema = z.object({
+  // Original required fields
+  name: z.string().default(""),         // Will be set from settings
+  specialization: z.string().default(""), // Will be set from settings
+  experience: z.string().default(""),     // Will be set from settings
   projects: z.string().min(10, { message: "Projects must be at least 10 characters" }),
+  
+  // Our new field
+  targetProject: z.string().min(10, { message: "Target project description must be at least 10 characters" }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -43,8 +49,11 @@ export function ResumeGenerator() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      targetProject: "",
+      name: "",
+      specialization: "",
+      experience: "",
       projects: "",
+      targetProject: "",
     },
   });
   
@@ -54,10 +63,17 @@ export function ResumeGenerator() {
       try {
         const settings = await getResumeSettings();
         
-        // Only update the form if projects is empty (to avoid overwriting user input)
+        // Set the required fields from settings (these are hidden from the user)
+        form.setValue("name", settings.defaultTitle || "Professional Resume");
+        form.setValue("specialization", settings.skills.split(',')[0] || "Translator");
+        
+        // Create a formatted experience string from the settings
+        const formattedExperience = `${settings.experience}\n\nLanguages: ${settings.languages}\n\nEducation: ${settings.education}`;
+        form.setValue("experience", formattedExperience);
+        
+        // Only update projects if it's empty (to avoid overwriting user input)
         const currentProjects = form.getValues("projects");
         if (!currentProjects) {
-          // Pre-populate projects from settings
           form.setValue("projects", settings.projects || "");
         }
       } catch (error) {
@@ -71,17 +87,21 @@ export function ResumeGenerator() {
   const onSubmit = async (data: FormValues) => {
     setIsGenerating(true);
     try {
-      // Load resume settings to include in the resume generation
-      const settings = await getResumeSettings();
+      // The form already has name, specialization, and experience populated from settings
+      // We just need to add the targetProject information
       
-      // Generate resume with just the target project and projects list
-      // While using all other data from settings
+      // Generate resume with the form data + target project info
       const generatedResume = await generateResume({
-        name: settings.defaultTitle,
-        specialization: settings.skills.split(',')[0] || "Translator",
-        experience: `${settings.experience}\n\nLanguages: ${settings.languages}\n\nEducation: ${settings.education}`,
-        targetProject: data.targetProject,
+        // Basic required fields for the API
+        name: data.name,
+        specialization: data.specialization,
+        experience: data.experience,
         projects: data.projects,
+        
+        // Our additional field that will be used for tailoring
+        targetProject: data.targetProject,
+        
+        // Tell the API to use additional settings if needed
         useAdditionalSettings: true
       });
       
@@ -93,6 +113,7 @@ export function ResumeGenerator() {
         description: "Your resume has been tailored for your target project using your resume settings.",
       });
     } catch (error) {
+      console.error("Resume generation error:", error);
       toast({
         title: "Error",
         description: "Failed to generate resume. Please try again later.",
@@ -118,7 +139,11 @@ export function ResumeGenerator() {
       const element = document.createElement("a");
       const file = new Blob([resume.content], { type: "text/plain" });
       element.href = URL.createObjectURL(file);
-      element.download = `resume-${form.getValues("name").toLowerCase().replace(/\s+/g, "-")}.txt`;
+      
+      // Use the name from form or fallback to 'professional-resume'
+      const resumeName = form.getValues("name") || "professional-resume";
+      element.download = `resume-${resumeName.toLowerCase().replace(/\s+/g, "-")}.txt`;
+      
       document.body.appendChild(element);
       element.click();
       document.body.removeChild(element);
