@@ -76,6 +76,9 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
       try {
         // If we're editing an existing resume, use its data
         if (resumeToEdit) {
+          console.log("Editing resume:", resumeToEdit);
+          setIsEditing(true);
+          
           // Set form values from the resume being edited
           form.setValue("name", resumeToEdit.name);
           form.setValue("specialization", resumeToEdit.specialization);
@@ -87,14 +90,21 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
           if (targetProjectMatch && targetProjectMatch[1]) {
             form.setValue("targetProject", targetProjectMatch[1]);
           } else {
-            // Set a default value or try to find it in the content
+            // Set a default value
             form.setValue("targetProject", "Please describe the project you're applying to");
           }
           
           // Set the resume preview
-          setResume(resumeToEdit);
+          setResume({
+            id: resumeToEdit.id,
+            content: resumeToEdit.content
+          });
+          
+          // Set active tab to form so user can edit
+          setActiveTab("form");
         } else {
           // Otherwise, load from settings
+          setIsEditing(false);
           const settings = await getResumeSettings();
           
           // Set the required fields from settings (these are hidden from the user)
