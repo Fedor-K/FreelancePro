@@ -135,20 +135,35 @@ export default function Resume() {
                 </div>
               </div>
               
-              {documentType === "resume" ? 
-                <ResumeGenerator 
-                  key={resumeToEdit ? `edit-resume-${resumeToEdit.id}` : 'new-resume'}
-                  resumeToEdit={resumeToEdit} 
-                  onEditComplete={() => {
-                    console.log("[Resume] Edit complete, clearing resumeToEdit state");
-                    setResumeToEdit(null);
-                    refetch();
-                    // Force a delay before showing the saved tab to allow for the refetch to complete
-                    setTimeout(() => setActiveTab("saved"), 500);
-                  }}
-                /> : 
+              {documentType === "resume" ? (
+                resumeToEdit ? (
+                  // When editing a resume, mount a completely separate component instance
+                  <ResumeGenerator 
+                    key={`edit-resume-${resumeToEdit.id}-${Date.now()}`} // Add timestamp to ensure uniqueness
+                    resumeToEdit={resumeToEdit} 
+                    onEditComplete={() => {
+                      console.log("[Resume] Edit complete, clearing resumeToEdit state");
+                      setResumeToEdit(null);
+                      refetch();
+                      // Force a delay before showing the saved tab to allow for the refetch to complete
+                      setTimeout(() => setActiveTab("saved"), 500);
+                    }}
+                  />
+                ) : (
+                  // When creating a new resume
+                  <ResumeGenerator 
+                    key={`new-resume-${Date.now()}`} // Add timestamp to ensure uniqueness
+                    resumeToEdit={null} 
+                    onEditComplete={() => {
+                      refetch();
+                      // Force a delay before showing the saved tab to allow for the refetch to complete
+                      setTimeout(() => setActiveTab("saved"), 500);
+                    }}
+                  />
+                )
+              ) : (
                 <CoverLetterGenerator />
-              }
+              )}
             </TabsContent>
             
             <TabsContent value="saved">
