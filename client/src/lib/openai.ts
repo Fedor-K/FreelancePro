@@ -10,6 +10,7 @@ export const generateResume = async (data: {
   type?: string;
   targetCompany?: string;
   jobDescription?: string;
+  targetProject?: string;
   useAdditionalSettings?: boolean;
 }) => {
   try {
@@ -41,6 +42,15 @@ export const generateResume = async (data: {
         if (!data.experience.includes("Education:") && settings.education) {
           const educationSection = `\n\nEducation: ${settings.education}`;
           payload.experience = payload.experience + educationSection;
+        }
+        
+        // Add the target project information if provided
+        if (data.targetProject) {
+          payload.jobDescription = data.targetProject;
+          
+          // Include a note for the AI to focus on this specific project
+          const targetNote = `\n\nNOTE: This resume is specifically tailored for the following job/project: ${data.targetProject}`;
+          payload.experience = payload.experience + targetNote;
         }
       } catch (error) {
         // If we fail to get settings, just continue with original data

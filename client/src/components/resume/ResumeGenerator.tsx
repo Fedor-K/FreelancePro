@@ -27,9 +27,7 @@ import { ProjectsSelector } from "./ProjectsSelector";
 
 // Extend the schema with validation
 const formSchema = insertResumeSchema.extend({
-  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
-  specialization: z.string().min(2, { message: "Specialization must be at least 2 characters" }),
-  experience: z.string().min(10, { message: "Experience must be at least 10 characters" }),
+  targetProject: z.string().min(10, { message: "Target project description must be at least 10 characters" }),
   projects: z.string().min(10, { message: "Projects must be at least 10 characters" }),
 });
 
@@ -45,9 +43,7 @@ export function ResumeGenerator() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      specialization: "",
-      experience: "",
+      targetProject: "",
       projects: "",
     },
   });
@@ -58,19 +54,11 @@ export function ResumeGenerator() {
       try {
         const settings = await getResumeSettings();
         
-        // Only update the form if it's empty (to avoid overwriting user input)
-        const currentExperience = form.getValues("experience");
-        if (!currentExperience) {
-          // Pre-populate form with settings
-          form.setValue("name", settings.defaultTitle);
-          form.setValue("specialization", settings.skills.split(',')[0] || "Translator");
-          
-          // Create a formatted experience string from the settings
-          const formattedExperience = `${settings.experience}\n\nLanguages: ${settings.languages}\n\nEducation: ${settings.education}`;
-          form.setValue("experience", formattedExperience);
-          
+        // Only update the form if projects is empty (to avoid overwriting user input)
+        const currentProjects = form.getValues("projects");
+        if (!currentProjects) {
           // Pre-populate projects from settings
-          form.setValue("projects", settings.projects || "")
+          form.setValue("projects", settings.projects || "");
         }
       } catch (error) {
         console.error("Failed to load resume settings:", error);
@@ -83,9 +71,17 @@ export function ResumeGenerator() {
   const onSubmit = async (data: FormValues) => {
     setIsGenerating(true);
     try {
-      // Pass useAdditionalSettings: true to enhance the resume with settings data
+      // Load resume settings to include in the resume generation
+      const settings = await getResumeSettings();
+      
+      // Generate resume with just the target project and projects list
+      // While using all other data from settings
       const generatedResume = await generateResume({
-        ...data,
+        name: settings.defaultTitle,
+        specialization: settings.skills.split(',')[0] || "Translator",
+        experience: `${settings.experience}\n\nLanguages: ${settings.languages}\n\nEducation: ${settings.education}`,
+        targetProject: data.targetProject,
+        projects: data.projects,
         useAdditionalSettings: true
       });
       
@@ -94,7 +90,7 @@ export function ResumeGenerator() {
       
       toast({
         title: "Resume generated",
-        description: "Your professional resume has been generated using your settings preferences.",
+        description: "Your resume has been tailored for your target project using your resume settings.",
       });
     } catch (error) {
       toast({
@@ -171,48 +167,19 @@ export function ResumeGenerator() {
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
                   control={form.control}
-                  name="name"
+                  name="targetProject"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Your Full Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. John Smith" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="specialization"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Specialization</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. Translator, Copywriter, Editor" {...field} />
-                      </FormControl>
-                      <FormDescription>Your main freelance profession or specialty</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="experience"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Professional Experience</FormLabel>
+                      <FormLabel>Project you apply to</FormLabel>
                       <FormControl>
                         <Textarea 
-                          placeholder="Describe your past work experience, skills, and education"
-                          rows={5} 
+                          placeholder="Please give a brief description of the project you would like to apply to"
+                          rows={3} 
                           {...field} 
                         />
                       </FormControl>
                       <FormDescription>
-                        Include years of experience, skills, education, and any relevant certifications
+                        Describe the specific job or project you are targeting with this resume
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
