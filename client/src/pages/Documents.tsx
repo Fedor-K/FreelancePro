@@ -23,6 +23,7 @@ export default function Documents() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<DocumentType | null>(null);
   const [activeTab, setActiveTab] = useState("create");
+  const [documentType, setDocumentType] = useState<"all" | "invoice" | "contract">("all");
   const [location] = useLocation();
   
   // Check for URL parameters to determine if we should show the create tab
@@ -148,19 +149,59 @@ export default function Documents() {
               <CardDescription>
                 View, download, or manage your previously generated documents.
               </CardDescription>
+              
+              <div className="mt-4">
+                <Tabs value={documentType} onValueChange={(value) => setDocumentType(value as "all" | "invoice" | "contract")}>
+                  <TabsList className="grid w-full max-w-md grid-cols-3">
+                    <TabsTrigger value="all">
+                      All
+                      <span className="ml-2 inline-flex h-5 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium">
+                        {documents.length}
+                      </span>
+                    </TabsTrigger>
+                    <TabsTrigger value="invoice">
+                      Invoices
+                      <span className="ml-2 inline-flex h-5 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium">
+                        {documents.filter(doc => doc.type === "invoice").length}
+                      </span>
+                    </TabsTrigger>
+                    <TabsTrigger value="contract">
+                      Contracts
+                      <span className="ml-2 inline-flex h-5 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium">
+                        {documents.filter(doc => doc.type === "contract").length}
+                      </span>
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
             </CardHeader>
             <CardContent>
               {isLoading ? (
                 <p className="text-center py-8 text-gray-500">Loading documents...</p>
-              ) : documents.length === 0 ? (
+              ) : documents.length === 0 || (documentType !== "all" && !documents.some(doc => doc.type === documentType)) ? (
                 <div className="text-center py-12 text-gray-500">
                   <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                  <p className="text-lg font-medium">No documents yet</p>
-                  <p className="mt-1">Create your first document to get started.</p>
+                  {documents.length === 0 ? (
+                    <>
+                      <p className="text-lg font-medium">No documents yet</p>
+                      <p className="mt-1">Create your first document to get started.</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-lg font-medium">No {documentType}s found</p>
+                      <p className="mt-1">
+                        {documentType === "invoice" 
+                          ? "Create an invoice for a delivered project to get started." 
+                          : "Create a contract to get started."}
+                      </p>
+                    </>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {documents.map((document) => (
+                  {documents
+                    .filter(document => documentType === "all" || document.type === documentType)
+                    .map((document) => (
                     <div key={document.id} className="p-4 border rounded-md">
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex items-center">
