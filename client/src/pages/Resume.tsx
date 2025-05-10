@@ -110,20 +110,41 @@ export default function Resume() {
         content: currentResumeContent
       };
       
-      // Save resume
-      await apiRequest("POST", '/api/resumes', payload);
+      // Check if we're updating an existing resume
+      const isEditing = payload.id !== undefined;
+      
+      // Save/update resume
+      if (isEditing) {
+        console.log('Updating existing resume:', payload.id);
+        await apiRequest("PATCH", `/api/resumes/${payload.id}`, payload);
+      } else {
+        console.log('Creating new resume');
+        await apiRequest("POST", '/api/resumes', payload);
+      }
       
       // Refresh the list
       await refetch();
       
       // Show success notification
       toast({
-        title: "Resume saved",
-        description: "Your resume has been saved to your collection.",
+        title: isEditing ? "Resume updated" : "Resume saved",
+        description: isEditing 
+          ? "Your resume has been updated successfully." 
+          : "Your resume has been saved to your collection.",
       });
       
       // Switch to saved tab
       setActiveTab("saved");
+      
+      // Reset the state for next resume creation
+      setCurrentResumeContent(null);
+      setCurrentResumeData({
+        name: "",
+        specialization: "",
+        experience: "",
+        projects: "",
+        targetProject: ""
+      });
       
     } catch (error) {
       toast({
@@ -179,6 +200,15 @@ export default function Resume() {
                 <ResumeGenerator 
                   previewOnly={true}
                   initialFormValues={currentResumeData} // Pass the saved form data back
+                  resumeToEdit={currentResumeData?.id ? {
+                    id: currentResumeData.id,
+                    name: currentResumeData.name || "",
+                    specialization: currentResumeData.specialization || "",
+                    experience: currentResumeData.experience || "",
+                    projects: currentResumeData.projects || "",
+                    content: "",
+                    createdAt: new Date()
+                  } : undefined}
                   onPreviewGenerated={handlePreviewGenerated}
                 />
               )}
@@ -318,6 +348,27 @@ export default function Resume() {
                             <p className="text-sm text-gray-500">{resume.specialization}</p>
                           </div>
                           <div className="flex space-x-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                // Switch to create tab
+                                setActiveTab("create");
+                                // Set resume for editing
+                                setCurrentResumeContent(resume.content);
+                                setCurrentResumeData({
+                                  id: resume.id,
+                                  name: resume.name,
+                                  specialization: resume.specialization,
+                                  experience: resume.experience,
+                                  projects: resume.projects,
+                                  targetProject: ""
+                                });
+                              }}
+                            >
+                              <FileText className="h-4 w-4 mr-1" />
+                              Edit
+                            </Button>
                             <Button 
                               variant="outline" 
                               size="sm"
