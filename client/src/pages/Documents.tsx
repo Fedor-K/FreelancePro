@@ -108,18 +108,7 @@ export default function Documents() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="p-6 bg-blue-50 rounded-lg flex flex-col items-center justify-center text-center">
-              <File className="h-12 w-12 mb-4 text-secondary" />
-              <h3 className="text-lg font-medium mb-2">Invoice Templates</h3>
-              <p className="text-sm text-gray-600 mb-4">Professional invoices with your branding and client details.</p>
-            </div>
-            <div className="p-6 bg-purple-50 rounded-lg flex flex-col items-center justify-center text-center">
-              <FileText className="h-12 w-12 mb-4 text-primary" />
-              <h3 className="text-lg font-medium mb-2">Contract Templates</h3>
-              <p className="text-sm text-gray-600 mb-4">Legally sound contracts for your freelance projects.</p>
-            </div>
-          </div>
+          {/* Document generator content will be shown in the tabs below */}
         </CardContent>
       </Card>
 
