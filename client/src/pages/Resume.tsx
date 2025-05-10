@@ -15,14 +15,14 @@ import {
 } from "@/components/ui/select";
 import { ResumeGenerator } from "@/components/resume/ResumeGenerator";
 import { CoverLetterGenerator } from "@/components/resume/CoverLetterGenerator";
-import { useQuery } from "@tanstack/react-query";
 import { Resume as ResumeType } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { FileText, Download, Copy, Trash2, Edit, Pencil } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Resume() {
   const { toast } = useToast();
@@ -31,6 +31,19 @@ export default function Resume() {
   const [resumeToEdit, setResumeToEdit] = useState<ResumeType | null>(null);
   const [activeTab, setActiveTab] = useState("create");
   const [documentType, setDocumentType] = useState<"resume" | "coverLetter">("resume");
+  
+  // Add logging for state changes
+  useEffect(() => {
+    console.log("[Resume] resumeToEdit changed:", resumeToEdit);
+  }, [resumeToEdit]);
+  
+  useEffect(() => {
+    console.log("[Resume] activeTab changed:", activeTab);
+  }, [activeTab]);
+  
+  useEffect(() => {
+    console.log("[Resume] documentType changed:", documentType);
+  }, [documentType]);
   
   const { data: resumes = [], isLoading, refetch } = useQuery<ResumeType[]>({
     queryKey: ['/api/resumes'],
@@ -212,6 +225,7 @@ export default function Resume() {
                               onClick={() => {
                                 console.log("Edit button clicked for resume:", resume);
                                 setResumeToEdit({...resume});
+                                setDocumentType("resume"); // Ensure document type is set to resume
                                 setActiveTab("create");
                               }}
                             >

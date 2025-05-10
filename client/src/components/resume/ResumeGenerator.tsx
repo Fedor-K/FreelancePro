@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -52,7 +52,9 @@ interface ResumeGeneratorProps {
 }
 
 export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeGeneratorProps) {
-  console.log("ResumeGenerator initialized with resumeToEdit:", resumeToEdit);
+  // Add component ID for tracking re-renders across logs
+  const componentId = useRef(Math.random().toString(36).substring(7));
+  console.log(`[ResumeGenerator:${componentId.current}] Constructor called with resumeToEdit:`, resumeToEdit);
   
   const [isGenerating, setIsGenerating] = useState(false);
   const [resume, setResume] = useState<{ id: number; content: string } | null>(null);
@@ -74,17 +76,26 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
   
   // Load resume settings from settings service
   useEffect(() => {
+    console.log(`[ResumeGenerator:${componentId.current}] useEffect triggered, resumeToEdit:`, resumeToEdit);
+    
     const loadResumeData = async () => {
       try {
         // If we're editing an existing resume, use its data
         if (resumeToEdit) {
-          console.log("Editing resume:", resumeToEdit);
+          console.log(`[ResumeGenerator:${componentId.current}] Loading data for editing resume:`, resumeToEdit);
           setIsEditing(true);
           
           // Reset form before setting values
           form.reset();
           
           // Set form values from the resume being edited
+          console.log(`[ResumeGenerator:${componentId.current}] Setting form values:`, {
+            name: resumeToEdit.name,
+            specialization: resumeToEdit.specialization,
+            experience: resumeToEdit.experience,
+            projects: resumeToEdit.projects
+          });
+          
           form.setValue("name", resumeToEdit.name || "");
           form.setValue("specialization", resumeToEdit.specialization || "");
           form.setValue("experience", resumeToEdit.experience || "");
@@ -93,8 +104,10 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
           // Try to extract target project from the content or experience
           const targetProjectMatch = resumeToEdit.experience?.match(/NOTE: This resume is specifically tailored for the following job\/project: (.+?)(\n|$)/);
           if (targetProjectMatch && targetProjectMatch[1]) {
+            console.log(`[ResumeGenerator:${componentId.current}] Found target project in experience:`, targetProjectMatch[1]);
             form.setValue("targetProject", targetProjectMatch[1]);
           } else {
+            console.log("[ResumeGenerator] No target project found, using default");
             // Set a default value
             form.setValue("targetProject", "Please describe the project you're applying to");
           }
@@ -110,10 +123,12 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
           
           // Force re-render of form fields
           setTimeout(() => {
+            console.log("[ResumeGenerator] Triggering form validation after timeout");
             form.trigger();
           }, 100);
         } else {
           // Otherwise, load from settings
+          console.log("[ResumeGenerator] No resumeToEdit, loading from settings");
           setIsEditing(false);
           const settings = await getResumeSettings();
           
@@ -132,11 +147,16 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
           }
         }
       } catch (error) {
-        console.error("Failed to load resume data:", error);
+        console.error("[ResumeGenerator] Failed to load resume data:", error);
       }
     };
     
     loadResumeData();
+    
+    // Add a cleanup function to detect component unmounting
+    return () => {
+      console.log("[ResumeGenerator] Component unmounting, resumeToEdit was:", resumeToEdit);
+    };
   }, [form, resumeToEdit]);
 
   const onSubmit = async (data: FormValues) => {
