@@ -52,6 +52,8 @@ interface ResumeGeneratorProps {
 }
 
 export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeGeneratorProps) {
+  console.log("ResumeGenerator initialized with resumeToEdit:", resumeToEdit);
+  
   const [isGenerating, setIsGenerating] = useState(false);
   const [resume, setResume] = useState<{ id: number; content: string } | null>(null);
   const [activeTab, setActiveTab] = useState("form");
@@ -79,14 +81,17 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
           console.log("Editing resume:", resumeToEdit);
           setIsEditing(true);
           
+          // Reset form before setting values
+          form.reset();
+          
           // Set form values from the resume being edited
-          form.setValue("name", resumeToEdit.name);
-          form.setValue("specialization", resumeToEdit.specialization);
-          form.setValue("experience", resumeToEdit.experience);
-          form.setValue("projects", resumeToEdit.projects);
+          form.setValue("name", resumeToEdit.name || "");
+          form.setValue("specialization", resumeToEdit.specialization || "");
+          form.setValue("experience", resumeToEdit.experience || "");
+          form.setValue("projects", resumeToEdit.projects || "");
           
           // Try to extract target project from the content or experience
-          const targetProjectMatch = resumeToEdit.experience.match(/NOTE: This resume is specifically tailored for the following job\/project: (.+?)(\n|$)/);
+          const targetProjectMatch = resumeToEdit.experience?.match(/NOTE: This resume is specifically tailored for the following job\/project: (.+?)(\n|$)/);
           if (targetProjectMatch && targetProjectMatch[1]) {
             form.setValue("targetProject", targetProjectMatch[1]);
           } else {
@@ -102,6 +107,11 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
           
           // Set active tab to form so user can edit
           setActiveTab("form");
+          
+          // Force re-render of form fields
+          setTimeout(() => {
+            form.trigger();
+          }, 100);
         } else {
           // Otherwise, load from settings
           setIsEditing(false);
@@ -135,8 +145,7 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
       let generatedResume;
       
       if (isEditing && resumeToEdit) {
-        // If we're editing an existing resume, just update the targetProject
-        // and regenerate the resume content
+        console.log("Submitting edited resume with ID:", resumeToEdit.id);
         
         // Add the target project information to the experience field
         let updatedExperience = data.experience;

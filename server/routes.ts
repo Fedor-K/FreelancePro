@@ -466,7 +466,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const resumeContent = response.choices[0].message.content || "Failed to generate resume content.";
           
           // Add content to the update data
-          result.data.content = resumeContent;
+          (result.data as any).content = resumeContent;
         }
         
         // Update the resume

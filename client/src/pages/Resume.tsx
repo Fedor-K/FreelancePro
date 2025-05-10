@@ -119,8 +119,11 @@ export default function Resume() {
                 <ResumeGenerator 
                   resumeToEdit={resumeToEdit} 
                   onEditComplete={() => {
+                    console.log("Edit complete, clearing resumeToEdit state");
                     setResumeToEdit(null);
                     refetch();
+                    // Force a delay before showing the saved tab to allow for the refetch to complete
+                    setTimeout(() => setActiveTab("saved"), 500);
                   }}
                 /> : 
                 <CoverLetterGenerator />
@@ -207,7 +210,8 @@ export default function Resume() {
                               size="sm"
                               className="bg-gray-50 text-gray-700"
                               onClick={() => {
-                                setResumeToEdit(resume);
+                                console.log("Edit button clicked for resume:", resume);
+                                setResumeToEdit({...resume});
                                 setActiveTab("create");
                               }}
                             >
