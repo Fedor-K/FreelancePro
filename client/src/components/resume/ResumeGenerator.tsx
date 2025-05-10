@@ -107,7 +107,7 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
             console.log(`[ResumeGenerator:${componentId.current}] Found target project in experience:`, targetProjectMatch[1]);
             form.setValue("targetProject", targetProjectMatch[1]);
           } else {
-            console.log("[ResumeGenerator] No target project found, using default");
+            console.log(`[ResumeGenerator:${componentId.current}] No target project found, using default`);
             // Set a default value
             form.setValue("targetProject", "Please describe the project you're applying to");
           }
@@ -123,12 +123,12 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
           
           // Force re-render of form fields
           setTimeout(() => {
-            console.log("[ResumeGenerator] Triggering form validation after timeout");
+            console.log(`[ResumeGenerator:${componentId.current}] Triggering form validation after timeout`);
             form.trigger();
           }, 100);
         } else {
           // Otherwise, load from settings
-          console.log("[ResumeGenerator] No resumeToEdit, loading from settings");
+          console.log(`[ResumeGenerator:${componentId.current}] No resumeToEdit, loading from settings`);
           setIsEditing(false);
           const settings = await getResumeSettings();
           
@@ -147,7 +147,7 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
           }
         }
       } catch (error) {
-        console.error("[ResumeGenerator] Failed to load resume data:", error);
+        console.error(`[ResumeGenerator:${componentId.current}] Failed to load resume data:`, error);
       }
     };
     
