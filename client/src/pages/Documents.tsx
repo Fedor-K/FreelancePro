@@ -12,15 +12,30 @@ import { Document as DocumentType, Client, Project } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { File, Download, Copy, Trash2, FileText } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { exportToPdf, copyToClipboard } from "@/lib/docGenerator";
+import { useLocation } from "wouter";
 
 export default function Documents() {
   const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<DocumentType | null>(null);
+  const [activeTab, setActiveTab] = useState("create");
+  const [location] = useLocation();
+  
+  // Check for URL parameters to determine if we should show the create tab
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.split("?")[1] || "");
+    const projectId = searchParams.get("projectId");
+    const type = searchParams.get("type");
+    
+    if (projectId && type) {
+      // If project ID and document type are provided, switch to create tab
+      setActiveTab("create");
+    }
+  }, [location]);
   
   const { data: documents = [], isLoading: isLoadingDocuments, refetch } = useQuery<DocumentType[]>({
     queryKey: ['/api/documents'],
@@ -112,7 +127,7 @@ export default function Documents() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="create" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
           <TabsTrigger value="create">Create Document</TabsTrigger>
           <TabsTrigger value="saved">Saved Documents</TabsTrigger>
