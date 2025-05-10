@@ -53,6 +53,10 @@ export default function Projects() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showArchived, setShowArchived] = useState(false);
   
+  // Define a type for the tab values based on projectStatusEnum
+  type TabValue = "In Progress" | "Delivered" | "Paid";
+  const [activeTab, setActiveTab] = useState<TabValue>("In Progress");
+  
   // State for edit dialog
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [formProject, setFormProject] = useState<Project | null>(null);

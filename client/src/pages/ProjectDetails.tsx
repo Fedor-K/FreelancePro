@@ -61,10 +61,8 @@ const getProjectLabels = (project: Project): ProjectLabel[] => {
     const today = new Date();
     
     if (isPast(deadlineDate) && !isToday(deadlineDate)) {
-      // If deadline is in the past and project isn't delivered or paid
-      if (project.status !== "Delivered" && 
-          project.status !== "Paid" && 
-          !project.isPaid) {
+      // If deadline is in the past and project is in progress
+      if (project.status === "In Progress" && !project.isPaid) {
         labels.push("Overdue");
       }
     } else if (isToday(deadlineDate)) {
