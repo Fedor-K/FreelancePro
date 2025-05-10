@@ -69,7 +69,9 @@ export default function Dashboard() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const [showArchived, setShowArchived] = useState(false);
-  const [activeTab, setActiveTab] = useState("all");
+  // Define a type for the tab values based on projectStatusEnum
+  type TabValue = "all" | "In Progress" | "Delivered" | "Paid";
+  const [activeTab, setActiveTab] = useState<TabValue>("all");
 
   const { data: stats, isLoading: isLoadingStats } = useQuery<DashboardStats>({
     queryKey: ['/api/stats'],
@@ -119,6 +121,11 @@ export default function Dashboard() {
     return daysToDeadline;
   };
 
+  // Get counts for tabs
+  const inProgressCount = projects.filter(p => p.status === "In Progress" && (!p.isArchived || showArchived)).length;
+  const deliveredCount = projects.filter(p => p.status === "Delivered" && (!p.isArchived || showArchived)).length;
+  const paidCount = projects.filter(p => p.status === "Paid" && (!p.isArchived || showArchived)).length;
+  
   // Filter projects based on search term, archived status, and active tab
   const filteredProjects = projects
     .filter(project => {
@@ -176,9 +183,7 @@ export default function Dashboard() {
       
       if (isPast(deadlineDate) && !isToday(deadlineDate)) {
         // If deadline is in the past and project isn't delivered or paid
-        if (project.status !== "Delivered" && 
-            project.status !== "Paid" && 
-            !project.isPaid) {
+        if (project.status === "In Progress" && !project.isPaid) {
           labels.push("Overdue");
           return labels;
         }
@@ -332,10 +337,30 @@ export default function Dashboard() {
         
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full mb-4">
           <TabsList className="grid w-full max-w-md grid-cols-4">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="In Progress">In Progress</TabsTrigger>
-            <TabsTrigger value="Delivered">Delivered</TabsTrigger>
-            <TabsTrigger value="Paid">Paid</TabsTrigger>
+            <TabsTrigger value="all">
+              All
+              <span className="ml-1 inline-flex h-5 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium text-gray-600">
+                {projects.filter(p => !p.isArchived || showArchived).length}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="In Progress">
+              In Progress
+              <span className="ml-1 inline-flex h-5 items-center justify-center rounded-full bg-yellow-100 px-2 text-xs font-medium text-yellow-800">
+                {inProgressCount}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="Delivered">
+              Delivered
+              <span className="ml-1 inline-flex h-5 items-center justify-center rounded-full bg-blue-100 px-2 text-xs font-medium text-blue-800">
+                {deliveredCount}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="Paid">
+              Paid
+              <span className="ml-1 inline-flex h-5 items-center justify-center rounded-full bg-green-100 px-2 text-xs font-medium text-green-800">
+                {paidCount}
+              </span>
+            </TabsTrigger>
           </TabsList>
         </Tabs>
         
@@ -366,9 +391,11 @@ export default function Dashboard() {
                     <TableCell colSpan={8} className="text-center py-10 text-gray-500">
                       {searchTerm 
                         ? "No projects match your search. Try a different term."
-                        : showArchived 
-                          ? "No archived projects found."
-                          : "No projects found. Add a project to get started."}
+                        : activeTab !== "all"
+                          ? `No ${activeTab} projects found.`
+                          : showArchived 
+                            ? "No archived projects found."
+                            : "No projects found. Add a project to get started."}
                     </TableCell>
                   </TableRow>
                 ) : (
