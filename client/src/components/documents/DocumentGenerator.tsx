@@ -54,12 +54,12 @@ export function DocumentGenerator() {
   });
   
   // Fetch clients to display project client names
-  const { data: clients = [] } = useQuery({
+  const { data: clients = [] } = useQuery<Client[]>({
     queryKey: ['/api/clients'],
   });
   
   // Parse query parameters
-  const searchParams = new URLSearchParams(location.split("?")[1]);
+  const searchParams = new URLSearchParams(location.split("?")[1] || "");
   const projectIdParam = searchParams.get("projectId");
   const typeParam = searchParams.get("type") as "invoice" | "contract" | null;
   
@@ -78,6 +78,11 @@ export function DocumentGenerator() {
       // Auto-select the form values
       form.setValue("projectId", projectIdParam);
       form.setValue("type", typeParam);
+      
+      console.log("Setting form values:", {
+        projectId: projectIdParam,
+        type: typeParam
+      });
       
       // Only auto-generate if the document hasn't been generated yet
       if (!document && typeParam === "invoice") {
@@ -121,7 +126,7 @@ export function DocumentGenerator() {
   }, [projectIdParam, typeParam, projects.length, document]);
 
   const getClientName = (clientId: number) => {
-    const client = clients.find(c => c.id === clientId);
+    const client = clients.find((c: Client) => c.id === clientId);
     return client ? client.name : "Unknown Client";
   };
 
