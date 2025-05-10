@@ -20,7 +20,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { generateResume } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Wand2, Settings } from "lucide-react";
+import { FileText, Wand2, Settings, Copy, Download } from "lucide-react";
 import { Link } from "wouter";
 import { getResumeSettings } from "@/lib/settingsService";
 import { ProjectsSelector } from "./ProjectsSelector";
@@ -341,11 +341,23 @@ export function ResumeGenerator({ resumeToEdit = null, onEditComplete }: ResumeG
                 <div className="flex justify-end mt-4 space-x-3">
                   <Button 
                     variant="outline" 
+                    onClick={() => setActiveTab("form")}
+                    className="bg-gray-50 text-gray-700"
+                  >
+                    Edit Document
+                  </Button>
+                  <Button 
+                    variant="outline" 
                     onClick={handleCopyToClipboard}
                   >
+                    <Copy className="mr-2 h-4 w-4" />
                     Copy to Clipboard
                   </Button>
-                  <Button onClick={handleDownload}>
+                  <Button 
+                    onClick={handleDownload}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <Download className="mr-2 h-4 w-4" />
                     Download Resume
                   </Button>
                 </div>

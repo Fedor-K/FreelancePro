@@ -18,7 +18,7 @@ import { CoverLetterGenerator } from "@/components/resume/CoverLetterGenerator";
 import { useQuery } from "@tanstack/react-query";
 import { Resume as ResumeType } from "@shared/schema";
 import { Button } from "@/components/ui/button";
-import { FileText, Download, Copy, Trash2, Edit } from "lucide-react";
+import { FileText, Download, Copy, Trash2, Edit, Pencil } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -205,14 +205,14 @@ export default function Resume() {
                             <Button 
                               variant="outline" 
                               size="sm"
-                              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                              className="bg-gray-50 text-gray-700"
                               onClick={() => {
                                 setResumeToEdit(resume);
                                 setActiveTab("create");
                               }}
                             >
                               <Edit className="h-4 w-4 mr-1" />
-                              Edit
+                              Edit Document
                             </Button>
                             <Button 
                               variant="outline" 
