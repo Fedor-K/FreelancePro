@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -49,13 +49,16 @@ interface ResumeGeneratorProps {
     content: string;
   } | null;
   previewOnly?: boolean;
+  // This allows us to pass form values back when clicking edit
+  initialFormValues?: Partial<FormValues>;
   onEditComplete?: () => void;
   onPreviewGenerated?: (content: string, data: any) => void;
 }
 
 export function ResumeGenerator({ 
   resumeToEdit = null, 
-  previewOnly = false, 
+  previewOnly = false,
+  initialFormValues = {},
   onEditComplete,
   onPreviewGenerated
 }: ResumeGeneratorProps) {
@@ -82,15 +85,33 @@ export function ResumeGenerator({
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
+  // Use memo to optimize this calculation
+  const defaultValues = useMemo(() => {
+    // If initialFormValues is provided, use it
+    if (Object.keys(initialFormValues).length > 0) {
+      console.log(`[ResumeGenerator:${instanceId}] Using provided initial values:`, initialFormValues);
+      return {
+        name: initialFormValues.name || "",
+        specialization: initialFormValues.specialization || "",
+        experience: initialFormValues.experience || "",
+        projects: initialFormValues.projects || "",
+        targetProject: initialFormValues.targetProject || "",
+      };
+    }
+    
+    // Default empty values
+    return {
       name: "",
       specialization: "",
       experience: "",
       projects: "",
       targetProject: "",
-    },
+    };
+  }, [initialFormValues, instanceId]);
+  
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: defaultValues,
   });
   
   // Load resume settings or edited resume data

@@ -200,7 +200,12 @@ export default function Resume() {
                     <div className="flex justify-end mt-4 space-x-3">
                       <Button 
                         variant="outline" 
-                        onClick={() => setCurrentResumeContent(null)}
+                        onClick={() => {
+                          // Just clear the resume content but keep the form data
+                          // This allows the form to re-render with the same values
+                          setCurrentResumeContent(null);
+                          // We keep currentResumeData intact for the form to use
+                        }}
                       >
                         Edit
                       </Button>
