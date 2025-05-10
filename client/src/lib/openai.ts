@@ -12,6 +12,8 @@ export const generateResume = async (data: {
   jobDescription?: string;
   targetProject?: string;
   useAdditionalSettings?: boolean;
+  id?: number;           // Existing resume ID for editing
+  isEditing?: boolean;   // Flag to indicate we're editing
 }) => {
   try {
     // If this is a cover letter, adjust the specialization field to identify it correctly
@@ -58,7 +60,17 @@ export const generateResume = async (data: {
       }
     }
     
-    const response = await apiRequest("POST", "/api/resumes", payload);
+    let response;
+    
+    // If we're editing an existing resume
+    if (data.isEditing && data.id) {
+      // Use PATCH to update the existing resume
+      response = await apiRequest("PATCH", `/api/resumes/${data.id}`, payload);
+    } else {
+      // Use POST to create a new resume
+      response = await apiRequest("POST", "/api/resumes", payload);
+    }
+    
     return await response.json();
   } catch (error) {
     console.error("Error generating document:", error);

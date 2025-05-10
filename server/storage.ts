@@ -27,6 +27,7 @@ export interface IStorage {
   getResumes(): Promise<Resume[]>;
   getResume(id: number): Promise<Resume | undefined>;
   createResume(resume: InsertResume & { content: string }): Promise<Resume>;
+  updateResume(id: number, resume: Partial<InsertResume & { content: string }>): Promise<Resume | undefined>;
   deleteResume(id: number): Promise<boolean>;
 
   // Document operations
@@ -272,6 +273,17 @@ export class MemStorage implements IStorage {
     const newResume = { ...resume, id };
     this.resumes.set(id, newResume);
     return newResume;
+  }
+
+  async updateResume(id: number, resume: Partial<InsertResume & { content: string }>): Promise<Resume | undefined> {
+    const existingResume = this.resumes.get(id);
+    if (!existingResume) {
+      return undefined;
+    }
+    
+    const updatedResume = { ...existingResume, ...resume };
+    this.resumes.set(id, updatedResume);
+    return updatedResume;
   }
 
   async deleteResume(id: number): Promise<boolean> {
