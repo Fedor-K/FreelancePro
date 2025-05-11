@@ -111,11 +111,6 @@ export default function Layout({ children }: LayoutProps) {
         {/* Main Content */}
         <main className="relative flex-1 overflow-y-auto focus:outline-none bg-background">
           <div className="py-6">
-            {/* Page Header */}
-            <div className="px-4 mx-auto max-w-7xl sm:px-6 md:px-8">
-              <h1 className="text-2xl font-semibold text-gray-900">{getPageTitle()}</h1>
-            </div>
-
             {/* Page Content */}
             <div className="px-4 mx-auto max-w-7xl sm:px-6 md:px-8">
               {children}
