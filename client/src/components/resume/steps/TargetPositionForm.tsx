@@ -20,7 +20,9 @@ export default function TargetPositionForm({ formData, updateField, nextStep }: 
   const [isGenerating, setIsGenerating] = useState(false);
   const [resumeGenerated, setResumeGenerated] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingContent, setIsEditingContent] = useState(false);
   const [previewHtml, setPreviewHtml] = useState<string>("");
+  const [editableContent, setEditableContent] = useState<string>("");
   
   const generateCV = () => {
     if (!formData.targetPosition.trim()) {
@@ -38,9 +40,11 @@ export default function TargetPositionForm({ formData, updateField, nextStep }: 
     setTimeout(() => {
       const html = createResumePreviewHTML(formData);
       setPreviewHtml(html);
+      setEditableContent(html); // Store editable version
       setResumeGenerated(true);
       setIsGenerating(false);
       setIsEditing(false);
+      setIsEditingContent(false);
       
       toast({
         title: "CV generated!",
@@ -56,6 +60,25 @@ export default function TargetPositionForm({ formData, updateField, nextStep }: 
     toast({
       title: "Editing CV",
       description: "You can now edit the CV details and regenerate when ready",
+    });
+  };
+  
+  const handleEditContent = () => {
+    setIsEditingContent(true);
+    
+    toast({
+      title: "Editing CV Content",
+      description: "You can now edit the CV content directly",
+    });
+  };
+  
+  const saveContentChanges = () => {
+    setPreviewHtml(editableContent);
+    setIsEditingContent(false);
+    
+    toast({
+      title: "Changes Saved",
+      description: "Your CV content has been updated",
     });
   };
   
@@ -125,26 +148,60 @@ export default function TargetPositionForm({ formData, updateField, nextStep }: 
             <h3 className="text-lg font-semibold">CV Preview</h3>
             {isEditing && (
               <span className="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded">
-                Editing
+                Editing Details
+              </span>
+            )}
+            {isEditingContent && (
+              <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                Editing Content
               </span>
             )}
           </div>
           <Card className="border-green-200 overflow-hidden">
-            <CardContent className="p-0 h-[300px] overflow-auto">
-              <div
-                className="p-4"
-                dangerouslySetInnerHTML={{ __html: previewHtml }}
-              />
-            </CardContent>
+            {isEditingContent ? (
+              <CardContent className="p-0">
+                <Textarea 
+                  className="w-full h-[300px] border-0 rounded-none resize-none" 
+                  value={editableContent}
+                  onChange={(e) => setEditableContent(e.target.value)}
+                />
+              </CardContent>
+            ) : (
+              <CardContent className="p-0 h-[300px] overflow-auto">
+                <div
+                  className="p-4"
+                  dangerouslySetInnerHTML={{ __html: previewHtml }}
+                />
+              </CardContent>
+            )}
           </Card>
           <div className="flex justify-end">
-            <Button 
-              variant="outline" 
-              className="text-blue-600 mr-2"
-              onClick={handleEditCV}
-            >
-              Edit CV
-            </Button>
+            {isEditingContent ? (
+              <Button 
+                variant="outline" 
+                className="text-green-600 mr-2"
+                onClick={saveContentChanges}
+              >
+                Save Changes
+              </Button>
+            ) : (
+              <Button 
+                variant="outline" 
+                className="text-blue-600 mr-2"
+                onClick={handleEditContent}
+              >
+                Edit Content
+              </Button>
+            )}
+            {!isEditingContent && (
+              <Button 
+                variant="outline" 
+                className="text-purple-600 mr-2"
+                onClick={handleEditCV}
+              >
+                Edit Details
+              </Button>
+            )}
             <Button 
               className="bg-blue-600 hover:bg-blue-700"
               onClick={nextStep}
