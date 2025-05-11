@@ -26,12 +26,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+// Removed unused tabs imports that were causing console errors
 import {
   Select,
   SelectContent,
