@@ -114,7 +114,7 @@ export default function ProjectSelectionForm({ formData, updateField }: ProjectS
           )}
           {project.sourceLang && project.targetLang && (
             <Badge variant="outline" className="text-xs">
-              {project.sourceLang} → {project.targetLang}
+              {project.sourceLang.replace(/[!'\s]/g, '').trim()} → {project.targetLang.replace(/[!'\s]/g, '').trim()}
             </Badge>
           )}
         </div>
@@ -199,7 +199,7 @@ export default function ProjectSelectionForm({ formData, updateField }: ProjectS
                       
                       {formData.selectedProjects[0].sourceLang && formData.selectedProjects[0].targetLang && (
                         <span className="text-xs text-gray-600 ml-auto">
-                          {formData.selectedProjects[0].sourceLang} → {formData.selectedProjects[0].targetLang}
+                          {formData.selectedProjects[0].sourceLang.replace(/[!'\s]/g, '').trim()} → {formData.selectedProjects[0].targetLang.replace(/[!'\s]/g, '').trim()}
                         </span>
                       )}
                     </div>
@@ -354,7 +354,7 @@ export default function ProjectSelectionForm({ formData, updateField }: ProjectS
                       
                       {project.sourceLang && project.targetLang && (
                         <span className="text-gray-600 ml-auto">
-                          {project.sourceLang} → {project.targetLang}
+                          {project.sourceLang.replace(/[!'\s]/g, '').trim()} → {project.targetLang.replace(/[!'\s]/g, '').trim()}
                         </span>
                       )}
                     </div>

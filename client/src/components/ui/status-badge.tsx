@@ -90,12 +90,16 @@ export function ProjectLabelBadge({ label }: ProjectLabelBadgeProps) {
 }
 
 export function LanguagePairBadge({ sourceLang, targetLang }: LanguagePairBadgeProps) {
+  // Clean up language formatting by removing spacing and strange characters
+  const cleanSourceLang = sourceLang ? sourceLang.replace(/[!'\s]/g, '').trim() : '';
+  const cleanTargetLang = targetLang ? targetLang.replace(/[!'\s]/g, '').trim() : '';
+  
   return (
     <Badge
       variant="outline"
       className="rounded-md border px-2 py-1 text-xs font-medium bg-indigo-50 text-indigo-600 border-indigo-100"
     >
-      {sourceLang} → {targetLang}
+      {cleanSourceLang} → {cleanTargetLang}
     </Badge>
   );
 }
