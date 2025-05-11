@@ -95,6 +95,7 @@ export default function Clients() {
   return (
     <div className="py-6">
       <div className="mb-6 flex justify-between items-center">
+        <h1 className="text-2xl font-semibold text-gray-900">Clients</h1>
         <div className="relative w-72">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
           <Input
