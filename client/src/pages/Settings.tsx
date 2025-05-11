@@ -96,10 +96,9 @@ const notificationFormSchema = z.object({
 // Invoice settings schema
 const invoiceFormSchema = z.object({
   invoicePrefix: z.string().max(5, { message: "Prefix should not exceed 5 characters" }),
-  paymentTerms: z.string().default("14"),
+  paymentTerms: z.string(),
   defaultNotes: z.string().max(1000, { message: "Notes must not exceed 1000 characters" }).optional(),
   latePaymentFee: z.string().optional(),
-  sendReminders: z.boolean().default(true),
 });
 
 // Password change schema
