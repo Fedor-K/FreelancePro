@@ -42,7 +42,6 @@ const formSchema = z.object({
   description: z.string().optional().nullable(),
   invoiceSent: z.boolean().optional().default(false),
   isPaid: z.boolean().optional().default(false),
-  isArchived: z.boolean().optional().default(false),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -80,7 +79,6 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
       targetLang: "",
       invoiceSent: false,
       isPaid: false,
-      isArchived: false,
     },
   });
   
@@ -102,7 +100,6 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
         targetLang: defaultValues.targetLang || "",
         invoiceSent: defaultValues.invoiceSent || false,
         isPaid: defaultValues.isPaid || false,
-        isArchived: defaultValues.isArchived || false,
       };
       
       console.log("Setting form values:", valuesToSet);
