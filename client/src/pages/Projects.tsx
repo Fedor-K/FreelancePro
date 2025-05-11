@@ -51,7 +51,7 @@ export default function Projects() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
-  const [searchTerm, setSearchTerm] = useState("");
+  // Search term has been removed
   // Archive functionality has been removed
   
   // Define a type for the tab values based on projectStatusEnum
@@ -228,29 +228,7 @@ export default function Projects() {
         </div>
       </div>
       
-      <div className="my-6 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input 
-            placeholder="Search projects..." 
-            className="pl-9 pr-4" 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          {searchTerm && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7" 
-              onClick={() => setSearchTerm("")}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-        
-        {/* Archive functionality has been removed */}
-      </div>
+      {/* Search bar has been removed */}
       
       <Tabs defaultValue="In Progress" value={activeTab} onValueChange={(value) => setActiveTab(value as TabValue)} className="w-full mb-4 mt-6">
         <TabsList className="grid w-full max-w-md grid-cols-3">

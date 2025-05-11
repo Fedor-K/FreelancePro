@@ -24,11 +24,9 @@ import { Client } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { 
   UserPlus, 
-  Search, 
   Edit, 
   Trash2, 
-  MoreHorizontal,
-  X
+  MoreHorizontal
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -120,16 +118,14 @@ export default function Clients() {
                     Loading clients...
                   </TableCell>
                 </TableRow>
-              ) : filteredClients.length === 0 ? (
+              ) : clients.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-10 text-gray-500">
-                    {searchTerm 
-                      ? "No clients match your search. Try a different term."
-                      : "No clients found. Add a client to get started."}
+                    No clients found. Add a client to get started.
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredClients.map((client) => (
+                clients.map((client) => (
                   <TableRow key={client.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
