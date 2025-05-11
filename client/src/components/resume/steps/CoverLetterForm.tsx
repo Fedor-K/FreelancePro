@@ -3,11 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sparkles, Download, Save, RefreshCw, Copy } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Sparkles, AlertTriangle, ExternalLink } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createCoverLetterPreviewHTML } from "@/lib/resumeTemplate";
 
 interface CoverLetterFormProps {
@@ -18,43 +17,45 @@ interface CoverLetterFormProps {
 export default function CoverLetterForm({ formData, updateField }: CoverLetterFormProps) {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
-  const [coverLetterGenerated, setCoverLetterGenerated] = useState(false);
-  const [formTab, setFormTab] = useState<"edit" | "preview">("edit");
+  const [activeTab, setActiveTab] = useState("edit");
   
-  // Handle cover letter generation
+  // Generate cover letter with AI
   const generateCoverLetter = async () => {
+    if (!formData.targetPosition || !formData.jobDescription) {
+      toast({
+        title: "Missing information",
+        description: "Please complete the target position and job description to generate a cover letter",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsGenerating(true);
     
     try {
-      // Here we would normally make an API request to use OpenAI
-      // For now, we'll simulate the process with a timeout
+      // Simulate AI-generated cover letter with a timeout
       setTimeout(() => {
-        // Simulate a generated cover letter
-        const generatedLetter = `
-Dear Hiring Manager,
+        const coverLetter = `Dear Hiring Manager,
 
-I am writing to express my interest in the ${formData.targetCompany ? `position at ${formData.targetCompany}` : "position you've advertised"}. As a professional with extensive experience in translation and localization, I am confident in my ability to contribute effectively to your team.
+I am writing to express my interest in the ${formData.targetPosition} position at ${formData.targetCompany || "your company"}. With my extensive experience in translation and localization services, I am confident in my ability to contribute effectively to your team.
 
-${formData.jobDescription ? "Based on the job description, I understand you're looking for someone who can handle complex translation projects while maintaining high quality standards. " : ""}With my background in managing multiple translation projects and expertise in ${formData.selectedProjects.length > 0 ? `projects like ${formData.selectedProjects[0]?.name}` : "various translation projects"}, I am well-equipped to meet these requirements.
+Having successfully completed several projects in technical documentation and software localization, I possess the necessary skills to meet the requirements outlined in your job description. My background includes working with clients across various industries, ensuring high-quality translations that maintain the integrity and nuance of the original content.
 
-${formData.skills.length > 0 ? `My skills in ${formData.skills.slice(0, 3).join(", ")} align perfectly with what you're seeking. ` : ""}I am particularly proud of my ability to maintain the integrity and nuance of source material while adapting content for target audiences.
+What particularly excites me about this opportunity is the chance to leverage my expertise in ${formData.selectedProjects.length > 0 ? formData.selectedProjects[0].name : "technical translation"} to help your team expand its global reach. I am proficient in CAT tools and terminology management systems, ensuring consistency and efficiency in all projects.
 
-I look forward to the opportunity to discuss how my qualifications can benefit your organization. Thank you for considering my application.
+I look forward to the opportunity to discuss how my skills align with your needs. Thank you for considering my application.
 
 Sincerely,
-${formData.name || "Your Name"}
-        `.trim();
+${formData.name || "Your Name"}`;
         
-        updateField("coverLetter", generatedLetter);
+        updateField("coverLetter", coverLetter);
         
         toast({
           title: "Cover letter generated!",
-          description: "Your cover letter has been created based on your resume and the job description",
+          description: "Your personalized cover letter has been created",
         });
         
-        setCoverLetterGenerated(true);
-        setShowPreview(true);
+        setActiveTab("preview");
         setIsGenerating(false);
       }, 2000);
     } catch (error) {
@@ -67,136 +68,34 @@ ${formData.name || "Your Name"}
     }
   };
   
-  // Handle cover letter save
-  const saveCoverLetter = () => {
-    toast({
-      title: "Cover letter saved",
-      description: "Your cover letter has been saved successfully",
-    });
-  };
-  
-  // Handle cover letter download
-  const downloadCoverLetter = () => {
-    if (!formData.coverLetter) {
-      toast({
-        title: "No content",
-        description: "Please generate or write a cover letter first",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    toast({
-      title: "Download started",
-      description: "Your cover letter is being prepared for download",
-    });
-    
-    try {
-      // Import the downloadCoverLetter function from our template
-      import('@/lib/resumeTemplate').then((module) => {
-        module.downloadCoverLetter(formData);
-        
-        toast({
-          title: "Cover letter downloaded",
-          description: "Your cover letter has been downloaded as a PDF file",
-        });
-      }).catch(error => {
-        throw error;
-      });
-    } catch (error) {
-      console.error("Error downloading cover letter:", error);
-      toast({
-        title: "Download failed",
-        description: "There was an error downloading your cover letter. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-  
-  // Handle cover letter copy
-  const copyCoverLetter = () => {
-    navigator.clipboard.writeText(formData.coverLetter || "");
-    toast({
-      title: "Copied to clipboard",
-      description: "Your cover letter has been copied to the clipboard",
-    });
-  };
-  
   return (
     <div className="space-y-6">
       <div className="space-y-2">
         <h2 className="text-xl font-semibold">Cover Letter</h2>
         <p className="text-sm text-muted-foreground">
-          Create a matching cover letter to accompany your resume
+          Create a personalized cover letter to accompany your resume
         </p>
       </div>
       
-      <Tabs defaultValue={showPreview ? "preview" : "generate"} className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="generate" onClick={() => setShowPreview(false)}>Generate</TabsTrigger>
-          <TabsTrigger 
-            value="preview" 
-            onClick={() => setShowPreview(true)}
-            disabled={!formData.coverLetter}
-          >
-            Preview & Edit
-          </TabsTrigger>
+          <TabsTrigger value="edit">Edit</TabsTrigger>
+          <TabsTrigger value="preview">Preview</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="generate" className="space-y-4">
+        <TabsContent value="edit" className="space-y-6 pt-4">
           <Card className="bg-primary/5 border-primary/20">
             <CardHeader>
               <CardTitle className="flex items-center text-lg">
                 <Sparkles className="h-5 w-5 mr-2 text-primary" />
-                AI Cover Letter Generation
+                AI Cover Letter Generator
               </CardTitle>
               <CardDescription>
-                Generate a personalized cover letter based on your resume and target position
+                Let AI create a tailored cover letter based on your resume data
               </CardDescription>
             </CardHeader>
             
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="match-job">Match Job Description</Label>
-                  <p className="text-xs text-muted-foreground">Address specific requirements in the job posting</p>
-                </div>
-                <Switch id="match-job" defaultChecked />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="highlight-skills">Highlight Key Skills</Label>
-                  <p className="text-xs text-muted-foreground">Emphasize skills most relevant to the position</p>
-                </div>
-                <Switch id="highlight-skills" defaultChecked />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="formal-tone">Formal Tone</Label>
-                  <p className="text-xs text-muted-foreground">Use professional business letter format</p>
-                </div>
-                <Switch id="formal-tone" defaultChecked />
-              </div>
-              
-              <div className="space-y-2 pt-2">
-                <Label htmlFor="tone-selection">Writing Style</Label>
-                <Select defaultValue="professional">
-                  <SelectTrigger id="tone-selection">
-                    <SelectValue placeholder="Select style" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="professional">Professional</SelectItem>
-                    <SelectItem value="enthusiastic">Enthusiastic</SelectItem>
-                    <SelectItem value="concise">Concise</SelectItem>
-                    <SelectItem value="persuasive">Persuasive</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-            
-            <CardFooter>
+            <CardFooter className="pt-0">
               <Button 
                 className="w-full"
                 onClick={generateCoverLetter}
@@ -210,141 +109,66 @@ ${formData.name || "Your Name"}
                 ) : (
                   <div className="flex items-center">
                     <Sparkles className="mr-2 h-4 w-4" />
-                    {coverLetterGenerated ? "Regenerate Cover Letter" : "Generate Cover Letter"}
+                    Generate Cover Letter
                   </div>
                 )}
               </Button>
             </CardFooter>
           </Card>
           
-          <div className="text-sm text-center text-muted-foreground">
-            <p>Your cover letter will be customized based on your resume and target job description</p>
+          <div className="space-y-2">
+            <Label htmlFor="coverLetter">Cover Letter Content</Label>
+            <Textarea
+              id="coverLetter"
+              value={formData.coverLetter || ""}
+              onChange={(e) => updateField("coverLetter", e.target.value)}
+              placeholder="Type or paste your cover letter here, or use the AI generator..."
+              rows={14}
+              className="font-mono text-sm"
+            />
           </div>
+          
+          {!formData.targetPosition && (
+            <Alert variant="destructive" className="bg-amber-50 border-amber-200 text-amber-800">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Missing information</AlertTitle>
+              <AlertDescription>
+                Please complete the target position in the previous step for a better cover letter.
+              </AlertDescription>
+            </Alert>
+          )}
         </TabsContent>
         
-        <TabsContent value="preview" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Left side - controls */}
-            <div className="space-y-4">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Cover Letter Actions</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <Label htmlFor="edit-mode">Edit Mode</Label>
-                    <Tabs value={formTab} onValueChange={(v) => setFormTab(v as "edit" | "preview")} className="w-[120px]">
-                      <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="edit">Edit</TabsTrigger>
-                        <TabsTrigger value="preview">View</TabsTrigger>
-                      </TabsList>
-                    </Tabs>
-                  </div>
-                  
-                  <Button 
-                    className="w-full justify-start"
-                    onClick={() => generateCoverLetter()}
-                    variant="outline"
-                  >
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    Regenerate
-                  </Button>
-                  
-                  <Button 
-                    className="w-full justify-start"
-                    onClick={saveCoverLetter}
-                    variant="outline"
-                  >
-                    <Save className="mr-2 h-4 w-4" />
-                    Save Cover Letter
-                  </Button>
-                  
-                  <Button 
-                    className="w-full justify-start"
-                    onClick={downloadCoverLetter}
-                    variant="outline"
-                  >
-                    <Download className="mr-2 h-4 w-4" />
-                    Download as PDF
-                  </Button>
-                  
-                  <Button 
-                    className="w-full justify-start"
-                    onClick={copyCoverLetter}
-                    variant="outline"
-                  >
-                    <Copy className="mr-2 h-4 w-4" />
-                    Copy to Clipboard
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
+        <TabsContent value="preview" className="pt-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Cover Letter Preview</CardTitle>
+              <CardDescription>
+                Preview how your cover letter will look when exported
+              </CardDescription>
+            </CardHeader>
             
-            {/* Right side - cover letter preview & editor */}
-            <div className="md:col-span-2">
-              <Card className="h-full">
-                <CardHeader className="pb-2 border-b">
-                  <CardTitle className="text-base flex justify-between items-center">
-                    <span>Cover Letter</span>
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      className="h-7 text-xs" 
-                      onClick={() => setShowPreview(false)}
-                    >
-                      Edit Settings
-                    </Button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  {formTab === "edit" ? (
-                    <Textarea
-                      value={formData.coverLetter || ""}
-                      onChange={(e) => updateField("coverLetter", e.target.value)}
-                      className="min-h-[500px] rounded-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 resize-none font-serif"
-                      placeholder="Your cover letter will appear here. You can edit it directly."
-                    />
-                  ) : (
-                    <div className="flex flex-col h-full">
-                      <div className="p-0 flex-1 min-h-[500px]">
-                        <iframe
-                          srcDoc={`
-                            <html>
-                              <head>
-                                <style>
-                                  body {
-                                    font-family: Georgia, 'Times New Roman', serif;
-                                    line-height: 1.6;
-                                    color: #333;
-                                    margin: 0;
-                                    padding: 1.5rem;
-                                    background-color: white;
-                                  }
-                                  p { margin: 0.5rem 0; }
-                                  .letter-heading { text-align: right; margin-bottom: 2rem; }
-                                  .sender-info { margin-bottom: 2rem; }
-                                  .recipient-info { margin-bottom: 2rem; }
-                                  .salutation { margin-bottom: 1rem; }
-                                  .content { margin-bottom: 2rem; white-space: pre-line; }
-                                  .closing { margin-bottom: 0.5rem; }
-                                  .signature { margin-top: 2rem; }
-                                </style>
-                              </head>
-                              <body>
-                                ${createCoverLetterPreviewHTML(formData)}
-                              </body>
-                            </html>
-                          `}
-                          style={{ width: '100%', height: '100%', border: 'none', minHeight: '500px' }}
-                          title="Cover Letter Preview"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+            <CardContent className="border-t pt-4">
+              {formData.coverLetter ? (
+                <div className="relative">
+                  <iframe
+                    title="Cover Letter Preview"
+                    srcDoc={createCoverLetterPreviewHTML(formData)}
+                    className="w-full h-[40rem] border rounded"
+                    style={{ backgroundColor: "white" }}
+                  />
+                </div>
+              ) : (
+                <div className="text-center py-12 text-muted-foreground">
+                  <AlertTriangle className="h-12 w-12 mx-auto mb-3 text-amber-500" />
+                  <h3 className="text-lg font-medium mb-1">No cover letter content yet</h3>
+                  <p className="max-w-md mx-auto">
+                    Generate or write a cover letter in the Edit tab to see a preview here
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

@@ -63,22 +63,27 @@ export default function TargetPositionForm({ formData, updateField }: TargetPosi
   
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <h2 className="text-xl font-semibold">Target Position</h2>
-        <p className="text-sm text-muted-foreground">
-          Enter details about the position you're applying for to tailor your resume
-        </p>
-      </div>
-      
       <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="targetCompany">Target Company (Optional)</Label>
-          <Input
-            id="targetCompany"
-            value={formData.targetCompany}
-            onChange={(e) => updateField("targetCompany", e.target.value)}
-            placeholder="Company you're applying to"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="targetCompany">Target Company (Optional)</Label>
+            <Input
+              id="targetCompany"
+              value={formData.targetCompany}
+              onChange={(e) => updateField("targetCompany", e.target.value)}
+              placeholder="Company you're applying to"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="targetPosition">Target Position</Label>
+            <Input
+              id="targetPosition"
+              value={formData.targetPosition}
+              onChange={(e) => updateField("targetPosition", e.target.value)}
+              placeholder="Position you're applying for"
+            />
+          </div>
         </div>
         
         <div className="space-y-2">
@@ -88,7 +93,7 @@ export default function TargetPositionForm({ formData, updateField }: TargetPosi
             value={formData.jobDescription}
             onChange={(e) => updateField("jobDescription", e.target.value)}
             placeholder="Paste the job description here..."
-            rows={8}
+            rows={6}
           />
           <p className="text-xs text-muted-foreground">
             The job description helps our AI tailor your resume to highlight relevant skills and experience

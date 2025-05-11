@@ -71,14 +71,7 @@ export default function ProjectSelectionForm({ formData, updateField }: ProjectS
   };
   
   return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <h2 className="text-xl font-semibold">Select Projects</h2>
-        <p className="text-sm text-muted-foreground">
-          Choose projects that demonstrate your skills and experience
-        </p>
-      </div>
-      
+    <div className="space-y-6">      
       {/* Search input */}
       <div className="relative">
         <Input 

@@ -12,9 +12,9 @@ import CoverLetterForm from "./steps/CoverLetterForm";
 import { ChevronLeft, ChevronRight, Save, PlayCircle } from "lucide-react";
 
 const STEPS = [
-  { id: 'project-selection', title: 'Resume Building' },
+  { id: 'resume-building', title: 'Resume Building' },
   { id: 'cover-letter', title: 'Cover Letter' },
-  { id: 'preview', title: 'Preview & Export' },
+  { id: 'preview-export', title: 'Preview & Export' },
 ];
 
 export default function ResumeBuilder() {
