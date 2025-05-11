@@ -46,17 +46,34 @@ const verifyApiKey = (req: Request, res: Response, next: NextFunction) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup authentication
+  setupAuth(app);
+  
+  // Middleware to check authentication
+  const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    next();
+  };
+  
   // Client routes
-  app.get("/api/clients", async (req: Request, res: Response) => {
+  app.get("/api/clients", requireAuth, async (req: Request, res: Response) => {
     try {
-      const clients = await storage.getClients();
+      const userId = req.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const clients = await storage.getClientsByUser(userId);
       res.json(clients);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch clients" });
     }
   });
 
-  app.get("/api/clients/:id", async (req: Request, res: Response) => {
+  app.get("/api/clients/:id", requireAuth, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -68,20 +85,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Client not found" });
       }
       
+      // Verify user ownership
+      const userId = req.user?.id;
+      if (!userId || (client.userId !== null && client.userId !== userId)) {
+        return res.status(403).json({ message: "You do not have access to this client" });
+      }
+      
       res.json(client);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch client" });
     }
   });
 
-  app.post("/api/clients", async (req: Request, res: Response) => {
+  app.post("/api/clients", requireAuth, async (req: Request, res: Response) => {
     try {
       const result = insertClientSchema.safeParse(req.body);
       if (!result.success) {
         return res.status(400).json({ message: "Invalid client data", errors: result.error.format() });
       }
       
-      const client = await storage.createClient(result.data);
+      // Add the authenticated user's ID to the client data
+      const clientData = {
+        ...result.data,
+        userId: req.user?.id || null
+      };
+      
+      const client = await storage.createClient(clientData);
       res.status(201).json(client);
     } catch (error) {
       res.status(500).json({ message: "Failed to create client" });
@@ -131,17 +160,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Project routes
-  app.get("/api/projects", async (req: Request, res: Response) => {
+  app.get("/api/projects", requireAuth, async (req: Request, res: Response) => {
     try {
+      const userId = req.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       let projects;
       if (req.query.clientId) {
         const clientId = parseInt(req.query.clientId as string);
         if (isNaN(clientId)) {
           return res.status(400).json({ message: "Invalid client ID" });
         }
+        // First verify the client belongs to the user
+        const client = await storage.getClient(clientId);
+        if (!client || (client.userId !== null && client.userId !== userId)) {
+          return res.status(403).json({ message: "You do not have access to this client" });
+        }
         projects = await storage.getProjectsByClient(clientId);
       } else {
-        projects = await storage.getProjects();
+        projects = await storage.getProjectsByUser(userId);
       }
       res.json(projects);
     } catch (error) {
@@ -149,7 +189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/projects/:id", async (req: Request, res: Response) => {
+  app.get("/api/projects/:id", requireAuth, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -161,13 +201,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Project not found" });
       }
       
+      // Verify user ownership
+      const userId = req.user?.id;
+      if (!userId || (project.userId !== null && project.userId !== userId)) {
+        return res.status(403).json({ message: "You do not have access to this project" });
+      }
+      
       res.json(project);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch project" });
     }
   });
 
-  app.post("/api/projects", async (req: Request, res: Response) => {
+  app.post("/api/projects", requireAuth, async (req: Request, res: Response) => {
     try {
       // Process the request data
       const data = { ...req.body };

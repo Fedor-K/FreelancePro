@@ -7,6 +7,7 @@ import { promisify } from "util";
 import { storage } from "./storage";
 import { User as UserType, userLoginSchema, userRegistrationSchema } from "@shared/schema";
 import { z } from "zod";
+import createMemoryStore from "memorystore";
 
 // TypeScript declaration for Express.User
 declare global {
@@ -35,7 +36,7 @@ export async function comparePasswords(supplied: string, stored: string): Promis
 
 export function setupAuth(app: Express): void {
   // Create a MemoryStore for session storage
-  const MemoryStore = require("memorystore")(session);
+  const MemoryStore = createMemoryStore(session);
   
   // Set up session middleware
   app.use(
