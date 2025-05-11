@@ -4,9 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 
-import BasicInfoForm from "./steps/BasicInfoForm";
 import ProjectSelectionForm from "./steps/ProjectSelectionForm";
-import SkillsExperienceForm from "./steps/SkillsExperienceForm";
 import TargetPositionForm from "./steps/TargetPositionForm";
 import PreviewExportForm from "./steps/PreviewExportForm";
 import CoverLetterForm from "./steps/CoverLetterForm";
@@ -14,10 +12,7 @@ import CoverLetterForm from "./steps/CoverLetterForm";
 import { ChevronLeft, ChevronRight, Save, PlayCircle } from "lucide-react";
 
 const STEPS = [
-  { id: 'basic-info', title: 'Basic Information' },
-  { id: 'projects', title: 'Project Selection' },
-  { id: 'skills', title: 'Skills & Experience' },
-  { id: 'target', title: 'Target Position' },
+  { id: 'project-selection', title: 'Resume Building' },
   { id: 'cover-letter', title: 'Cover Letter' },
   { id: 'preview', title: 'Preview & Export' },
 ];
@@ -26,26 +21,54 @@ export default function ResumeBuilder() {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
-    // Basic information
-    name: "",
-    email: "",
-    phone: "",
-    location: "",
-    website: "",
-    professionalTitle: "",
-    summary: "",
+    // Basic information (auto-populated from settings)
+    name: "John Doe",
+    email: "john@example.com",
+    phone: "+1 (555) 123-4567",
+    location: "New York, NY",
+    website: "https://johndoe.com",
+    professionalTitle: "Professional Translator",
+    summary: "Freelance translator and editor with 5+ years of experience in technical and business translation. Specialized in English to French and English to Spanish translations for software, legal, and marketing materials.",
     
     // Projects
     selectedProjects: [],
     
-    // Skills & Experience
-    skills: [],
-    languages: [],
-    education: [],
-    experience: [],
+    // Skills & Experience (auto-populated from settings)
+    skills: ["Translation", "Localization", "Proofreading", "CAT Tools", "SDL Trados", "MemoQ", "Terminology Management"],
+    languages: [
+      { language: "English", level: "Native" },
+      { language: "Spanish", level: "Fluent (C2)" },
+      { language: "French", level: "Fluent (C1)" },
+      { language: "German", level: "Intermediate (B1)" }
+    ],
+    education: [
+      {
+        degree: "Master's in Translation Studies",
+        institution: "University of Translation",
+        year: "2015",
+        description: "Specialized in technical and scientific translation"
+      }
+    ],
+    experience: [
+      {
+        role: "Senior Translator",
+        company: "GlobalTech Translations",
+        startDate: "2018",
+        endDate: "Present",
+        description: "Led translation projects for major tech clients, managing terminology databases and ensuring consistency across all materials."
+      },
+      {
+        role: "Freelance Translator",
+        company: "Self-employed",
+        startDate: "2015",
+        endDate: "2018",
+        description: "Provided translation services for various clients in technical, legal, and marketing fields."
+      }
+    ],
     
     // Target position
     targetCompany: "",
+    targetPosition: "",
     jobDescription: "",
     
     // Cover letter
@@ -110,44 +133,48 @@ export default function ResumeBuilder() {
   // Render current step form
   const renderStepForm = () => {
     switch (currentStep) {
-      case 0:
+      case 0: // Resume Building (combines Project Selection and Target Position steps)
         return (
-          <BasicInfoForm 
-            formData={formData} 
-            updateField={updateField} 
-            updateFields={updateFields} 
-          />
+          <div className="space-y-8">
+            {/* Project Selection part */}
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <h2 className="text-xl font-semibold">Resume Building</h2>
+                <p className="text-sm text-muted-foreground">
+                  Select projects to include in your resume and specify the position you're applying for
+                </p>
+              </div>
+              
+              <ProjectSelectionForm 
+                formData={formData} 
+                updateField={updateField} 
+              />
+              
+              {/* Target Position entry */}
+              <div className="space-y-4 pt-6 border-t">
+                <div className="space-y-2">
+                  <h3 className="text-lg font-medium">Target Position</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Enter details about the position you're applying for
+                  </p>
+                </div>
+                
+                <TargetPositionForm 
+                  formData={formData} 
+                  updateField={updateField} 
+                />
+              </div>
+            </div>
+          </div>
         );
-      case 1:
-        return (
-          <ProjectSelectionForm 
-            formData={formData} 
-            updateField={updateField} 
-          />
-        );
-      case 2:
-        return (
-          <SkillsExperienceForm 
-            formData={formData} 
-            updateField={updateField} 
-            updateFields={updateFields} 
-          />
-        );
-      case 3:
-        return (
-          <TargetPositionForm 
-            formData={formData} 
-            updateField={updateField} 
-          />
-        );
-      case 4:
+      case 1: // Cover Letter
         return (
           <CoverLetterForm 
             formData={formData} 
             updateField={updateField} 
           />
         );
-      case 5:
+      case 2: // Preview & Export
         return (
           <PreviewExportForm 
             formData={formData} 
