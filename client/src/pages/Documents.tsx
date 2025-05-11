@@ -115,7 +115,7 @@ export default function Documents() {
   };
   
   const getDocumentIcon = (type: string) => {
-    return type === "invoice" ? <File className="h-6 w-6 text-secondary" /> : <FileText className="h-6 w-6 text-primary" />;
+    return type === "invoice" ? <File className="h-6 w-6 text-primary" /> : <FileText className="h-6 w-6 text-primary" />;
   };
 
   return (

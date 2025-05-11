@@ -311,8 +311,8 @@ export function DocumentGenerator() {
     <Card className="mt-6">
       <CardContent className="pt-6">
         <div className="flex items-center mb-6">
-          <div className="mr-4 p-3 bg-green-100 rounded-md">
-            <File className="h-6 w-6 text-secondary" />
+          <div className="mr-4 p-3 bg-blue-100 rounded-md">
+            <File className="h-6 w-6 text-primary" />
           </div>
           <div>
             <h3 className="text-lg font-medium leading-6 text-gray-900">Document Generator</h3>
@@ -419,7 +419,8 @@ export function DocumentGenerator() {
                 <Button 
                   type="submit" 
                   disabled={isGenerating || projects.length === 0}
-                  className="w-full bg-secondary hover:bg-secondary/90"
+                  className="w-full"
+                  variant="default"
                 >
                   <FileText className="mr-2 h-4 w-4" />
                   {isGenerating ? "Generating Document..." : "Generate Document"}
