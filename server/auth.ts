@@ -198,6 +198,47 @@ export function setupAuth(app: Express): void {
     res.json(userWithoutPassword);
   });
   
+  // Change password endpoint
+  app.post("/api/user/change-password", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      
+      const { currentPassword, newPassword } = req.body;
+      
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: "Current password and new password are required" });
+      }
+      
+      // Verify current password
+      const user = await storage.getUser(req.user.id);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      const isCurrentPasswordValid = await comparePasswords(currentPassword, user.password);
+      if (!isCurrentPasswordValid) {
+        return res.status(400).json({ error: "Current password is incorrect" });
+      }
+      
+      // Hash the new password
+      const hashedPassword = await hashPassword(newPassword);
+      
+      // Update the user's password
+      const updatedUser = await storage.updateUser(req.user.id, { password: hashedPassword });
+      
+      if (!updatedUser) {
+        return res.status(500).json({ error: "Failed to update password" });
+      }
+      
+      res.status(200).json({ message: "Password successfully updated" });
+    } catch (error) {
+      console.error("Error changing password:", error);
+      res.status(500).json({ error: "Failed to change password" });
+    }
+  });
+  
   // Delete account endpoint
   app.delete("/api/user", async (req, res) => {
     try {
