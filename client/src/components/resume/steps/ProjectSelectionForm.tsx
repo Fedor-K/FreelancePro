@@ -9,14 +9,15 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { SearchX, Check, ChevronsUpDown, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { Project } from "@shared/schema";
 
@@ -26,8 +27,7 @@ interface ProjectSelectionFormProps {
 }
 
 export default function ProjectSelectionForm({ formData, updateField }: ProjectSelectionFormProps) {
-  // States for the dropdown
-  const [open, setOpen] = useState(false);
+  // State for search
   const [searchTerm, setSearchTerm] = useState("");
   
   // Fetch projects from the API
@@ -143,9 +143,9 @@ export default function ProjectSelectionForm({ formData, updateField }: ProjectS
         </Alert>
       )}
       
-      {/* Project selection area */}
+      {/* Project dropdown multi-select */}
       {!isLoading && !error && projects && (
-        <div className="space-y-1.5">
+        <div className="space-y-3">
           <div className="flex justify-between items-center">
             <Label htmlFor="project-select" className="text-base font-medium">Select projects to include in your resume</Label>
             {formData.selectedProjects.length > 0 && (
@@ -171,44 +171,69 @@ export default function ProjectSelectionForm({ formData, updateField }: ProjectS
             <SearchX className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           </div>
           
-          {/* Project list */}
-          <div className="border rounded-md">
+          {/* Project dropdown list */}
+          <div className="space-y-3">
             {projects
               .filter(project => 
                 project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase()))
               )
               .map((project) => (
-                <div
-                  key={project.id}
-                  className="flex items-center p-3 border-b last:border-b-0 gap-3 hover:bg-gray-50 cursor-pointer"
-                  onClick={() => toggleProject(project)}
-                >
-                  <Checkbox 
-                    checked={isProjectSelected(project.id)}
-                    onCheckedChange={() => toggleProject(project)}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                  <div className="flex-1">
-                    <div className="font-medium">{project.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      Client ID: {project.clientId}
-                      {project.description && <span className="ml-2">- {project.description.substring(0, 50)}{project.description.length > 50 ? '...' : ''}</span>}
-                    </div>
-                    <div className="flex flex-wrap gap-2 mt-1">
-                      {project.status && renderStatusBadge(project.status)}
-                      {project.deadline && (
-                        <Badge variant="outline" className="text-xs">
-                          {new Date(project.deadline).toLocaleDateString()}
-                        </Badge>
-                      )}
-                      {project.sourceLang && project.targetLang && (
-                        <Badge variant="outline" className="text-xs">
-                          {project.sourceLang} → {project.targetLang}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
+                <div key={project.id} className="mb-2">
+                  <Select
+                    onValueChange={(value) => {
+                      if (value === "select") toggleProject(project);
+                    }}
+                    value={isProjectSelected(project.id) ? "select" : "unselect"}
+                  >
+                    <SelectTrigger className={`w-full text-left justify-between ${
+                      isProjectSelected(project.id) ? 'ring-2 ring-primary' : ''
+                    }`}>
+                      <div className="flex items-center gap-2">
+                        <Checkbox 
+                          checked={isProjectSelected(project.id)}
+                          className="mr-2"
+                          onCheckedChange={() => toggleProject(project)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        <div className="flex-1 overflow-hidden">
+                          <div className="font-medium truncate">{project.name}</div>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {project.status && renderStatusBadge(project.status)}
+                            {project.sourceLang && project.targetLang && (
+                              <Badge variant="outline" className="text-xs">
+                                {project.sourceLang} → {project.targetLang}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={isProjectSelected(project.id) ? "select" : "unselect"}>
+                        <div className="space-y-2 py-1">
+                          <div className="font-medium">{project.name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            Client ID: {project.clientId}
+                            {project.description && <div className="mt-1">{project.description}</div>}
+                          </div>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {project.status && renderStatusBadge(project.status)}
+                            {project.deadline && (
+                              <Badge variant="outline" className="text-xs">
+                                {new Date(project.deadline).toLocaleDateString()}
+                              </Badge>
+                            )}
+                            {project.sourceLang && project.targetLang && (
+                              <Badge variant="outline" className="text-xs">
+                                {project.sourceLang} → {project.targetLang}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               ))}
               
@@ -217,7 +242,7 @@ export default function ProjectSelectionForm({ formData, updateField }: ProjectS
               project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
               (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase()))
             ).length === 0 && (
-              <div className="text-center py-6 text-muted-foreground">
+              <div className="text-center py-6 text-muted-foreground border rounded-md">
                 {searchTerm ? 
                   "No projects match your search. Try a different term." : 
                   "No projects available. Create some projects first."}
