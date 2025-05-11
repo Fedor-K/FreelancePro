@@ -52,7 +52,7 @@ export default function Projects() {
   const { toast } = useToast();
   
   const [searchTerm, setSearchTerm] = useState("");
-  const [showArchived, setShowArchived] = useState(false);
+  // Archive functionality has been removed
   
   // Define a type for the tab values based on projectStatusEnum
   type TabValue = "In Progress" | "Delivered" | "Paid";
@@ -184,9 +184,9 @@ export default function Projects() {
   };
 
   // Get counts for tabs
-  const inProgressCount = projects.filter(p => p.status === "In Progress" && (!p.isArchived || showArchived)).length;
-  const deliveredCount = projects.filter(p => p.status === "Delivered" && (!p.isArchived || showArchived)).length;
-  const paidCount = projects.filter(p => p.status === "Paid" && (!p.isArchived || showArchived)).length;
+  const inProgressCount = projects.filter(p => p.status === "In Progress").length;
+  const deliveredCount = projects.filter(p => p.status === "Delivered").length;
+  const paidCount = projects.filter(p => p.status === "Paid").length;
   
   // Filter projects based on search term, archived status, and active tab
   const filteredProjects = projects
@@ -252,16 +252,7 @@ export default function Projects() {
           )}
         </div>
         
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2">
-            <Switch 
-              id="archived" 
-              checked={showArchived}
-              onCheckedChange={setShowArchived}
-            />
-            <Label htmlFor="archived" className="text-sm">Show archived</Label>
-          </div>
-        </div>
+        {/* Archive functionality has been removed */}
       </div>
       
       <Tabs defaultValue="In Progress" value={activeTab} onValueChange={(value) => setActiveTab(value as TabValue)} className="w-full mb-4 mt-6">
