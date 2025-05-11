@@ -10,7 +10,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { createResumePreviewHTML, downloadResume } from "@/lib/resumeTemplate";
+import { createResumePreviewHTML, downloadResume, createCoverLetterPreviewHTML, downloadCoverLetter } from "@/lib/resumeTemplate";
+import jsPDF from "jspdf";
 
 export default function SavedResumes() {
   const { toast } = useToast();
@@ -37,78 +38,69 @@ export default function SavedResumes() {
   };
   
   // Handle resume download
-  const handleDownload = (resumeId: number) => {
+  const handleDownload = async (resumeId: number) => {
     toast({
       title: "Download Started",
-      description: "Your resume is being prepared for download.",
+      description: "Your document is being prepared for download.",
     });
     
     try {
-      // Find the resume data
-      const resume = mockResumes.find(r => r.id === resumeId);
-      if (!resume) {
-        toast({
-          title: "Error",
-          description: "Resume not found.",
-          variant: "destructive"
-        });
-        return;
+      // Fetch the resume data
+      const response = await fetch(`/api/resumes/${resumeId}`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch document: ${response.statusText}`);
       }
       
-      // Sample resume data that matches the preview
-      const resumeData = {
-        name: "John Smith",
-        professionalTitle: "Senior Translation Specialist",
-        email: "john@example.com",
-        phone: "+1 (555) 123-4567",
-        location: "New York, NY",
-        website: "johnsmith.portfolio.com",
-        summary: "Experienced translator with over 8 years of expertise in technical and business translation. Specialized in English to Spanish and English to French translations for software, legal, and marketing materials.",
-        skills: ["Translation", "Localization", "Proofreading", "CAT Tools", "SDL Trados", "MemoQ", "Terminology Management"],
-        languages: [
-          { language: "English", level: "Native" },
-          { language: "Spanish", level: "Fluent (C2)" },
-          { language: "French", level: "Fluent (C1)" },
-          { language: "German", level: "Intermediate (B1)" }
-        ],
-        experience: [
-          {
-            role: "Senior Translator",
-            company: "GlobalTech Translations",
-            startDate: "2018",
-            endDate: "Present",
-            description: "Led translation projects for major tech clients, managing terminology databases and ensuring consistency across all materials."
-          },
-          {
-            role: "Freelance Translator",
-            company: "Self-employed",
-            startDate: "2015",
-            endDate: "2018",
-            description: "Provided translation services for various clients in technical, legal, and marketing fields."
-          }
-        ],
-        education: [
-          {
-            degree: "Master's in Translation Studies",
-            institution: "University of Translation",
-            year: "2015",
-            description: ""
-          }
-        ]
-      };
+      const resume = await response.json();
       
-      // Use our shared template function for downloading
-      downloadResume(resumeData, resume.name);
+      if (resume.type === 'resume') {
+        // For resume, parse the content which contains the form data
+        try {
+          const resumeData = JSON.parse(resume.content);
+          downloadResume(resumeData, resume.name);
+        } catch (parseError) {
+          console.error("Error parsing resume content:", parseError);
+          toast({
+            title: "Error",
+            description: "Could not parse resume content.",
+            variant: "destructive"
+          });
+          return;
+        }
+      } else if (resume.type === 'cover_letter') {
+        // For cover letter, we'll use downloadCoverLetter if the form data is available
+        try {
+          const formData = JSON.parse(resume.content);
+          downloadCoverLetter(formData);
+        } catch (parseError) {
+          // If can't parse as JSON, it's probably plain text
+          const doc = new jsPDF();
+          const fontSize = 11;
+          const margin = 15;
+          
+          // Set font
+          doc.setFont("Helvetica");
+          doc.setFontSize(fontSize);
+          
+          // Add text with proper line breaks
+          const textLines = doc.splitTextToSize(resume.content, doc.internal.pageSize.width - 2 * margin);
+          doc.text(textLines, margin, margin);
+          
+          // Save the PDF
+          doc.save(`${resume.name}.pdf`);
+        }
+      }
       
       toast({
         title: "Downloaded Successfully",
-        description: "Your resume has been downloaded.",
+        description: "Your document has been downloaded.",
       });
     } catch (error) {
-      console.error("Error downloading resume:", error);
+      console.error("Error downloading document:", error);
       toast({
         title: "Download Failed",
-        description: "There was an error downloading your resume. Please try again.",
+        description: "There was an error downloading your document. Please try again.",
         variant: "destructive"
       });
     }
@@ -197,6 +189,8 @@ export default function SavedResumes() {
     return (
       <div className="space-y-4">
         <Skeleton className="h-8 w-1/3" />
+        <Skeleton className="h-4 w-48" />
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[1, 2].map((i) => (
             <Card key={i}>
@@ -234,26 +228,28 @@ export default function SavedResumes() {
         </TabsList>
         
         <TabsContent value="resumes" className="space-y-4">
-          {resumes && resumes.filter(r => r.type === 'resume').length > 0 ? (
+          {resumes && resumes.filter((r: any) => r.type === 'resume').length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {resumes.filter(resume => resume.type === 'resume').map((resume) => (
+              {resumes.filter((resume: any) => resume.type === 'resume').map((resume: any) => (
                 <Card key={resume.id}>
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
                       <div>
                         <CardTitle className="text-lg">{resume.name}</CardTitle>
                         <CardDescription>
-                          {new Date(resume.lastUpdated).toLocaleDateString()} • {resume.template.charAt(0).toUpperCase() + resume.template.slice(1)} Template
+                          {new Date(resume.createdAt).toLocaleDateString()}
                         </CardDescription>
                       </div>
-                      <Badge variant="outline">{resume.targetPosition}</Badge>
+                      {resume.targetPosition && (
+                        <Badge variant="outline">{resume.targetPosition}</Badge>
+                      )}
                     </div>
                   </CardHeader>
                   <CardContent className="pb-2">
                     <div className="text-sm text-muted-foreground">
                       <span>Created: {new Date(resume.createdAt).toLocaleDateString()}</span>
-                      {resume.createdAt !== resume.lastUpdated && (
-                        <span> • Last updated: {new Date(resume.lastUpdated).toLocaleDateString()}</span>
+                      {resume.targetCompany && (
+                        <div className="mt-1">Company: {resume.targetCompany}</div>
                       )}
                     </div>
                   </CardContent>
@@ -313,9 +309,9 @@ export default function SavedResumes() {
         </TabsContent>
         
         <TabsContent value="cover-letters" className="space-y-4">
-          {resumes && resumes.filter(r => r.type === 'cover_letter').length > 0 ? (
+          {resumes && resumes.filter((r: any) => r.type === 'cover_letter').length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {resumes.filter(resume => resume.type === 'cover_letter').map((resume) => (
+              {resumes.filter((resume: any) => resume.type === 'cover_letter').map((resume: any) => (
                 <Card key={resume.id}>
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
@@ -400,107 +396,55 @@ export default function SavedResumes() {
           <DialogHeader>
             <DialogTitle>{previewResume?.name}</DialogTitle>
             <DialogDescription>
-              Preview of your resume for {previewResume?.targetPosition}
+              Preview of your {previewResume?.type === 'resume' ? 'resume' : 'cover letter'} 
+              {previewResume?.targetPosition ? ` for ${previewResume.targetPosition}` : ''}
             </DialogDescription>
           </DialogHeader>
           
           <ScrollArea className="h-[60vh] border rounded-md">
             <iframe
-              srcDoc={`
+              srcDoc={previewResume?.htmlContent || `
                 <html>
                   <head>
                     <style>
                       body {
                         font-family: Arial, sans-serif;
-                        line-height: 1.6;
-                        color: #333;
-                        margin: 0;
-                        padding: 1rem;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        height: 100vh;
+                        text-align: center;
                       }
-                      h1, h2, h3, h4 {
-                        margin-top: 0;
-                        color: #2B6CB0;
-                      }
-                      h1 { font-size: 24px; text-align: center; margin-bottom: 0.5rem; }
-                      h2 { font-size: 18px; text-align: center; font-weight: normal; margin-bottom: 1rem; }
-                      h3 { font-size: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.25rem; margin-top: 1.5rem; }
-                      p { margin: 0.5rem 0; }
-                      ul { padding-left: 1.5rem; }
-                      .contact-info { text-align: center; margin-bottom: 1.5rem; font-size: 14px; }
-                      .job-title { font-weight: bold; margin-bottom: 0; }
-                      .company { margin-bottom: 0; }
-                      .dates { font-style: italic; margin-bottom: 0.5rem; font-size: 14px; }
-                      .section { margin-bottom: 1.5rem; }
-                      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-                      .language-item { margin-bottom: 0.5rem; }
-                      .language-name { font-weight: bold; }
                     </style>
                   </head>
                   <body>
-                    ${createResumePreviewHTML({
-                      name: "John Smith",
-                      professionalTitle: "Senior Translation Specialist",
-                      email: "john@example.com",
-                      phone: "+1 (555) 123-4567",
-                      location: "New York, NY",
-                      website: "johnsmith.portfolio.com",
-                      summary: "Experienced translator with over 8 years of expertise in technical and business translation. Specialized in English to Spanish and English to French translations for software, legal, and marketing materials.",
-                      skills: ["Translation", "Localization", "Proofreading", "CAT Tools", "SDL Trados", "MemoQ", "Terminology Management"],
-                      languages: [
-                        { language: "English", level: "Native" },
-                        { language: "Spanish", level: "Fluent (C2)" },
-                        { language: "French", level: "Fluent (C1)" },
-                        { language: "German", level: "Intermediate (B1)" }
-                      ],
-                      experience: [
-                        {
-                          role: "Senior Translator",
-                          company: "GlobalTech Translations",
-                          startDate: "2018",
-                          endDate: "Present",
-                          description: "Led translation projects for major tech clients, managing terminology databases and ensuring consistency across all materials."
-                        },
-                        {
-                          role: "Freelance Translator",
-                          company: "Self-employed",
-                          startDate: "2015",
-                          endDate: "2018",
-                          description: "Provided translation services for various clients in technical, legal, and marketing fields."
-                        }
-                      ],
-                      education: [
-                        {
-                          degree: "Master's in Translation Studies",
-                          institution: "University of Translation",
-                          year: "2015",
-                          description: ""
-                        }
-                      ]
-                    })}
+                    <div>
+                      <h3 style="color: #666;">Preview not available</h3>
+                      <p>The content for this document could not be displayed.</p>
+                    </div>
                   </body>
                 </html>
               `}
-              style={{ width: '100%', height: '100%', border: 'none', minHeight: '500px' }}
+              className="w-full h-full border-none"
               title="Resume Preview"
             />
           </ScrollArea>
           
-          <DialogFooter className="flex justify-end gap-2">
-            <Button
-              variant="outline"
+          <DialogFooter>
+            <Button 
+              variant="outline" 
               onClick={() => setPreviewResume(null)}
             >
               Close
             </Button>
-            <Button
-              onClick={() => {
-                setPreviewResume(null);
-                handleDownload(previewResume?.id);
-              }}
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Download
-            </Button>
+            {previewResume && (
+              <Button 
+                onClick={() => handleDownload(previewResume.id)}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Download
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
