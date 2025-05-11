@@ -29,10 +29,10 @@ export async function generateCoverLetter({
       .map(project => `Project: ${project.name} - ${project.description || 'No description'}`)
       .join("\n");
 
-    // Create the prompt for OpenAI
+    // Create the prompt for OpenAI with refined instructions
     const prompt = `
-    Please write a professional, concise cover letter for a freelance translator named ${name} 
-    who is applying for a ${targetPosition} position at ${targetCompany}.
+    Write a brief, straightforward, and professional cover letter for a freelance translator named ${name} 
+    applying for a ${targetPosition} position at ${targetCompany}.
     
     Current Job Title: ${jobTitle || "Freelance Translator"}
     
@@ -44,10 +44,15 @@ export async function generateCoverLetter({
     Job Description:
     ${jobDescription || "A position requiring translation services, attention to detail, and excellent communication skills."}
     
-    The cover letter should be 3-4 paragraphs long, professional, and showcase the candidate's relevant experience.
-    Format it with "Dear Hiring Manager," at the beginning and "Sincerely, ${name}" at the end.
-    It should be specifically tailored for a translation professional applying to this specific role.
-    Do not include the resume/CV information in the content.
+    IMPORTANT FORMAT RULES:
+    - The cover letter should be exactly 3 concise paragraphs
+    - Start with ONLY "Dear Hiring Manager," (no date or address header)
+    - End with ONLY "Sincerely," followed by the name on a new line (do not repeat "Sincerely," twice)
+    - Total length should be brief (around 150-200 words maximum)
+    - Do not list project names directly, just briefly mention relevant experience
+    - Do not use redundant or flowery language - be direct and professional
+    - Focus on the candidate's most relevant skills for this specific position
+    - Do not include resume/CV information in the content
     `;
 
     // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user

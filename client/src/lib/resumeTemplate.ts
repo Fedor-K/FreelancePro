@@ -431,54 +431,13 @@ export const createCoverLetterDocument = (formData: any): jsPDF => {
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 20;
   
-  // Add current date at the top right
-  const today = new Date();
-  const dateStr = today.toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  });
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  doc.text(dateStr, pageWidth - margin, margin);
-  
-  // Add sender info
+  // No header, date, or address information as per user's request
+  // Start directly with the cover letter content
   let yPos = margin + 15;
-  if (formData.name) {
-    doc.text(formData.name, margin, yPos);
-    yPos += 5;
-  }
   
-  if (formData.email) {
-    doc.text(formData.email, margin, yPos);
-    yPos += 5;
-  }
-  
-  if (formData.phone) {
-    doc.text(formData.phone, margin, yPos);
-    yPos += 5;
-  }
-  
-  if (formData.location) {
-    doc.text(formData.location, margin, yPos);
-    yPos += 5;
-  }
-  
-  // Add recipient info (if available)
-  yPos += 10;
-  if (formData.targetCompany) {
-    doc.text(`Hiring Manager`, margin, yPos);
-    yPos += 5;
-    doc.text(formData.targetCompany, margin, yPos);
-    yPos += 15;
-  } else {
-    doc.text("Hiring Manager", margin, yPos);
-    yPos += 15;
-  }
-  
-  // Add salutation
-  doc.text("Dear Hiring Manager,", margin, yPos);
-  yPos += 10;
+  // Skip adding salutation - it should already be in the content
+  // The salutation will be part of the content from OpenAI
+  yPos += 0;
   
   // Add cover letter content with sanitization to remove any potential HTML
   doc.setFontSize(10);
@@ -489,12 +448,7 @@ export const createCoverLetterDocument = (formData: any): jsPDF => {
   // Calculate the position for the closing, accounting for the text height
   yPos += (splitText.length * 5) + 20;
   
-  // Add closing
-  doc.text("Sincerely,", margin, yPos);
-  yPos += 15;
-  // Sanitize name to remove any HTML content
-  const sanitizedName = formData.name ? formData.name.replace(/<[^>]*>/g, '') : "Your Name";
-  doc.text(sanitizedName, margin, yPos);
+  // No need to add closing - the content from OpenAI will already include this
   
   return doc;
 };
@@ -550,21 +504,15 @@ export const createCoverLetterPreviewHTML = (formData: any): string => {
   html += `
       </div>
       
-      <!-- Salutation -->
-      <div class="mt-8">
-        <p>Dear Hiring Manager,</p>
-      </div>
+      <!-- No separate salutation needed - will be in the content from OpenAI -->
+      <div class="mt-8"></div>
       
       <!-- Content -->
       <div class="mt-4">
         <p style="white-space: pre-line">${formData.coverLetter ? formData.coverLetter.replace(/<[^>]*>/g, '') : ""}</p>
       </div>
       
-      <!-- Closing -->
-      <div class="mt-8">
-        <p>Sincerely,</p>
-        <p class="mt-8">${formData.name ? formData.name.replace(/<[^>]*>/g, '') : "Your Name"}</p>
-      </div>
+      <!-- No separate closing needed - will be included in the content from OpenAI -->
     </div>
   `;
   
