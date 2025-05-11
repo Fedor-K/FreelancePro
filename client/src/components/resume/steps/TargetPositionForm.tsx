@@ -12,12 +12,14 @@ import { createResumePreviewHTML } from "@/lib/resumeTemplate";
 interface TargetPositionFormProps {
   formData: any;
   updateField: (field: string, value: any) => void;
+  nextStep?: () => void;
 }
 
-export default function TargetPositionForm({ formData, updateField }: TargetPositionFormProps) {
+export default function TargetPositionForm({ formData, updateField, nextStep }: TargetPositionFormProps) {
   const { toast } = useToast(); 
   const [isGenerating, setIsGenerating] = useState(false);
   const [resumeGenerated, setResumeGenerated] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [previewHtml, setPreviewHtml] = useState<string>("");
   
   const generateCV = () => {
@@ -38,12 +40,23 @@ export default function TargetPositionForm({ formData, updateField }: TargetPosi
       setPreviewHtml(html);
       setResumeGenerated(true);
       setIsGenerating(false);
+      setIsEditing(false);
       
       toast({
         title: "CV generated!",
         description: "Your CV has been generated successfully",
       });
     }, 800); // Short delay to show loading state
+  };
+  
+  const handleEditCV = () => {
+    setIsEditing(true);
+    setResumeGenerated(false);
+    
+    toast({
+      title: "Editing CV",
+      description: "You can now edit the CV details",
+    });
   };
   
   return (
@@ -118,10 +131,17 @@ export default function TargetPositionForm({ formData, updateField }: TargetPosi
             </CardContent>
           </Card>
           <div className="flex justify-end">
-            <Button variant="outline" className="text-blue-600 mr-2">
+            <Button 
+              variant="outline" 
+              className="text-blue-600 mr-2"
+              onClick={handleEditCV}
+            >
               Edit CV
             </Button>
-            <Button className="bg-blue-600 hover:bg-blue-700">
+            <Button 
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={nextStep}
+            >
               Continue
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>

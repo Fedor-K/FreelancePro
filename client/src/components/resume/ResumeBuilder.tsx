@@ -161,7 +161,8 @@ export default function ResumeBuilder() {
                 
                 <TargetPositionForm 
                   formData={formData} 
-                  updateField={updateField} 
+                  updateField={updateField}
+                  nextStep={nextStep}
                 />
               </div>
             </div>
