@@ -1,105 +1,324 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, FileEdit, Trash2, FileText, Copy } from "lucide-react";
+import { Download, FileEdit, Trash2, Eye, Copy } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
-interface SavedResumesProps {
-  onEdit: (id?: number) => void;
-}
-
-export default function SavedResumes({ onEdit }: SavedResumesProps) {
+export default function SavedResumes() {
   const { toast } = useToast();
+  const [previewResume, setPreviewResume] = useState<any>(null);
   
-  // Placeholder for resume data
-  // This will be replaced with actual data fetching once we have the API endpoints
-  const [resumes] = useState([]);
+  // This would normally fetch saved resumes from the API
+  const { data: resumes, isLoading } = useQuery({
+    queryKey: ['/api/resumes'],
+    enabled: false, // Disable until we have the API endpoint
+  });
   
-  // Loading state visual placeholder
-  if (false) { // Change to true to see loading state
+  // For demonstration, using mock data
+  const mockResumes = [
+    {
+      id: 1,
+      name: "Software Developer Resume",
+      createdAt: "2023-05-10T14:30:00Z",
+      lastUpdated: "2023-05-11T09:15:00Z",
+      targetPosition: "Senior Software Developer",
+      template: "professional",
+    },
+    {
+      id: 2,
+      name: "Technical Writer Position",
+      createdAt: "2023-04-22T11:20:00Z",
+      lastUpdated: "2023-04-22T11:20:00Z",
+      targetPosition: "Technical Writer",
+      template: "minimal",
+    }
+  ];
+  
+  // Handle resume preview
+  const handlePreview = (resume: any) => {
+    setPreviewResume(resume);
+  };
+  
+  // Handle resume edit
+  const handleEdit = (resumeId: number) => {
+    // Implementation would load this resume into the builder
+    toast({
+      title: "Edit Resume",
+      description: "This would load the resume into the builder for editing.",
+    });
+  };
+  
+  // Handle resume download
+  const handleDownload = (resumeId: number) => {
+    toast({
+      title: "Download Started",
+      description: "Your resume is being prepared for download.",
+    });
+  };
+  
+  // Handle resume delete
+  const handleDelete = (resumeId: number) => {
+    toast({
+      title: "Resume Deleted",
+      description: "The resume has been deleted successfully.",
+    });
+  };
+  
+  // Handle resume copy
+  const handleCopy = (resumeId: number) => {
+    toast({
+      title: "Resume Duplicated",
+      description: "A copy of the resume has been created.",
+    });
+  };
+  
+  if (isLoading) {
     return (
       <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
-          <Card key={i} className="overflow-hidden">
-            <CardHeader className="pb-2">
-              <Skeleton className="h-6 w-2/5" />
-            </CardHeader>
-            <CardContent className="pb-2">
-              <Skeleton className="h-4 w-full mb-2" />
-              <Skeleton className="h-4 w-3/4" />
-            </CardContent>
-            <CardFooter className="flex justify-between pt-2">
-              <Skeleton className="h-9 w-20" />
-              <Skeleton className="h-9 w-20" />
-            </CardFooter>
-          </Card>
-        ))}
+        <Skeleton className="h-8 w-1/3" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[1, 2].map((i) => (
+            <Card key={i}>
+              <CardHeader>
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-2/3" />
+              </CardContent>
+              <CardFooter>
+                <Skeleton className="h-9 w-full" />
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
       </div>
     );
   }
   
-  // Empty state
-  if (resumes.length === 0) {
-    return (
-      <Alert>
-        <FileText className="h-4 w-4" />
-        <AlertTitle>No resumes yet</AlertTitle>
-        <AlertDescription>
-          You haven't created any resumes yet. Create your first resume to see it here.
-        </AlertDescription>
-      </Alert>
-    );
-  }
-  
   return (
-    <div className="space-y-4">
-      {/* This will be populated with actual resumes once we have the backend set up */}
-      <Alert>
-        <FileText className="h-4 w-4" />
-        <AlertTitle>Resume functionality coming soon</AlertTitle>
-        <AlertDescription>
-          We're currently building the resume management features. Check back soon!
-        </AlertDescription>
-      </Alert>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight">Saved Resumes</h2>
+        <p className="text-muted-foreground">
+          Your previously created resumes and cover letters
+        </p>
+      </div>
       
-      {/* Example resume card - will be populated from API */}
-      {false && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Professional Translator Resume</CardTitle>
-          </CardHeader>
-          <CardContent className="pb-2">
-            <p className="text-sm text-muted-foreground">
-              Created on May 10, 2025 • Targeted for Technical Translation position
-            </p>
-          </CardContent>
-          <CardFooter className="flex justify-between pt-2">
-            <div className="flex space-x-2">
-              <Button size="sm" variant="outline" onClick={() => {}}>
-                <Download className="h-4 w-4 mr-1" />
-                Download
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => {}}>
-                <Copy className="h-4 w-4 mr-1" />
-                Duplicate
-              </Button>
+      <Tabs defaultValue="resumes">
+        <TabsList>
+          <TabsTrigger value="resumes">Resumes</TabsTrigger>
+          <TabsTrigger value="cover-letters">Cover Letters</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="resumes" className="space-y-4">
+          {mockResumes.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {mockResumes.map((resume) => (
+                <Card key={resume.id}>
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="text-lg">{resume.name}</CardTitle>
+                        <CardDescription>
+                          {new Date(resume.lastUpdated).toLocaleDateString()} • {resume.template.charAt(0).toUpperCase() + resume.template.slice(1)} Template
+                        </CardDescription>
+                      </div>
+                      <Badge variant="outline">{resume.targetPosition}</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pb-2">
+                    <div className="text-sm text-muted-foreground">
+                      <span>Created: {new Date(resume.createdAt).toLocaleDateString()}</span>
+                      {resume.createdAt !== resume.lastUpdated && (
+                        <span> • Last updated: {new Date(resume.lastUpdated).toLocaleDateString()}</span>
+                      )}
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex flex-wrap gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handlePreview(resume)}
+                    >
+                      <Eye className="mr-1 h-4 w-4" />
+                      Preview
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleEdit(resume.id)}
+                    >
+                      <FileEdit className="mr-1 h-4 w-4" />
+                      Edit
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleDownload(resume.id)}
+                    >
+                      <Download className="mr-1 h-4 w-4" />
+                      Download
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleCopy(resume.id)}
+                    >
+                      <Copy className="mr-1 h-4 w-4" />
+                      Duplicate
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="destructive"
+                      onClick={() => handleDelete(resume.id)}
+                    >
+                      <Trash2 className="mr-1 h-4 w-4" />
+                      Delete
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
             </div>
-            <div className="flex space-x-2">
-              <Button size="sm" variant="outline" onClick={() => onEdit()}>
-                <FileEdit className="h-4 w-4 mr-1" />
-                Edit
-              </Button>
-              <Button size="sm" variant="destructive" onClick={() => {}}>
-                <Trash2 className="h-4 w-4 mr-1" />
-                Delete
-              </Button>
+          ) : (
+            <Alert>
+              <AlertTitle>No saved resumes</AlertTitle>
+              <AlertDescription>
+                You haven't created any resumes yet. Create a new resume to get started.
+              </AlertDescription>
+            </Alert>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="cover-letters" className="space-y-4">
+          <Alert>
+            <AlertTitle>No saved cover letters</AlertTitle>
+            <AlertDescription>
+              You haven't created any standalone cover letters yet. You can create cover letters along with your resumes.
+            </AlertDescription>
+          </Alert>
+        </TabsContent>
+      </Tabs>
+      
+      {/* Resume Preview Dialog */}
+      <Dialog open={!!previewResume} onOpenChange={(open) => !open && setPreviewResume(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{previewResume?.name}</DialogTitle>
+            <DialogDescription>
+              Preview of your resume for {previewResume?.targetPosition}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <ScrollArea className="h-[60vh] border rounded-md">
+            <div className="p-6">
+              {/* This would be replaced with an actual resume preview */}
+              <div className="space-y-6">
+                <div className="text-center">
+                  <h1 className="text-2xl font-bold">John Smith</h1>
+                  <p className="text-muted-foreground">Senior Translation Specialist</p>
+                  <div className="flex justify-center gap-2 text-sm mt-1">
+                    <span>john@example.com</span>
+                    <span>•</span>
+                    <span>+1 (555) 123-4567</span>
+                    <span>•</span>
+                    <span>New York, NY</span>
+                  </div>
+                </div>
+                
+                <div>
+                  <h2 className="text-lg font-semibold border-b pb-1 mb-2">Summary</h2>
+                  <p className="text-sm">
+                    Experienced translator with over 8 years of expertise in technical and business translation. Specialized in English to Spanish and English to French translations for software, legal, and marketing materials.
+                  </p>
+                </div>
+                
+                <div>
+                  <h2 className="text-lg font-semibold border-b pb-1 mb-2">Professional Experience</h2>
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="font-medium">Senior Translator</h3>
+                      <p className="text-sm text-muted-foreground">GlobalTech Translations • 2018-Present</p>
+                      <p className="text-sm mt-1">
+                        Led translation projects for major tech clients, managing terminology databases and ensuring consistency across all materials.
+                      </p>
+                    </div>
+                    <div>
+                      <h3 className="font-medium">Freelance Translator</h3>
+                      <p className="text-sm text-muted-foreground">Self-employed • 2015-2018</p>
+                      <p className="text-sm mt-1">
+                        Provided translation services for various clients in technical, legal, and marketing fields.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h2 className="text-lg font-semibold border-b pb-1 mb-2">Skills</h2>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline">Translation</Badge>
+                    <Badge variant="outline">Localization</Badge>
+                    <Badge variant="outline">Proofreading</Badge>
+                    <Badge variant="outline">CAT Tools</Badge>
+                    <Badge variant="outline">SDL Trados</Badge>
+                    <Badge variant="outline">MemoQ</Badge>
+                    <Badge variant="outline">Terminology Management</Badge>
+                  </div>
+                </div>
+                
+                <div>
+                  <h2 className="text-lg font-semibold border-b pb-1 mb-2">Languages</h2>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="text-sm">
+                      <span className="font-medium">English:</span> Native
+                    </div>
+                    <div className="text-sm">
+                      <span className="font-medium">Spanish:</span> Fluent (C2)
+                    </div>
+                    <div className="text-sm">
+                      <span className="font-medium">French:</span> Fluent (C1)
+                    </div>
+                    <div className="text-sm">
+                      <span className="font-medium">German:</span> Intermediate (B1)
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h2 className="text-lg font-semibold border-b pb-1 mb-2">Education</h2>
+                  <div>
+                    <h3 className="font-medium">Master's in Translation Studies</h3>
+                    <p className="text-sm text-muted-foreground">University of Translation • 2015</p>
+                  </div>
+                </div>
+              </div>
             </div>
-          </CardFooter>
-        </Card>
-      )}
+          </ScrollArea>
+          
+          <DialogFooter className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setPreviewResume(null)}
+            >
+              Close
+            </Button>
+            <Button
+              onClick={() => handleDownload(previewResume?.id)}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Download
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
