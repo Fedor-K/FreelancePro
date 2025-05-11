@@ -5,13 +5,13 @@ import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
-import { User, userLoginSchema, userRegistrationSchema } from "@shared/schema";
+import { User as UserType, userLoginSchema, userRegistrationSchema } from "@shared/schema";
 import { z } from "zod";
 
 // TypeScript declaration for Express.User
 declare global {
   namespace Express {
-    interface User extends User {}
+    interface User extends UserType {}
   }
 }
 
@@ -142,7 +142,7 @@ export function setupAuth(app: Express): void {
       // Validate the request body
       userLoginSchema.parse(req.body);
       
-      passport.authenticate("local", (err, user, info) => {
+      passport.authenticate("local", (err: any, user: UserType | false, info: { message: string }) => {
         if (err) {
           return next(err);
         }

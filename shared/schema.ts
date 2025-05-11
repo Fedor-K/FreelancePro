@@ -39,6 +39,7 @@ export const externalData = pgTable("external_data", {
   content: json("content").notNull(),
   processed: boolean("processed").default(false),
   createdAt: timestamp("created_at").defaultNow(),
+  userId: integer("user_id").references(() => users.id),
 });
 
 export const insertExternalDataSchema = createInsertSchema(externalData).omit({
