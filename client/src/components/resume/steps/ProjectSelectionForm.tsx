@@ -167,8 +167,47 @@ export default function ProjectSelectionForm({ formData, updateField }: ProjectS
               if (project) toggleProject(project);
             }}
           >
-            <SelectTrigger className="w-full flex items-center justify-between p-2.5">
-              <SelectValue placeholder="Choose Project" />
+            <SelectTrigger className="w-full flex items-center justify-between p-0 pr-3 overflow-hidden">
+              {formData.selectedProjects.length > 0 ? (
+                <div className="flex-1 flex items-center">
+                  <div className="flex-shrink-0 pl-2 pr-3">
+                    <Checkbox checked={true} className="pointer-events-none" />
+                  </div>
+                  <div className="py-2.5">
+                    <div className="font-medium">{formData.selectedProjects[0].name}</div>
+                    <div className="flex items-center mt-1 gap-3 text-sm">
+                      <span className={`py-0.5 px-2 rounded-full text-xs
+                        ${formData.selectedProjects[0].status === "In Progress" ? 
+                          "bg-blue-100 text-blue-700" : 
+                          formData.selectedProjects[0].status === "Delivered" ? 
+                            "bg-yellow-100 text-yellow-700" : 
+                            "bg-green-100 text-green-700"
+                        }`}
+                      >
+                        {formData.selectedProjects[0].status}
+                      </span>
+                      
+                      {formData.selectedProjects[0].deadline && (
+                        <span className="text-xs text-gray-600">
+                          {new Date(formData.selectedProjects[0].deadline).toLocaleDateString('en-US', { 
+                            month: '2-digit', 
+                            day: '2-digit', 
+                            year: 'numeric' 
+                          })}
+                        </span>
+                      )}
+                      
+                      {formData.selectedProjects[0].sourceLang && formData.selectedProjects[0].targetLang && (
+                        <span className="text-xs text-gray-600 ml-auto">
+                          {formData.selectedProjects[0].sourceLang} → {formData.selectedProjects[0].targetLang}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <SelectValue placeholder="Choose Project" />
+              )}
             </SelectTrigger>
             <SelectContent className="max-h-[400px]">
               {/* Search input inside dropdown */}
@@ -193,42 +232,53 @@ export default function ProjectSelectionForm({ formData, updateField }: ProjectS
                       value={project.id.toString()}
                       className="focus:bg-accent cursor-pointer p-0"
                     >
-                      <div className="flex items-start py-2 gap-3 w-full" onClick={(e) => {
+                      <div className="flex items-center w-full py-2" onClick={(e) => {
                         e.stopPropagation();
                         toggleProject(project);
                       }}>
-                        <div className="flex-shrink-0 pt-1 ml-2" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex-shrink-0 pl-2 pr-3" onClick={(e) => e.stopPropagation()}>
                           <Checkbox 
                             checked={isProjectSelected(project.id)}
                             onCheckedChange={() => toggleProject(project)}
                           />
                         </div>
                         <div className="min-w-0 flex-1 pr-2">
-                          <h4 className="font-medium text-base">{project.name}</h4>
+                          <div className="font-medium">{project.name}</div>
                           <div className="text-sm text-muted-foreground">
                             Client ID: {project.clientId}
                             {project.description && <span className="ml-1">- {project.description.substring(0, 40)}{project.description.length > 40 ? '...' : ''}</span>}
                           </div>
-                          <div className="flex items-center flex-wrap gap-2 mt-2">
-                            {project.status && renderStatusBadge(project.status)}
-                            
-                            {project.deadline && (
-                              <span className="text-sm whitespace-nowrap">
-                                {new Date(project.deadline).toLocaleDateString('en-US', {
-                                  day: '2-digit',
-                                  month: '2-digit', 
-                                  year: 'numeric'
-                                })}
-                              </span>
-                            )}
-                            
-                            {project.sourceLang && project.targetLang && (
-                              <span className="text-sm whitespace-nowrap ml-auto">
-                                {project.sourceLang} → {project.targetLang}
-                              </span>
-                            )}
-                          </div>
                         </div>
+                      </div>
+                      <div className="flex items-center pl-10 pb-2 pr-2 gap-3 -mt-1 text-sm">
+                        {project.status && (
+                          <span className={`py-0.5 px-2 rounded-full text-xs
+                            ${project.status === "In Progress" ? 
+                              "bg-blue-100 text-blue-700" : 
+                              project.status === "Delivered" ? 
+                                "bg-yellow-100 text-yellow-700" : 
+                                "bg-green-100 text-green-700"
+                            }`}
+                          >
+                            {project.status}
+                          </span>
+                        )}
+                        
+                        {project.deadline && (
+                          <span className="text-xs text-gray-600">
+                            {new Date(project.deadline).toLocaleDateString('en-US', {
+                              month: '2-digit',
+                              day: '2-digit', 
+                              year: 'numeric'
+                            })}
+                          </span>
+                        )}
+                        
+                        {project.sourceLang && project.targetLang && (
+                          <span className="text-xs text-gray-600 ml-auto">
+                            {project.sourceLang} → {project.targetLang}
+                          </span>
+                        )}
                       </div>
                     </SelectItem>
                   ))}
