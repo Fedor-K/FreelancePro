@@ -74,32 +74,7 @@ export const insertProjectSchema = createInsertSchema(projects, {
   id: true,
 });
 
-// Resume schema
-export const resumes = pgTable("resumes", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  specialization: text("specialization").notNull(),
-  experience: text("experience").notNull(),
-  projects: text("projects").notNull(),
-  content: text("content").notNull(),
-});
 
-export const insertResumeSchema = createInsertSchema(resumes).omit({
-  id: true,
-  content: true,
-});
-
-// Create a schema for resume updates that includes the content field
-export const resumeUpdateSchema = z.object({
-  name: z.string().optional(),
-  specialization: z.string().optional(),
-  experience: z.string().optional(),
-  projects: z.string().optional(),
-  content: z.string().optional(),
-  targetProject: z.string().optional(), // Used for resume generation but not stored
-  isEditing: z.boolean().optional(), // Flag to indicate edit operation
-  useAdditionalSettings: z.boolean().optional(), // Flag for using additional settings
-});
 
 // Document schema
 export const documents = pgTable("documents", {
@@ -122,8 +97,7 @@ export type InsertClient = z.infer<typeof insertClientSchema>;
 export type Project = typeof projects.$inferSelect;
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 
-export type Resume = typeof resumes.$inferSelect;
-export type InsertResume = z.infer<typeof insertResumeSchema>;
+
 
 export type Document = typeof documents.$inferSelect;
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;

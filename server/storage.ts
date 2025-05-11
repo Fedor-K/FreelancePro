@@ -1,7 +1,6 @@
 import { 
   clients, type Client, type InsertClient,
   projects, type Project, type InsertProject,
-  resumes, type Resume, type InsertResume,
   documents, type Document, type InsertDocument,
   externalData, type ExternalData, type InsertExternalData
 } from "@shared/schema";
@@ -23,12 +22,7 @@ export interface IStorage {
   updateProject(id: number, project: Partial<InsertProject>): Promise<Project | undefined>;
   deleteProject(id: number): Promise<boolean>;
 
-  // Resume operations
-  getResumes(): Promise<Resume[]>;
-  getResume(id: number): Promise<Resume | undefined>;
-  createResume(resume: InsertResume & { content: string }): Promise<Resume>;
-  updateResume(id: number, resume: Partial<InsertResume & { content: string }>): Promise<Resume | undefined>;
-  deleteResume(id: number): Promise<boolean>;
+
 
   // Document operations
   getDocuments(): Promise<Document[]>;
