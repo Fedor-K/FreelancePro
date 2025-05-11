@@ -48,6 +48,23 @@ export default function Reports() {
   const [timeRange, setTimeRange] = useState("6months");
   const [selectedTab, setSelectedTab] = useState("revenue");
   
+  // Function to calculate the total volume translated this month
+  const calculateMonthlyVolume = (): number => {
+    if (!projects || projects.length === 0) return 0;
+    
+    const now = new Date();
+    const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfCurrentMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    
+    return projects
+      .filter(project => {
+        if (!project.deadline) return false;
+        const projectDate = new Date(project.deadline);
+        return projectDate >= startOfCurrentMonth && projectDate <= endOfCurrentMonth;
+      })
+      .reduce((total, project) => total + (project.volume || 0), 0);
+  };
+  
   // Fetch projects and clients data
   const { data: projects = [], isLoading: isLoadingProjects } = useQuery<Project[]>({
     queryKey: ['/api/projects'],
@@ -173,10 +190,12 @@ export default function Reports() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center space-x-2">
-              <Users className="h-10 w-10 text-primary" />
+              <BarChartIcon className="h-10 w-10 text-primary" />
               <div>
-                <div className="text-sm text-muted-foreground">Active Projects</div>
-                <div className="text-2xl font-bold">{activeProjects}</div>
+                <div className="text-sm text-muted-foreground">Volume This Month</div>
+                <div className="text-2xl font-bold">
+                  {calculateMonthlyVolume().toLocaleString('en-US')} words
+                </div>
               </div>
             </div>
           </CardContent>
