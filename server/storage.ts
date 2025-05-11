@@ -112,8 +112,7 @@ export class MemStorage implements IStorage {
       status: "In Progress",
       labels: ["In Progress"],
       invoiceSent: false,
-      isPaid: false,
-      isArchived: false
+      isPaid: false
     };
 
     const project2: Project = {
@@ -129,8 +128,7 @@ export class MemStorage implements IStorage {
       status: "In Progress",
       labels: ["In Progress"],
       invoiceSent: false,
-      isPaid: false,
-      isArchived: false
+      isPaid: false
     };
 
     const project3: Project = {
@@ -146,8 +144,7 @@ export class MemStorage implements IStorage {
       status: "Delivered",
       labels: ["Delivered", "Pending payment"],
       invoiceSent: true,
-      isPaid: false,
-      isArchived: false
+      isPaid: false
     };
 
     const project4: Project = {
@@ -163,8 +160,7 @@ export class MemStorage implements IStorage {
       status: "Paid",
       labels: ["Paid"],
       invoiceSent: true,
-      isPaid: true,
-      isArchived: false
+      isPaid: true
     };
     
     // Project with an overdue deadline
@@ -181,8 +177,7 @@ export class MemStorage implements IStorage {
       status: "In Progress",
       labels: ["In Progress", "Overdue"],
       invoiceSent: false,
-      isPaid: false,
-      isArchived: false
+      isPaid: false
     };
 
     this.projects.set(project1.id, project1);

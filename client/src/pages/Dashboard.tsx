@@ -363,8 +363,7 @@ export default function Dashboard() {
                 ) : (
                   filteredProjects.map((project) => (
                     <TableRow 
-                      key={project.id} 
-                      className={project.isArchived ? "bg-gray-50" : ""}
+                      key={project.id}
                     >
                       <TableCell>
                         <div className="flex items-center gap-3">
@@ -579,7 +578,6 @@ export default function Dashboard() {
                 // Convert null boolean fields to false
                 invoiceSent: formProject.invoiceSent === null ? false : formProject.invoiceSent,
                 isPaid: formProject.isPaid === null ? false : formProject.isPaid,
-                isArchived: formProject.isArchived === null ? false : formProject.isArchived,
                 // Convert null string fields to empty strings
                 description: formProject.description || "",
                 sourceLang: formProject.sourceLang || "",
