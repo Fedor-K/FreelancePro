@@ -79,7 +79,7 @@ export default function Layout({ children }: LayoutProps) {
               {user && (
                 <div className="flex items-center">
                   <span className="mr-4 text-sm font-medium text-gray-700">
-                    {user.username}
+                    {user.fullName || user.username}
                   </span>
                   <Button 
                     variant="ghost" 

@@ -11,9 +11,11 @@ import {
   FileEdit,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function Sidebar() {
   const [location] = useLocation();
+  const { user } = useAuth();
 
   const navItems = [
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -57,18 +59,35 @@ export default function Sidebar() {
             </nav>
           </div>
           <div className="pt-4 pb-3 border-t border-gray-200">
-            <div className="flex items-center px-2">
-              <div className="flex-shrink-0">
-                <Avatar>
-                  <AvatarImage src="https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="User" />
-                  <AvatarFallback>SJ</AvatarFallback>
-                </Avatar>
+            {user ? (
+              <div className="flex items-center px-2">
+                <div className="flex-shrink-0">
+                  <Avatar>
+                    <AvatarFallback>
+                      {user.fullName ? 
+                        user.fullName.split(' ').map(name => name[0]).join('').slice(0, 2).toUpperCase() : 
+                        user.username.slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+                <div className="ml-3">
+                  <div className="text-sm font-medium text-gray-700">
+                    {user.fullName || user.username}
+                  </div>
+                  <div className="text-xs font-medium text-gray-500">{user.email}</div>
+                </div>
               </div>
-              <div className="ml-3">
-                <div className="text-sm font-medium text-gray-700">Sarah Johnson</div>
-                <div className="text-xs font-medium text-gray-500">sarah@example.com</div>
+            ) : (
+              <div className="flex items-center px-2">
+                <div className="ml-3">
+                  <div className="text-sm font-medium text-gray-700">
+                    <Link href="/auth" className="text-primary hover:underline">
+                      Sign in
+                    </Link>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
