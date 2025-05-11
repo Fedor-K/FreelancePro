@@ -1,9 +1,13 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, FileText, ArrowRight } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { createResumePreviewHTML } from "@/lib/resumeTemplate";
 
 interface TargetPositionFormProps {
   formData: any;
@@ -11,6 +15,37 @@ interface TargetPositionFormProps {
 }
 
 export default function TargetPositionForm({ formData, updateField }: TargetPositionFormProps) {
+  const { toast } = useToast(); 
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [resumeGenerated, setResumeGenerated] = useState(false);
+  const [previewHtml, setPreviewHtml] = useState<string>("");
+  
+  const generateCV = () => {
+    if (!formData.targetPosition.trim()) {
+      toast({
+        title: "Missing information",
+        description: "Please enter a target position to generate your CV",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsGenerating(true);
+    
+    // Generate resume preview HTML
+    setTimeout(() => {
+      const html = createResumePreviewHTML(formData);
+      setPreviewHtml(html);
+      setResumeGenerated(true);
+      setIsGenerating(false);
+      
+      toast({
+        title: "CV generated!",
+        description: "Your CV has been generated successfully",
+      });
+    }, 800); // Short delay to show loading state
+  };
+  
   return (
     <div className="space-y-6">
       <div className="space-y-4">
@@ -49,14 +84,57 @@ export default function TargetPositionForm({ formData, updateField }: TargetPosi
             The job description helps tailor your resume to highlight relevant skills and experience
           </p>
         </div>
+        
+        <div className="pt-4 flex justify-end">
+          <Button 
+            onClick={generateCV}
+            disabled={isGenerating}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            {isGenerating ? (
+              <div className="flex items-center">
+                <span className="mr-2">Generating...</span>
+                <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
+              </div>
+            ) : (
+              <div className="flex items-center">
+                <FileText className="mr-2 h-4 w-4" />
+                Generate CV
+              </div>
+            )}
+          </Button>
+        </div>
       </div>
       
-      {!formData.jobDescription.trim() && (
+      {resumeGenerated && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">CV Preview</h3>
+          <Card className="border-green-200 overflow-hidden">
+            <CardContent className="p-0 h-[300px] overflow-auto">
+              <div
+                className="p-4"
+                dangerouslySetInnerHTML={{ __html: previewHtml }}
+              />
+            </CardContent>
+          </Card>
+          <div className="flex justify-end">
+            <Button variant="outline" className="text-blue-600 mr-2">
+              Edit CV
+            </Button>
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              Continue
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+      
+      {!formData.targetPosition.trim() && !resumeGenerated && (
         <Alert variant="destructive" className="bg-amber-50 border-amber-200 text-amber-800">
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Job description needed</AlertTitle>
+          <AlertTitle>Target position needed</AlertTitle>
           <AlertDescription>
-            For the best results, please enter a job description to help tailor your resume.
+            Please enter a target position to generate your CV.
           </AlertDescription>
         </Alert>
       )}
