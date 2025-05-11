@@ -3,13 +3,23 @@ import {
   projects, type Project, type InsertProject,
   documents, type Document, type InsertDocument,
   externalData, type ExternalData, type InsertExternalData,
-  resumes, type Resume, type InsertResume
+  resumes, type Resume, type InsertResume,
+  users, type User, type InsertUser
 } from "@shared/schema";
 
 // Interface for storage operations
 export interface IStorage {
+  // User operations
+  getUsers(): Promise<User[]>;
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
+  deleteUser(id: number): Promise<boolean>;
+
   // Client operations
   getClients(): Promise<Client[]>;
+  getClientsByUser(userId: number): Promise<Client[]>;
   getClient(id: number): Promise<Client | undefined>;
   createClient(client: InsertClient): Promise<Client>;
   updateClient(id: number, client: Partial<InsertClient>): Promise<Client | undefined>;
@@ -17,6 +27,7 @@ export interface IStorage {
 
   // Project operations
   getProjects(): Promise<Project[]>;
+  getProjectsByUser(userId: number): Promise<Project[]>;
   getProjectsByClient(clientId: number): Promise<Project[]>;
   getProject(id: number): Promise<Project | undefined>;
   createProject(project: InsertProject): Promise<Project>;
@@ -25,6 +36,7 @@ export interface IStorage {
 
   // Document operations
   getDocuments(): Promise<Document[]>;
+  getDocumentsByUser(userId: number): Promise<Document[]>;
   getDocumentsByProject(projectId: number): Promise<Document[]>;
   getDocument(id: number): Promise<Document | undefined>;
   createDocument(document: InsertDocument): Promise<Document>;
@@ -33,6 +45,7 @@ export interface IStorage {
   
   // Resume operations
   getResumes(): Promise<Resume[]>;
+  getResumesByUser(userId: number): Promise<Resume[]>;
   getResumesByType(type: string): Promise<Resume[]>;
   getResume(id: number): Promise<Resume | undefined>;
   createResume(resume: InsertResume): Promise<Resume>;
@@ -41,6 +54,7 @@ export interface IStorage {
   
   // External data operations
   getExternalData(): Promise<ExternalData[]>;
+  getExternalDataByUser(userId: number): Promise<ExternalData[]>;
   getUnprocessedExternalData(): Promise<ExternalData[]>;
   getExternalDataById(id: number): Promise<ExternalData | undefined>;
   createExternalData(data: InsertExternalData): Promise<ExternalData>;
@@ -50,12 +64,14 @@ export interface IStorage {
 
 // In-memory implementation of storage
 export class MemStorage implements IStorage {
+  private users: Map<number, User>;
   private clients: Map<number, Client>;
   private projects: Map<number, Project>;
   private documents: Map<number, Document>;
   private externalDataItems: Map<number, ExternalData>;
   private resumeItems: Map<number, Resume>;
   
+  private userId: number = 1;
   private clientId: number = 1;
   private projectId: number = 1;
   private documentId: number = 1;
@@ -63,6 +79,7 @@ export class MemStorage implements IStorage {
   private resumeId: number = 1;
 
   constructor() {
+    this.users = new Map();
     this.clients = new Map();
     this.projects = new Map();
     this.documents = new Map();
@@ -187,9 +204,52 @@ export class MemStorage implements IStorage {
     this.projects.set(project5.id, project5);
   }
 
+  // User methods
+  async getUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
+
+  async getUser(id: number): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.username === username
+    );
+  }
+
+  async createUser(user: InsertUser): Promise<User> {
+    const id = this.userId++;
+    const newUser: User = { ...user, id };
+    this.users.set(id, newUser);
+    return newUser;
+  }
+
+  async updateUser(id: number, userData: Partial<InsertUser>): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) {
+      return undefined;
+    }
+    
+    const updatedUser = { ...user, ...userData };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+
+  async deleteUser(id: number): Promise<boolean> {
+    return this.users.delete(id);
+  }
+
   // Client methods
   async getClients(): Promise<Client[]> {
     return Array.from(this.clients.values());
+  }
+  
+  async getClientsByUser(userId: number): Promise<Client[]> {
+    return Array.from(this.clients.values()).filter(
+      (client) => client.userId === userId
+    );
   }
 
   async getClient(id: number): Promise<Client | undefined> {
@@ -221,6 +281,12 @@ export class MemStorage implements IStorage {
   // Project methods
   async getProjects(): Promise<Project[]> {
     return Array.from(this.projects.values());
+  }
+
+  async getProjectsByUser(userId: number): Promise<Project[]> {
+    return Array.from(this.projects.values()).filter(
+      (project) => project.userId === userId
+    );
   }
 
   async getProjectsByClient(clientId: number): Promise<Project[]> {
@@ -260,6 +326,12 @@ export class MemStorage implements IStorage {
   // Document methods
   async getDocuments(): Promise<Document[]> {
     return Array.from(this.documents.values());
+  }
+
+  async getDocumentsByUser(userId: number): Promise<Document[]> {
+    return Array.from(this.documents.values()).filter(
+      (document) => document.userId === userId
+    );
   }
 
   async getDocumentsByProject(projectId: number): Promise<Document[]> {
@@ -307,6 +379,12 @@ export class MemStorage implements IStorage {
   async getExternalData(): Promise<ExternalData[]> {
     return Array.from(this.externalDataItems.values());
   }
+  
+  async getExternalDataByUser(userId: number): Promise<ExternalData[]> {
+    return Array.from(this.externalDataItems.values()).filter(
+      (item) => item.userId === userId
+    );
+  }
 
   async getUnprocessedExternalData(): Promise<ExternalData[]> {
     return Array.from(this.externalDataItems.values()).filter(
@@ -348,6 +426,12 @@ export class MemStorage implements IStorage {
   // Resume operations
   async getResumes(): Promise<Resume[]> {
     return Array.from(this.resumeItems.values());
+  }
+  
+  async getResumesByUser(userId: number): Promise<Resume[]> {
+    return Array.from(this.resumeItems.values()).filter(
+      (resume) => resume.userId === userId
+    );
   }
 
   async getResumesByType(type: string): Promise<Resume[]> {
