@@ -2,7 +2,8 @@ import {
   clients, type Client, type InsertClient,
   projects, type Project, type InsertProject,
   documents, type Document, type InsertDocument,
-  externalData, type ExternalData, type InsertExternalData
+  externalData, type ExternalData, type InsertExternalData,
+  resumes, type Resume, type InsertResume
 } from "@shared/schema";
 
 // Interface for storage operations
@@ -53,17 +54,20 @@ export class MemStorage implements IStorage {
   private projects: Map<number, Project>;
   private documents: Map<number, Document>;
   private externalDataItems: Map<number, ExternalData>;
+  private resumeItems: Map<number, Resume>;
   
   private clientId: number = 1;
   private projectId: number = 1;
   private documentId: number = 1;
   private externalDataId: number = 1;
+  private resumeId: number = 1;
 
   constructor() {
     this.clients = new Map();
     this.projects = new Map();
     this.documents = new Map();
     this.externalDataItems = new Map();
+    this.resumeItems = new Map();
 
     // Initialize with some sample data
     const client1: Client = { 
@@ -344,6 +348,45 @@ export class MemStorage implements IStorage {
 
   async deleteExternalData(id: number): Promise<boolean> {
     return this.externalDataItems.delete(id);
+  }
+
+  // Resume operations
+  async getResumes(): Promise<Resume[]> {
+    return Array.from(this.resumeItems.values());
+  }
+
+  async getResumesByType(type: string): Promise<Resume[]> {
+    return Array.from(this.resumeItems.values()).filter(resume => resume.type === type);
+  }
+
+  async getResume(id: number): Promise<Resume | undefined> {
+    return this.resumeItems.get(id);
+  }
+
+  async createResume(resume: InsertResume): Promise<Resume> {
+    const id = this.resumeId++;
+    const newResume: Resume = {
+      ...resume,
+      id,
+      createdAt: new Date()
+    };
+    this.resumeItems.set(id, newResume);
+    return newResume;
+  }
+
+  async updateResume(id: number, resumeData: Partial<InsertResume>): Promise<Resume | undefined> {
+    const resume = this.resumeItems.get(id);
+    if (!resume) {
+      return undefined;
+    }
+    
+    const updatedResume = { ...resume, ...resumeData };
+    this.resumeItems.set(id, updatedResume);
+    return updatedResume;
+  }
+
+  async deleteResume(id: number): Promise<boolean> {
+    return this.resumeItems.delete(id);
   }
 }
 
