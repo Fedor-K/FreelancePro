@@ -82,17 +82,28 @@ const invoiceFormSchema = z.object({
   sendReminders: z.boolean().default(true),
 });
 
+// Password change schema
+const passwordFormSchema = z.object({
+  currentPassword: z.string().min(6, "Password must be at least 6 characters"),
+  newPassword: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
+}).refine(data => data.newPassword === data.confirmPassword, {
+  message: "New passwords do not match",
+  path: ["confirmPassword"],
+});
 
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 type BusinessFormValues = z.infer<typeof businessFormSchema>;
 type NotificationFormValues = z.infer<typeof notificationFormSchema>;
 type InvoiceFormValues = z.infer<typeof invoiceFormSchema>;
+type PasswordFormValues = z.infer<typeof passwordFormSchema>;
 
 export default function Settings() {
   const { toast } = useToast();
   const { user, deleteAccountMutation } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   
   // Profile form
   const profileForm = useForm<ProfileFormValues>({
