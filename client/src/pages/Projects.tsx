@@ -32,11 +32,9 @@ import { apiRequest } from "@/lib/queryClient";
 import { format, isPast, differenceInDays } from "date-fns";
 import { 
   ClipboardList, 
-  Search, 
   Edit, 
   Trash2, 
   MoreHorizontal,
-  X,
   Plus,
   ExternalLink,
   Archive,
@@ -188,19 +186,11 @@ export default function Projects() {
   const deliveredCount = projects.filter(p => p.status === "Delivered").length;
   const paidCount = projects.filter(p => p.status === "Paid").length;
   
-  // Filter projects based on search term and active tab
+  // Filter projects based on active tab
   const filteredProjects = projects
     .filter(project => {
       // Filter by active tab
-      if (project.status !== activeTab) return false;
-      
-      // Filter by search term
-      return (
-        project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        project.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (getClientName(project.clientId).toLowerCase().includes(searchTerm.toLowerCase()))
-      );
+      return project.status === activeTab;
     })
     // Sort by urgency (overdue first, then by closest deadline)
     .sort((a, b) => getProjectUrgencyScore(a) - getProjectUrgencyScore(b));
@@ -278,9 +268,7 @@ export default function Projects() {
               ) : filteredProjects.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-10 text-gray-500">
-                    {searchTerm 
-                      ? "No projects match your search. Try a different term."
-                      : `No ${activeTab} projects found.${activeTab === "In Progress" ? " Add a project to get started." : ""}`}
+                    {`No ${activeTab} projects found.${activeTab === "In Progress" ? " Add a project to get started." : ""}`}
                   </TableCell>
                 </TableRow>
               ) : (
