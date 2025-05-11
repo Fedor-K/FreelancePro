@@ -5,7 +5,7 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { DocumentGenerator } from "@/components/documents/DocumentGenerator";
 import { useQuery } from "@tanstack/react-query";
 import { Document as DocumentType, Client, Project } from "@shared/schema";
@@ -151,22 +151,28 @@ export default function Documents() {
               </CardDescription>
               
               <div className="mt-4">
-                <Tabs value={documentType} onValueChange={(value) => setDocumentType(value as "invoice" | "contract")}>
-                  <TabsList className="grid w-full max-w-md grid-cols-2">
-                    <TabsTrigger value="invoice">
-                      Invoices
-                      <span className="ml-2 inline-flex h-5 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium">
-                        {documents.filter(doc => doc.type === "invoice").length}
-                      </span>
-                    </TabsTrigger>
-                    <TabsTrigger value="contract">
-                      Contracts
-                      <span className="ml-2 inline-flex h-5 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium">
-                        {documents.filter(doc => doc.type === "contract").length}
-                      </span>
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
+                <div className="inline-flex items-center rounded-md border border-input bg-background p-1">
+                  <button
+                    type="button"
+                    className={`inline-flex items-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ${documentType === 'invoice' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}
+                    onClick={() => setDocumentType("invoice")}
+                  >
+                    Invoices
+                    <span className="ml-2 inline-flex h-5 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium text-gray-800">
+                      {documents.filter(doc => doc.type === "invoice").length}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`inline-flex items-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ${documentType === 'contract' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}
+                    onClick={() => setDocumentType("contract")}
+                  >
+                    Contracts
+                    <span className="ml-2 inline-flex h-5 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium text-gray-800">
+                      {documents.filter(doc => doc.type === "contract").length}
+                    </span>
+                  </button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
