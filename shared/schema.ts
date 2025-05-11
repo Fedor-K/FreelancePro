@@ -43,7 +43,6 @@ export const projectLabelEnum = pgEnum("project_label", [
   "Invoice sent",
   "Mark as paid",
   "Past",
-  "Archive",
   "Make invoice",
   "Overdue",
   "To be delivered",
@@ -65,7 +64,6 @@ export const projects = pgTable("projects", {
   labels: text("labels").array(),  // Store multiple labels
   invoiceSent: boolean("invoice_sent").default(false),
   isPaid: boolean("is_paid").default(false),
-  isArchived: boolean("is_archived").default(false),
 });
 
 export const insertProjectSchema = createInsertSchema(projects, {
