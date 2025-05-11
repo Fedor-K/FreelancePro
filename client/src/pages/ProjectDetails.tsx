@@ -564,7 +564,6 @@ export default function ProjectDetails() {
                 // Convert null boolean fields to false
                 invoiceSent: project.invoiceSent === null ? false : project.invoiceSent,
                 isPaid: project.isPaid === null ? false : project.isPaid,
-                isArchived: project.isArchived === null ? false : project.isArchived,
                 // Convert null string fields to empty strings
                 description: project.description || "",
                 sourceLang: project.sourceLang || "",
