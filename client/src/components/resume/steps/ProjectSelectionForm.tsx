@@ -160,64 +160,53 @@ export default function ProjectSelectionForm({ formData, updateField }: ProjectS
             )}
           </div>
           
-          {/* Search input */}
-          <div className="relative">
-            <Input
-              placeholder="Search projects..."
-              className="pl-9 mb-3"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <SearchX className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          </div>
-          
-          {/* Project dropdown list */}
-          <div className="space-y-3">
-            {projects
-              .filter(project => 
-                project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase()))
-              )
-              .map((project) => (
-                <div key={project.id} className="mb-2">
-                  <Select
-                    onValueChange={(value) => {
-                      if (value === "select") toggleProject(project);
-                    }}
-                    value={isProjectSelected(project.id) ? "select" : "unselect"}
-                  >
-                    <SelectTrigger className={`w-full text-left justify-between ${
-                      isProjectSelected(project.id) ? 'ring-2 ring-primary' : ''
-                    }`}>
-                      <div className="flex items-center gap-2">
-                        <Checkbox 
-                          checked={isProjectSelected(project.id)}
-                          className="mr-2"
-                          onCheckedChange={() => toggleProject(project)}
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                        <div className="flex-1 overflow-hidden">
-                          <div className="font-medium truncate">{project.name}</div>
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {project.status && renderStatusBadge(project.status)}
-                            {project.sourceLang && project.targetLang && (
-                              <Badge variant="outline" className="text-xs">
-                                {project.sourceLang} → {project.targetLang}
-                              </Badge>
-                            )}
-                          </div>
+          {/* Single dropdown with all projects */}
+          <Select onValueChange={(value) => {
+            const project = projects.find(p => p.id === parseInt(value));
+            if (project) toggleProject(project);
+          }}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Choose Project" />
+            </SelectTrigger>
+            <SelectContent className="max-h-[400px]">
+              {/* Search input inside dropdown */}
+              <div className="p-2 border-b">
+                <Input
+                  placeholder="Search projects..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="h-8"
+                />
+              </div>
+              
+              <SelectGroup>
+                {projects
+                  .filter(project => 
+                    project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase()))
+                  )
+                  .map((project) => (
+                    <SelectItem 
+                      key={project.id} 
+                      value={project.id.toString()}
+                    >
+                      <div className="flex items-center py-1 gap-3" onClick={(e) => {
+                        e.stopPropagation();
+                        toggleProject(project);
+                      }}>
+                        <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                          <Checkbox 
+                            checked={isProjectSelected(project.id)}
+                            onCheckedChange={() => toggleProject(project)}
+                          />
                         </div>
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={isProjectSelected(project.id) ? "select" : "unselect"}>
-                        <div className="space-y-2 py-1">
+                        <div className="min-w-0 flex-1">
                           <div className="font-medium">{project.name}</div>
                           <div className="text-sm text-muted-foreground">
                             Client ID: {project.clientId}
-                            {project.description && <div className="mt-1">{project.description}</div>}
+                            {project.description && <span className="ml-1">- {project.description.substring(0, 40)}{project.description.length > 40 ? '...' : ''}</span>}
                           </div>
-                          <div className="flex flex-wrap gap-2 mt-1">
+                          <div className="flex flex-wrap gap-1 mt-1">
                             {project.status && renderStatusBadge(project.status)}
                             {project.deadline && (
                               <Badge variant="outline" className="text-xs">
@@ -231,24 +220,24 @@ export default function ProjectSelectionForm({ formData, updateField }: ProjectS
                             )}
                           </div>
                         </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              ))}
+                      </div>
+                    </SelectItem>
+                  ))}
+              </SelectGroup>
               
-            {/* Empty state */}
-            {projects.filter(project => 
-              project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase()))
-            ).length === 0 && (
-              <div className="text-center py-6 text-muted-foreground border rounded-md">
-                {searchTerm ? 
-                  "No projects match your search. Try a different term." : 
-                  "No projects available. Create some projects first."}
-              </div>
-            )}
-          </div>
+              {/* Empty state */}
+              {projects.filter(project => 
+                project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase()))
+              ).length === 0 && (
+                <div className="text-center py-6 text-muted-foreground">
+                  {searchTerm ? 
+                    "No projects match your search. Try a different term." : 
+                    "No projects available. Create some projects first."}
+                </div>
+              )}
+            </SelectContent>
+          </Select>
         </div>
       )}
       
