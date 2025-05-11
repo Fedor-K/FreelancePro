@@ -10,6 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import { jsPDF } from "jspdf";
 
 export default function SavedResumes() {
   const { toast } = useToast();
@@ -61,6 +62,80 @@ export default function SavedResumes() {
       title: "Download Started",
       description: "Your resume is being prepared for download.",
     });
+    
+    try {
+      // Find the resume data
+      const resume = mockResumes.find(r => r.id === resumeId);
+      if (!resume) {
+        toast({
+          title: "Error",
+          description: "Resume not found.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Create PDF document
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      
+      // Add header
+      doc.setFontSize(20);
+      doc.setFont("helvetica", "bold");
+      doc.text("Sample Resume", pageWidth/2, 20, { align: "center" });
+      
+      // Add title
+      doc.setFontSize(16);
+      doc.text(resume.name, pageWidth/2, 30, { align: "center" });
+      
+      // Add target position
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Target Position: ${resume.targetPosition}`, pageWidth/2, 40, { align: "center" });
+      
+      // Add date and template
+      doc.setFontSize(10);
+      doc.text(`Created: ${new Date(resume.createdAt).toLocaleDateString()}`, pageWidth/2, 50, { align: "center" });
+      doc.text(`Template: ${resume.template}`, pageWidth/2, 55, { align: "center" });
+      
+      // Add sample content
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("Professional Summary", 20, 70);
+      
+      doc.setFont("helvetica", "normal");
+      const summary = "Experienced translator with 5+ years specializing in technical translation and localization. Proven track record of delivering high-quality translations for technical documentation, software interfaces, and marketing materials. Skilled in CAT tools and terminology management.";
+      
+      // Wrap text
+      const splitSummary = doc.splitTextToSize(summary, pageWidth - 40);
+      doc.text(splitSummary, 20, 80);
+      
+      // Add some more sample sections
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("Skills", 20, 105);
+      
+      doc.setFont("helvetica", "normal");
+      doc.text("• Translation and Localization", 25, 115);
+      doc.text("• CAT Tools (SDL Trados, MemoQ)", 25, 122);
+      doc.text("• Terminology Management", 25, 129);
+      doc.text("• Quality Assurance", 25, 136);
+      
+      // Save the PDF
+      doc.save(`${resume.name.replace(/\s+/g, "-").toLowerCase()}.pdf`);
+      
+      toast({
+        title: "Downloaded Successfully",
+        description: "Your resume has been downloaded.",
+      });
+    } catch (error) {
+      console.error("Error downloading resume:", error);
+      toast({
+        title: "Download Failed",
+        description: "There was an error downloading your resume. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
   
   // Handle resume delete
@@ -311,7 +386,10 @@ export default function SavedResumes() {
               Close
             </Button>
             <Button
-              onClick={() => handleDownload(previewResume?.id)}
+              onClick={() => {
+                setPreviewResume(null);
+                handleDownload(previewResume?.id);
+              }}
             >
               <Download className="mr-2 h-4 w-4" />
               Download

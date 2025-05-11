@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { jsPDF } from "jspdf";
 
 interface CoverLetterFormProps {
   formData: any;
@@ -75,10 +76,112 @@ ${formData.name || "Your Name"}
   
   // Handle cover letter download
   const downloadCoverLetter = () => {
+    if (!formData.coverLetter) {
+      toast({
+        title: "No content",
+        description: "Please generate or write a cover letter first",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     toast({
       title: "Download started",
       description: "Your cover letter is being prepared for download",
     });
+    
+    try {
+      // Create PDF document
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 20;
+      
+      // Add current date at the top right
+      const today = new Date();
+      const dateStr = today.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text(dateStr, pageWidth - margin, margin);
+      
+      // Add sender info
+      let yPos = margin + 15;
+      if (formData.name) {
+        doc.text(formData.name, margin, yPos);
+        yPos += 5;
+      }
+      
+      if (formData.email) {
+        doc.text(formData.email, margin, yPos);
+        yPos += 5;
+      }
+      
+      if (formData.phone) {
+        doc.text(formData.phone, margin, yPos);
+        yPos += 5;
+      }
+      
+      if (formData.location) {
+        doc.text(formData.location, margin, yPos);
+        yPos += 5;
+      }
+      
+      // Add recipient info (if available)
+      yPos += 10;
+      if (formData.targetCompany) {
+        doc.text(`Hiring Manager`, margin, yPos);
+        yPos += 5;
+        doc.text(formData.targetCompany, margin, yPos);
+        yPos += 15;
+      } else {
+        doc.text("Hiring Manager", margin, yPos);
+        yPos += 15;
+      }
+      
+      // Add salutation
+      doc.text("Dear Hiring Manager,", margin, yPos);
+      yPos += 10;
+      
+      // Add cover letter content
+      doc.setFontSize(10);
+      const splitText = doc.splitTextToSize(formData.coverLetter, pageWidth - (margin * 2));
+      doc.text(splitText, margin, yPos);
+      
+      // Calculate the position for the closing, accounting for the text height
+      yPos += (splitText.length * 5) + 20;
+      
+      // Add closing
+      doc.text("Sincerely,", margin, yPos);
+      yPos += 15;
+      if (formData.name) {
+        doc.text(formData.name, margin, yPos);
+      } else {
+        doc.text("Your Name", margin, yPos);
+      }
+      
+      // Save the PDF
+      const filename = formData.targetCompany
+        ? `cover-letter-${formData.targetCompany.toLowerCase().replace(/\s+/g, "-")}.pdf`
+        : "cover-letter.pdf";
+        
+      doc.save(filename);
+      
+      toast({
+        title: "Cover letter downloaded",
+        description: "Your cover letter has been downloaded as a PDF file",
+      });
+    } catch (error) {
+      console.error("Error downloading cover letter:", error);
+      toast({
+        title: "Download failed",
+        description: "There was an error downloading your cover letter. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
   
   // Handle cover letter copy

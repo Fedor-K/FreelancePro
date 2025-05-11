@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Download, Save, Copy, Eye, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { jsPDF } from "jspdf";
 
 interface PreviewExportFormProps {
   formData: any;
@@ -34,11 +35,160 @@ export default function PreviewExportForm({ formData, updateField }: PreviewExpo
   
   // Handle resume download
   const handleDownloadResume = () => {
-    // In a real implementation, we would generate and download the PDF
     toast({
       title: "Download started",
       description: "Your resume is being prepared for download",
     });
+    
+    try {
+      // Create PDF document
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      
+      // Add header with resume name
+      doc.setFontSize(20);
+      doc.setFont("helvetica", "bold");
+      doc.text(resumeName, pageWidth/2, 20, { align: "center" });
+      
+      // Add contact info
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      
+      const contactInfo = [];
+      if (formData.email) contactInfo.push(formData.email);
+      if (formData.phone) contactInfo.push(formData.phone);
+      if (formData.location) contactInfo.push(formData.location);
+      
+      doc.text(contactInfo.join(" • "), pageWidth/2, 30, { align: "center" });
+      
+      if (formData.professionalTitle) {
+        doc.setFontSize(14);
+        doc.text(formData.professionalTitle, pageWidth/2, 40, { align: "center" });
+      }
+      
+      // Summary
+      if (formData.summary) {
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text("Professional Summary", 20, 55);
+        
+        doc.setFont("helvetica", "normal");
+        const splitSummary = doc.splitTextToSize(formData.summary, pageWidth - 40);
+        doc.text(splitSummary, 20, 65);
+      }
+      
+      // Skills
+      let yPosition = formData.summary ? 85 : 55;
+      
+      if (formData.skills && formData.skills.length > 0) {
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text("Skills", 20, yPosition);
+        
+        doc.setFont("helvetica", "normal");
+        yPosition += 10;
+        
+        // Format skills in multiple columns
+        const skills = formData.skills;
+        const skillColumns = [];
+        const columnCount = skills.length > 6 ? 2 : 1;
+        const itemsPerColumn = Math.ceil(skills.length / columnCount);
+        
+        for (let i = 0; i < columnCount; i++) {
+          skillColumns.push(skills.slice(i * itemsPerColumn, (i + 1) * itemsPerColumn));
+        }
+        
+        skillColumns.forEach((column, colIndex) => {
+          let colYPos = yPosition;
+          column.forEach((skill: string) => {
+            doc.text(`• ${skill}`, 20 + (colIndex * (pageWidth / 2)), colYPos);
+            colYPos += 7;
+          });
+          
+          // Update yPosition to the bottom of the longest column
+          if (colIndex === 0) {
+            yPosition = colYPos + 5;
+          }
+        });
+      }
+      
+      // Experience
+      if (formData.experience && formData.experience.length > 0) {
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text("Work Experience", 20, yPosition);
+        
+        let expYPos = yPosition + 10;
+        
+        formData.experience.forEach((exp: any) => {
+          doc.setFont("helvetica", "bold");
+          doc.text(exp.role, 20, expYPos);
+          
+          doc.setFont("helvetica", "normal");
+          doc.text(`${exp.company} ${exp.startDate && exp.endDate ? `• ${exp.startDate} to ${exp.endDate}` : ""}`, 20, expYPos + 7);
+          
+          if (exp.description) {
+            const splitDesc = doc.splitTextToSize(exp.description, pageWidth - 40);
+            doc.text(splitDesc, 20, expYPos + 14);
+            expYPos += 14 + (splitDesc.length * 7);
+          } else {
+            expYPos += 14;
+          }
+          
+          expYPos += 5; // Add space between experiences
+        });
+        
+        yPosition = expYPos;
+      }
+      
+      // Education
+      if (formData.education && formData.education.length > 0) {
+        if (yPosition > 220) {
+          // Add new page if we're getting close to the bottom
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text("Education", 20, yPosition);
+        
+        let eduYPos = yPosition + 10;
+        
+        formData.education.forEach((edu: any) => {
+          doc.setFont("helvetica", "bold");
+          doc.text(edu.degree, 20, eduYPos);
+          
+          doc.setFont("helvetica", "normal");
+          doc.text(`${edu.institution} ${edu.year ? `• ${edu.year}` : ""}`, 20, eduYPos + 7);
+          
+          if (edu.description) {
+            const splitDesc = doc.splitTextToSize(edu.description, pageWidth - 40);
+            doc.text(splitDesc, 20, eduYPos + 14);
+            eduYPos += 14 + (splitDesc.length * 7);
+          } else {
+            eduYPos += 14;
+          }
+          
+          eduYPos += 5; // Add space between education entries
+        });
+      }
+      
+      // Save the PDF
+      doc.save(`${resumeName.replace(/\s+/g, "-").toLowerCase()}.pdf`);
+      
+      toast({
+        title: "Resume Downloaded",
+        description: "Your resume has been downloaded as a PDF file.",
+      });
+    } catch (error) {
+      console.error("Error downloading resume:", error);
+      toast({
+        title: "Download Failed",
+        description: "There was an error downloading your resume. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
   
   // Handle resume copy to clipboard
