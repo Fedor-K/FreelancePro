@@ -9,7 +9,6 @@ import {
   BarChart,
   Settings,
   FileEdit,
-  Palette,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -24,7 +23,6 @@ export default function Sidebar() {
     { href: "/documents", label: "Documents", icon: File },
     { href: "/reports", label: "Reports", icon: BarChart },
     { href: "/settings", label: "Settings", icon: Settings },
-    { href: "/design-system", label: "Design System", icon: Palette },
   ];
 
   return (

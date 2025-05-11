@@ -8,7 +8,6 @@ import Resume from "@/pages/Resume";
 import Documents from "@/pages/Documents";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/not-found";
-import DesignSystem from "@/components/DesignSystem";
 
 function App() {
   return (
@@ -21,7 +20,6 @@ function App() {
         <Route path="/resume" component={Resume} />
         <Route path="/documents" component={Documents} />
         <Route path="/settings" component={Settings} />
-        <Route path="/design-system" component={DesignSystem} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
