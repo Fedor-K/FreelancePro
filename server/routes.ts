@@ -382,17 +382,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Document routes
-  app.get("/api/documents", async (req: Request, res: Response) => {
+  app.get("/api/documents", requireAuth, async (req: Request, res: Response) => {
     try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       let documents;
       if (req.query.projectId) {
         const projectId = parseInt(req.query.projectId as string);
         if (isNaN(projectId)) {
           return res.status(400).json({ message: "Invalid project ID" });
         }
+        
+        // Verify that the project belongs to the user
+        const project = await storage.getProject(projectId);
+        if (!project) {
+          return res.status(404).json({ message: "Project not found" });
+        }
+        
+        if (project.userId !== null && project.userId !== userId) {
+          return res.status(403).json({ message: "You do not have access to this project" });
+        }
+        
         documents = await storage.getDocumentsByProject(projectId);
       } else {
-        documents = await storage.getDocuments();
+        documents = await storage.getDocumentsByUser(userId);
       }
       res.json(documents);
     } catch (error) {
@@ -400,8 +416,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/documents/:id", async (req: Request, res: Response) => {
+  app.get("/api/documents/:id", requireAuth, async (req: Request, res: Response) => {
     try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
         return res.status(400).json({ message: "Invalid document ID" });
@@ -410,6 +431,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const document = await storage.getDocument(id);
       if (!document) {
         return res.status(404).json({ message: "Document not found" });
+      }
+      
+      // Verify user ownership
+      if (document.userId !== null && document.userId !== userId) {
+        return res.status(403).json({ message: "You do not have access to this document" });
+      }
+      
+      // If document has a projectId, verify project ownership as well
+      if (document.projectId) {
+        const project = await storage.getProject(document.projectId);
+        if (project && project.userId !== null && project.userId !== userId) {
+          return res.status(403).json({ message: "You do not have access to this document" });
+        }
       }
       
       res.json(document);
@@ -418,8 +452,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.patch("/api/documents/:id", async (req: Request, res: Response) => {
+  app.patch("/api/documents/:id", requireAuth, async (req: Request, res: Response) => {
     try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
         return res.status(400).json({ message: "Invalid document ID" });
@@ -428,6 +467,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const document = await storage.getDocument(id);
       if (!document) {
         return res.status(404).json({ message: "Document not found" });
+      }
+      
+      // Verify user ownership of document
+      if (document.userId !== null && document.userId !== userId) {
+        return res.status(403).json({ message: "You do not have access to this document" });
+      }
+      
+      // If document has a projectId, verify project ownership as well
+      if (document.projectId) {
+        const project = await storage.getProject(document.projectId);
+        if (project && project.userId !== null && project.userId !== userId) {
+          return res.status(403).json({ message: "You do not have access to this document's project" });
+        }
       }
       
       // Only allow updating content for now
