@@ -41,110 +41,168 @@ export default function PreviewExportForm({ formData, updateField }: PreviewExpo
     });
     
     try {
-      // Create PDF document
+      // Create PDF document that matches the preview
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
       
-      // Add header with resume name
+      // Add header with name and professional title
       doc.setFontSize(20);
       doc.setFont("helvetica", "bold");
-      doc.text(resumeName, pageWidth/2, 20, { align: "center" });
+      doc.text(formData.name || "Your Name", pageWidth/2, 20, { align: "center" });
+      
+      if (formData.professionalTitle) {
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "normal");
+        doc.text(formData.professionalTitle, pageWidth/2, 30, { align: "center" });
+      }
       
       // Add contact info
-      doc.setFontSize(12);
+      doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
       
       const contactInfo = [];
       if (formData.email) contactInfo.push(formData.email);
       if (formData.phone) contactInfo.push(formData.phone);
       if (formData.location) contactInfo.push(formData.location);
+      if (formData.website) contactInfo.push(formData.website);
       
-      doc.text(contactInfo.join(" • "), pageWidth/2, 30, { align: "center" });
-      
-      if (formData.professionalTitle) {
-        doc.setFontSize(14);
-        doc.text(formData.professionalTitle, pageWidth/2, 40, { align: "center" });
+      if (contactInfo.length > 0) {
+        doc.text(contactInfo.join(" • "), pageWidth/2, 40, { align: "center" });
       }
       
       // Summary
+      let yPosition = 50;
       if (formData.summary) {
         doc.setFontSize(12);
         doc.setFont("helvetica", "bold");
-        doc.text("Professional Summary", 20, 55);
+        doc.text("Professional Summary", 20, yPosition);
+        doc.line(20, yPosition + 1, pageWidth - 20, yPosition + 1);
         
+        doc.setFontSize(10);
         doc.setFont("helvetica", "normal");
         const splitSummary = doc.splitTextToSize(formData.summary, pageWidth - 40);
-        doc.text(splitSummary, 20, 65);
+        doc.text(splitSummary, 20, yPosition + 10);
+        
+        yPosition += 10 + (splitSummary.length * 5) + 10;
       }
       
       // Skills
-      let yPosition = formData.summary ? 85 : 55;
-      
       if (formData.skills && formData.skills.length > 0) {
         doc.setFontSize(12);
         doc.setFont("helvetica", "bold");
         doc.text("Skills", 20, yPosition);
+        doc.line(20, yPosition + 1, pageWidth - 20, yPosition + 1);
         
-        doc.setFont("helvetica", "normal");
         yPosition += 10;
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
         
-        // Format skills in multiple columns
+        // Format skills as in the preview
         const skills = formData.skills;
-        const skillColumns = [];
-        const columnCount = skills.length > 6 ? 2 : 1;
-        const itemsPerColumn = Math.ceil(skills.length / columnCount);
-        
-        for (let i = 0; i < columnCount; i++) {
-          skillColumns.push(skills.slice(i * itemsPerColumn, (i + 1) * itemsPerColumn));
-        }
-        
-        skillColumns.forEach((column, colIndex) => {
-          let colYPos = yPosition;
-          column.forEach((skill: string) => {
-            doc.text(`• ${skill}`, 20 + (colIndex * (pageWidth / 2)), colYPos);
-            colYPos += 7;
-          });
-          
-          // Update yPosition to the bottom of the longest column
-          if (colIndex === 0) {
-            yPosition = colYPos + 5;
-          }
+        let skillsText = "";
+        skills.forEach((skill: string, i: number) => {
+          skillsText += skill;
+          if (i < skills.length - 1) skillsText += ", ";
         });
+        
+        const splitSkills = doc.splitTextToSize(skillsText, pageWidth - 40);
+        doc.text(splitSkills, 20, yPosition);
+        
+        yPosition += (splitSkills.length * 5) + 15;
       }
       
-      // Experience
+      // Languages
+      if (formData.languages && formData.languages.length > 0) {
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text("Languages", 20, yPosition);
+        doc.line(20, yPosition + 1, pageWidth - 20, yPosition + 1);
+        
+        yPosition += 10;
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        
+        // Format in a grid like in the preview
+        const languages = formData.languages;
+        const languageRows = Math.ceil(languages.length / 2);
+        
+        for (let i = 0; i < languageRows; i++) {
+          // First column
+          if (i < languages.length) {
+            const lang = languages[i];
+            doc.setFont("helvetica", "bold");
+            doc.text(`${lang.language}:`, 20, yPosition);
+            doc.setFont("helvetica", "normal");
+            doc.text(lang.level, 60, yPosition);
+          }
+          
+          // Second column (if there's an item)
+          if (i + languageRows < languages.length) {
+            const lang = languages[i + languageRows];
+            doc.setFont("helvetica", "bold");
+            doc.text(`${lang.language}:`, pageWidth/2, yPosition);
+            doc.setFont("helvetica", "normal");
+            doc.text(lang.level, pageWidth/2 + 40, yPosition);
+          }
+          
+          yPosition += 7;
+        }
+        
+        yPosition += 8;
+      }
+      
+      // Work Experience
       if (formData.experience && formData.experience.length > 0) {
+        // Check if we need a new page
+        if (yPosition > 220) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
         doc.setFontSize(12);
         doc.setFont("helvetica", "bold");
         doc.text("Work Experience", 20, yPosition);
+        doc.line(20, yPosition + 1, pageWidth - 20, yPosition + 1);
         
-        let expYPos = yPosition + 10;
+        yPosition += 10;
         
         formData.experience.forEach((exp: any) => {
+          doc.setFontSize(11);
           doc.setFont("helvetica", "bold");
-          doc.text(exp.role, 20, expYPos);
+          doc.text(exp.role, 20, yPosition);
+          yPosition += 5;
           
+          doc.setFontSize(10);
           doc.setFont("helvetica", "normal");
-          doc.text(`${exp.company} ${exp.startDate && exp.endDate ? `• ${exp.startDate} to ${exp.endDate}` : ""}`, 20, expYPos + 7);
+          doc.text(`${exp.company}`, 20, yPosition);
+          
+          // Add dates if they exist
+          if (exp.startDate || exp.endDate) {
+            let dateText = "";
+            if (exp.startDate) dateText += exp.startDate;
+            if (exp.startDate && exp.endDate) dateText += " - ";
+            if (exp.endDate) dateText += exp.endDate;
+            
+            doc.text(dateText, 20, yPosition + 5);
+            yPosition += 5;
+          }
+          
+          yPosition += 5;
           
           if (exp.description) {
             const splitDesc = doc.splitTextToSize(exp.description, pageWidth - 40);
-            doc.text(splitDesc, 20, expYPos + 14);
-            expYPos += 14 + (splitDesc.length * 7);
-          } else {
-            expYPos += 14;
+            doc.text(splitDesc, 20, yPosition);
+            yPosition += (splitDesc.length * 5);
           }
           
-          expYPos += 5; // Add space between experiences
+          yPosition += 10; // Space between experiences
         });
-        
-        yPosition = expYPos;
       }
       
       // Education
       if (formData.education && formData.education.length > 0) {
+        // Check if we need a new page
         if (yPosition > 220) {
-          // Add new page if we're getting close to the bottom
           doc.addPage();
           yPosition = 20;
         }
@@ -152,25 +210,73 @@ export default function PreviewExportForm({ formData, updateField }: PreviewExpo
         doc.setFontSize(12);
         doc.setFont("helvetica", "bold");
         doc.text("Education", 20, yPosition);
+        doc.line(20, yPosition + 1, pageWidth - 20, yPosition + 1);
         
-        let eduYPos = yPosition + 10;
+        yPosition += 10;
         
         formData.education.forEach((edu: any) => {
+          doc.setFontSize(11);
           doc.setFont("helvetica", "bold");
-          doc.text(edu.degree, 20, eduYPos);
+          doc.text(edu.degree, 20, yPosition);
+          yPosition += 5;
           
+          doc.setFontSize(10);
           doc.setFont("helvetica", "normal");
-          doc.text(`${edu.institution} ${edu.year ? `• ${edu.year}` : ""}`, 20, eduYPos + 7);
+          doc.text(edu.institution, 20, yPosition);
+          
+          if (edu.year) {
+            doc.text(edu.year, 20, yPosition + 5);
+            yPosition += 5;
+          }
+          
+          yPosition += 5;
           
           if (edu.description) {
             const splitDesc = doc.splitTextToSize(edu.description, pageWidth - 40);
-            doc.text(splitDesc, 20, eduYPos + 14);
-            eduYPos += 14 + (splitDesc.length * 7);
-          } else {
-            eduYPos += 14;
+            doc.text(splitDesc, 20, yPosition);
+            yPosition += (splitDesc.length * 5);
           }
           
-          eduYPos += 5; // Add space between education entries
+          yPosition += 10; // Space between education entries
+        });
+      }
+      
+      // Projects section (if selected)
+      if (formData.selectedProjects && formData.selectedProjects.length > 0) {
+        // Check if we need a new page
+        if (yPosition > 220) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text("Projects", 20, yPosition);
+        doc.line(20, yPosition + 1, pageWidth - 20, yPosition + 1);
+        
+        yPosition += 10;
+        
+        formData.selectedProjects.forEach((project: any) => {
+          doc.setFontSize(11);
+          doc.setFont("helvetica", "bold");
+          doc.text(project.name, 20, yPosition);
+          yPosition += 5;
+          
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "normal");
+          
+          if (project.description) {
+            const splitDesc = doc.splitTextToSize(project.description, pageWidth - 40);
+            doc.text(splitDesc, 20, yPosition);
+            yPosition += (splitDesc.length * 5);
+          }
+          
+          if (project.sourceLang && project.targetLang) {
+            doc.text(`${project.sourceLang} → ${project.targetLang}`, 20, yPosition);
+            yPosition += 5;
+          }
+          
+          yPosition += 10; // Space between projects
         });
       }
       
