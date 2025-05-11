@@ -628,6 +628,49 @@ Date: ____________
     }
   });
 
+  // AI-powered cover letter generation
+  app.post("/api/ai/generate-cover-letter", async (req: Request, res: Response) => {
+    try {
+      // Import here to avoid circular dependencies
+      const { generateCoverLetter } = await import("./openai");
+      
+      const { 
+        name, 
+        jobTitle, 
+        targetPosition, 
+        targetCompany, 
+        selectedProjects,
+        jobDescription,
+        skills
+      } = req.body;
+      
+      if (!targetPosition || !targetCompany) {
+        return res.status(400).json({ 
+          message: "Missing required fields", 
+          details: "Target position and company are required" 
+        });
+      }
+      
+      const coverLetter = await generateCoverLetter({
+        name: name || "",
+        jobTitle: jobTitle || "",
+        targetPosition,
+        targetCompany,
+        selectedProjects: selectedProjects || [],
+        jobDescription: jobDescription || "",
+        skills: skills || []
+      });
+      
+      res.json({ coverLetter });
+    } catch (error) {
+      console.error("Error generating cover letter:", error);
+      res.status(500).json({ 
+        message: "Failed to generate cover letter", 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // Initialize WebSocket server

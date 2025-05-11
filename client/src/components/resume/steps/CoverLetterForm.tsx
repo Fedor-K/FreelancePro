@@ -19,12 +19,12 @@ export default function CoverLetterForm({ formData, updateField }: CoverLetterFo
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeTab, setActiveTab] = useState("edit");
   
-  // Generate cover letter with AI
+  // Generate cover letter with AI using OpenAI API
   const generateCoverLetter = async () => {
-    if (!formData.targetPosition || !formData.jobDescription) {
+    if (!formData.targetPosition) {
       toast({
         title: "Missing information",
-        description: "Please complete the target position and job description to generate a cover letter",
+        description: "Please specify the target position to generate a cover letter",
         variant: "destructive"
       });
       return;
@@ -33,43 +33,53 @@ export default function CoverLetterForm({ formData, updateField }: CoverLetterFo
     setIsGenerating(true);
     
     try {
-      // Simulate AI-generated cover letter with a timeout
-      setTimeout(() => {
-        // Get just the name without any HTML that might be accidentally included
-        const name = formData.name ? formData.name.replace(/<[^>]*>/g, '') : "Your Name";
-        const jobTitle = formData.jobTitle ? formData.jobTitle.replace(/<[^>]*>/g, '') : "Professional Translator";
-        const targetPosition = formData.targetPosition ? formData.targetPosition.replace(/<[^>]*>/g, '') : "Translation Professional";
-        const targetCompany = formData.targetCompany ? formData.targetCompany.replace(/<[^>]*>/g, '') : "your company";
-        
-        const coverLetter = `Dear Hiring Manager,
-
-I am writing to express my interest in the ${targetPosition} position at ${targetCompany}. With my extensive experience in translation and localization services, I am confident in my ability to contribute effectively to your team.
-
-Having successfully completed several projects in technical documentation and software localization, I possess the necessary skills to meet the requirements outlined in your job description. My background includes working with clients across various industries, ensuring high-quality translations that maintain the integrity and nuance of the original content.
-
-What particularly excites me about this opportunity is the chance to leverage my expertise in ${formData.selectedProjects && formData.selectedProjects.length > 0 ? formData.selectedProjects[0].name.replace(/<[^>]*>/g, '') : "technical translation"} to help your team expand its global reach. I am proficient in CAT tools and terminology management systems, ensuring consistency and efficiency in all projects.
-
-I look forward to the opportunity to discuss how my skills align with your needs. Thank you for considering my application.
-
-Sincerely,
-${name}`;
-        
-        updateField("coverLetter", coverLetter);
+      // Get sanitized data to send to the API
+      const sanitizedData = {
+        name: formData.name ? formData.name.replace(/<[^>]*>/g, '') : "",
+        jobTitle: formData.jobTitle ? formData.jobTitle.replace(/<[^>]*>/g, '') : "",
+        targetPosition: formData.targetPosition ? formData.targetPosition.replace(/<[^>]*>/g, '') : "",
+        targetCompany: formData.targetCompany ? formData.targetCompany.replace(/<[^>]*>/g, '') : "",
+        selectedProjects: formData.selectedProjects || [],
+        jobDescription: formData.jobDescription ? formData.jobDescription.replace(/<[^>]*>/g, '') : "",
+        skills: formData.skills || []
+      };
+      
+      // Call the API to generate the cover letter
+      const response = await fetch('/api/ai/generate-cover-letter', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(sanitizedData)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      
+      if (result.coverLetter) {
+        // Update the form with the generated cover letter
+        updateField("coverLetter", result.coverLetter);
         
         toast({
           title: "Cover letter generated!",
-          description: "Your personalized cover letter has been created",
+          description: "Your professional cover letter has been created using AI",
         });
         
         setActiveTab("preview");
-        setIsGenerating(false);
-      }, 2000);
+      } else {
+        throw new Error("No cover letter content returned");
+      }
     } catch (error) {
+      console.error("Cover letter generation error:", error);
       toast({
         title: "Generation failed",
         description: "There was an error generating your cover letter. Please try again.",
         variant: "destructive"
       });
+    } finally {
       setIsGenerating(false);
     }
   };
@@ -97,7 +107,7 @@ ${name}`;
                 AI Cover Letter Generator
               </CardTitle>
               <CardDescription>
-                Let AI create a tailored cover letter based on your resume data
+                Using OpenAI's advanced AI to create a professional, tailored cover letter
               </CardDescription>
             </CardHeader>
             
@@ -109,13 +119,13 @@ ${name}`;
               >
                 {isGenerating ? (
                   <div className="flex items-center">
-                    <span className="mr-2">Generating...</span>
+                    <span className="mr-2">Creating AI Letter...</span>
                     <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
                   </div>
                 ) : (
                   <div className="flex items-center">
                     <Sparkles className="mr-2 h-4 w-4" />
-                    Generate Cover Letter
+                    Create Professional AI Cover Letter
                   </div>
                 )}
               </Button>
