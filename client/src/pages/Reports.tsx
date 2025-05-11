@@ -93,9 +93,6 @@ export default function Reports() {
   // 3. Top clients by revenue
   const topClients = generateTopClientsData(filteredProjects, clients);
   
-  // 4. Language pair distribution
-  const languagePairs = generateLanguagePairData(filteredProjects);
-  
   // Calculate summary metrics
   const totalRevenue = filteredProjects.reduce((sum, project) => 
     sum + (project.amount || 0), 0);
@@ -192,7 +189,6 @@ export default function Reports() {
           <TabsTrigger value="revenue">Revenue</TabsTrigger>
           <TabsTrigger value="projects">Projects</TabsTrigger>
           <TabsTrigger value="clients">Clients</TabsTrigger>
-          <TabsTrigger value="languages">Language Pairs</TabsTrigger>
         </TabsList>
         
         {/* Revenue Tab */}
@@ -331,42 +327,6 @@ export default function Reports() {
             </CardContent>
           </Card>
         </TabsContent>
-        
-        {/* Language Pairs Tab */}
-        <TabsContent value="languages" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Language Pair Distribution</CardTitle>
-              <CardDescription>
-                Projects by language pair
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pl-2">
-              <div className="h-[400px] w-full">
-                {isLoading ? (
-                  <div className="flex h-full w-full items-center justify-center">
-                    <p className="text-muted-foreground">Loading data...</p>
-                  </div>
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={languagePairs}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                      layout="vertical"
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" />
-                      <YAxis dataKey="pair" type="category" width={120} />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="count" fill="hsl(var(--accent))" name="Projects" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
     </div>
   );
@@ -445,27 +405,7 @@ function generateTopClientsData(projects: Project[], clients: Client[]) {
     .slice(0, 5);
 }
 
-// Generate language pair data
-function generateLanguagePairData(projects: Project[]) {
-  const pairCounts: Record<string, number> = {};
-  
-  projects.forEach(project => {
-    if (project.sourceLang && project.targetLang) {
-      // Clean up language names
-      const sourceLang = project.sourceLang.replace(/[!'\s]/g, '').trim();
-      const targetLang = project.targetLang.replace(/[!'\s]/g, '').trim();
-      const pair = `${sourceLang} → ${targetLang}`;
-      
-      pairCounts[pair] = (pairCounts[pair] || 0) + 1;
-    }
-  });
-  
-  // Convert to array, sort, and take top 8
-  return Object.entries(pairCounts)
-    .map(([pair, count]) => ({ pair, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 8);
-}
+// Language pairs reporting removed as requested
 
 // Get color for status
 function getStatusColor(status: string) {
