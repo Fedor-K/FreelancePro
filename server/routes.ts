@@ -215,8 +215,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/projects", requireAuth, async (req: Request, res: Response) => {
     try {
+      const userId = req.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       // Process the request data
-      const data = { ...req.body };
+      const data = { ...req.body, userId };
       
       // Parse deadline if it's a string
       if (typeof data.deadline === 'string' && data.deadline) {
@@ -235,10 +241,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid project data", errors: result.error.format() });
       }
       
-      // Verify client exists
+      // Verify client exists and belongs to user
       const client = await storage.getClient(result.data.clientId);
       if (!client) {
         return res.status(400).json({ message: "Client not found" });
+      }
+      
+      // Verify client belongs to the user
+      if (client.userId !== null && client.userId !== userId) {
+        return res.status(403).json({ message: "You do not have access to this client" });
       }
       
       // Business logic validation
@@ -258,10 +269,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/projects/:id", async (req: Request, res: Response) => {
+  app.patch("/api/projects/:id", requireAuth, async (req: Request, res: Response) => {
     try {
       console.log("PATCH request received for project with ID:", req.params.id);
       console.log("Request body:", req.body);
+      
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
       
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -273,6 +289,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!project) {
         console.log("Project not found with ID:", id);
         return res.status(404).json({ message: "Project not found" });
+      }
+      
+      // Verify user ownership
+      if (project.userId !== null && project.userId !== userId) {
+        return res.status(403).json({ message: "You do not have access to this project" });
       }
       
       console.log("Original project data:", project);
@@ -326,11 +347,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/projects/:id", async (req: Request, res: Response) => {
+  app.delete("/api/projects/:id", requireAuth, async (req: Request, res: Response) => {
     try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
         return res.status(400).json({ message: "Invalid project ID" });
+      }
+      
+      // Check if the project exists and belongs to the user
+      const project = await storage.getProject(id);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      // Verify user ownership
+      if (project.userId !== null && project.userId !== userId) {
+        return res.status(403).json({ message: "You do not have access to this project" });
       }
       
       const success = await storage.deleteProject(id);
