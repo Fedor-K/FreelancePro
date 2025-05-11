@@ -93,14 +93,14 @@ export default function Reports() {
   // 3. Top clients by revenue
   const topClients = generateTopClientsData(filteredProjects, clients);
   
-  // Calculate summary metrics - only include In Progress and Delivered projects
-  const activeProjects = projects.filter(p => p.status === "In Progress").length;
-  const deliveredProjects = projects.filter(p => p.status === "Delivered").length;
+  // Calculate summary metrics
+  const totalRevenue = filteredProjects.reduce((sum, project) => 
+    sum + (project.amount || 0), 0);
   
-  // Calculate revenue only from In Progress and Delivered projects
-  const pendingRevenue = filteredProjects
-    .filter(p => p.status === "In Progress" || p.status === "Delivered")
-    .reduce((sum, project) => sum + (project.amount || 0), 0);
+  const activeProjects = projects.filter(p => p.status === "In Progress").length;
+  const completedProjects = filteredProjects.filter(p => p.status === "Paid").length;
+  const averageProjectValue = filteredProjects.length ? 
+    totalRevenue / filteredProjects.length : 0;
 
   return (
     <div className="space-y-6">
@@ -128,20 +128,55 @@ export default function Reports() {
         </div>
       </div>
       
-      {/* Summary Card for Pending Revenue */}
-      <div>
+      {/* Summary Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center space-x-2">
               <DollarSign className="h-10 w-10 text-primary" />
               <div>
-                <div className="text-sm text-muted-foreground">Pending Revenue</div>
+                <div className="text-sm text-muted-foreground">Total Revenue</div>
                 <div className="text-2xl font-bold">
-                  ${pendingRevenue.toLocaleString('en-US', { maximumFractionDigits: 2 })}
+                  ${totalRevenue.toLocaleString('en-US', { maximumFractionDigits: 2 })}
                 </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  From In Progress and Delivered projects
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <CreditCard className="h-10 w-10 text-primary" />
+              <div>
+                <div className="text-sm text-muted-foreground">Average Project Value</div>
+                <div className="text-2xl font-bold">
+                  ${averageProjectValue.toLocaleString('en-US', { maximumFractionDigits: 2 })}
                 </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <Calendar className="h-10 w-10 text-primary" />
+              <div>
+                <div className="text-sm text-muted-foreground">Completed Projects</div>
+                <div className="text-2xl font-bold">{completedProjects}</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <Users className="h-10 w-10 text-primary" />
+              <div>
+                <div className="text-sm text-muted-foreground">Active Projects</div>
+                <div className="text-2xl font-bold">{activeProjects}</div>
               </div>
             </div>
           </CardContent>
@@ -160,9 +195,9 @@ export default function Reports() {
         <TabsContent value="revenue" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Pending Revenue Over Time</CardTitle>
+              <CardTitle>Revenue Over Time</CardTitle>
               <CardDescription>
-                Monthly revenue from In Progress and Delivered projects
+                Monthly revenue for the selected time period
               </CardDescription>
             </CardHeader>
             <CardContent className="pl-2">
@@ -262,9 +297,9 @@ export default function Reports() {
         <TabsContent value="clients" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Top Clients by Pending Revenue</CardTitle>
+              <CardTitle>Top Clients by Revenue</CardTitle>
               <CardDescription>
-                Clients ranked by pending revenue (In Progress and Delivered projects)
+                Your most valuable clients based on project revenue
               </CardDescription>
             </CardHeader>
             <CardContent className="pl-2">
@@ -299,7 +334,7 @@ export default function Reports() {
 
 // Helper functions for data preparation
 
-// Generate monthly revenue data (showing only In Progress and Delivered projects)
+// Generate monthly revenue data
 function generateMonthlyRevenueData(projects: Project[]) {
   const months: Record<string, number> = {};
   
@@ -311,18 +346,16 @@ function generateMonthlyRevenueData(projects: Project[]) {
     months[monthKey] = 0;
   }
   
-  // Populate with real data - only from In Progress and Delivered projects
-  projects
-    .filter(p => p.status === "In Progress" || p.status === "Delivered")
-    .forEach(project => {
-      if (project.amount && project.deadline) {
-        const date = new Date(project.deadline);
-        const monthKey = format(date, 'MMM yyyy');
-        if (months[monthKey] !== undefined) {
-          months[monthKey] += project.amount;
-        }
+  // Populate with real data
+  projects.forEach(project => {
+    if (project.amount && project.deadline) {
+      const date = new Date(project.deadline);
+      const monthKey = format(date, 'MMM yyyy');
+      if (months[monthKey] !== undefined) {
+        months[monthKey] += project.amount;
       }
-    });
+    }
+  });
   
   // Convert to array and reverse to get chronological order
   return Object.entries(months)
@@ -348,25 +381,23 @@ function generateStatusDistribution(projects: Project[]) {
     .map(([name, value]) => ({ name, value }));
 }
 
-// Generate top clients by pending revenue (In Progress and Delivered projects only)
+// Generate top clients by revenue
 function generateTopClientsData(projects: Project[], clients: Client[]) {
   const clientRevenue: Record<number, { revenue: number, name: string }> = {};
   
-  // Aggregate revenue by client - only from In Progress and Delivered projects
-  projects
-    .filter(p => p.status === "In Progress" || p.status === "Delivered")
-    .forEach(project => {
-      if (project.amount && project.clientId) {
-        if (!clientRevenue[project.clientId]) {
-          const client = clients.find(c => c.id === project.clientId);
-          clientRevenue[project.clientId] = {
-            revenue: 0,
-            name: client ? client.name : `Client #${project.clientId}`
-          };
-        }
-        clientRevenue[project.clientId].revenue += project.amount;
+  // Aggregate revenue by client
+  projects.forEach(project => {
+    if (project.amount && project.clientId) {
+      if (!clientRevenue[project.clientId]) {
+        const client = clients.find(c => c.id === project.clientId);
+        clientRevenue[project.clientId] = {
+          revenue: 0,
+          name: client ? client.name : `Client #${project.clientId}`
+        };
       }
-    });
+      clientRevenue[project.clientId].revenue += project.amount;
+    }
+  });
   
   // Convert to array, sort, and take top 5
   return Object.values(clientRevenue)
