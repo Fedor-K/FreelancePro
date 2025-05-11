@@ -72,28 +72,62 @@
 }
 
 .dark {
+  /* Base colors */
   --background: 224 71% 4%;
   --foreground: 213 31% 91%;
+  
+  /* Content areas */
   --muted: 223 47% 11%;
   --muted-foreground: 215.4 16.3% 56.9%;
   --popover: 224 71% 4%;
   --popover-foreground: 215 20.2% 65.1%;
   --card: 224 71% 4%;
   --card-foreground: 213 31% 91%;
+  
+  /* Form elements */
   --border: 216 34% 17%;
   --input: 216 34% 17%;
-  --primary: 210 79% 40%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 142 70.6% 45.3%;
-  --secondary-foreground: 210 40% 98%;
-  --accent: 270 67% 47%;
-  --accent-foreground: 210 40% 98%;
-  --destructive: 0 63% 31%;
-  --destructive-foreground: 210 40% 98%;
   --ring: 216 34% 17%;
   --radius: 0.5rem;
   
-  /* Sidebar colors (same as main for now) */
+  /* Primary brand color - Professional blue */
+  --primary: 210 79% 40%;
+  --primary-foreground: 210 40% 98%;
+  
+  /* Secondary - Success green */
+  --secondary: 142 70.6% 45.3%;
+  --secondary-foreground: 210 40% 98%;
+  
+  /* Accent - Purple */
+  --accent: 270 67% 47%;
+  --accent-foreground: 210 40% 98%;
+  
+  /* Warning and Destructive */
+  --warning: 45 93% 47%;
+  --warning-foreground: 210 40% 98%;
+  --destructive: 0 63% 31%;
+  --destructive-foreground: 210 40% 98%;
+  
+  /* Status colors */
+  --status-new: 210 79% 15%;
+  --status-new-foreground: 210 100% 80%;
+  --status-in-progress: 49 90% 20%;
+  --status-in-progress-foreground: 49 100% 80%;
+  --status-paid: 142 76% 15%;
+  --status-paid-foreground: 142 76% 80%;
+  --status-completed: 270 76% 20%;
+  --status-completed-foreground: 270 76% 80%;
+  --status-overdue: 0 84% 20%;
+  --status-overdue-foreground: 0 84% 80%;
+  
+  /* Chart colors */
+  --chart-1: var(--primary);
+  --chart-2: var(--secondary);
+  --chart-3: var(--accent);
+  --chart-4: 30 84% 60%;
+  --chart-5: 260 84% 60%;
+  
+  /* Sidebar colors */
   --sidebar-background: 224 71% 4%;
   --sidebar-foreground: 213 31% 91%;
   --sidebar-primary: 210 79% 40%;
@@ -104,25 +138,30 @@
   --sidebar-ring: 216 34% 17%;
 }
 
-/* Status styles */
+/* Status styles using CSS variables */
 .status-new {
-  background-color: #EBF8FF;
-  color: #2B6CB0;
+  background-color: hsl(var(--status-new));
+  color: hsl(var(--status-new-foreground));
 }
 
 .status-in-progress {
-  background-color: #FEFCBF;
-  color: #975A16;
+  background-color: hsl(var(--status-in-progress));
+  color: hsl(var(--status-in-progress-foreground));
 }
 
 .status-paid {
-  background-color: #C6F6D5;
-  color: #276749;
+  background-color: hsl(var(--status-paid));
+  color: hsl(var(--status-paid-foreground));
 }
 
 .status-completed {
-  background-color: #E9D8FD;
-  color: #553C9A;
+  background-color: hsl(var(--status-completed));
+  color: hsl(var(--status-completed-foreground));
+}
+
+.status-overdue {
+  background-color: hsl(var(--status-overdue));
+  color: hsl(var(--status-overdue-foreground));
 }
 
 @layer base {

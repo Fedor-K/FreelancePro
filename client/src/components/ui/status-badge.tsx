@@ -30,13 +30,13 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
   const getStatusColorClass = (status: StatusType) => {
     switch (status) {
       case "In Progress":
-        return "bg-blue-100 text-blue-700 border-blue-200";
+        return "bg-[hsl(var(--status-in-progress))] text-[hsl(var(--status-in-progress-foreground))] border-[hsl(var(--status-in-progress))]";
       case "Delivered":
-        return "bg-green-100 text-green-700 border-green-200";
+        return "bg-[hsl(var(--status-new))] text-[hsl(var(--status-new-foreground))] border-[hsl(var(--status-new))]";
       case "Paid":
-        return "bg-purple-100 text-purple-700 border-purple-200";
+        return "bg-[hsl(var(--status-paid))] text-[hsl(var(--status-paid-foreground))] border-[hsl(var(--status-paid))]";
       default:
-        return "bg-gray-100 text-gray-700 border-gray-200";
+        return "bg-muted text-muted-foreground border-muted";
     }
   };
 
@@ -58,21 +58,21 @@ export function ProjectLabelBadge({ label }: ProjectLabelBadgeProps) {
   const getLabelColorClass = (label: ProjectLabel) => {
     switch (label) {
       case "Paid":
-        return "bg-green-50 text-green-600 border-green-100";
+        return "bg-[hsl(var(--status-paid))] text-[hsl(var(--status-paid-foreground))] border-[hsl(var(--status-paid))]";
       case "In Progress":
-        return "bg-gray-50 text-gray-600 border-gray-100";
+        return "bg-[hsl(var(--status-in-progress))] text-[hsl(var(--status-in-progress-foreground))] border-[hsl(var(--status-in-progress))]";
       case "Overdue":
-        return "bg-red-50 text-red-600 border-red-100";
+        return "bg-[hsl(var(--status-overdue))] text-[hsl(var(--status-overdue-foreground))] border-[hsl(var(--status-overdue))]";
       case "Pending payment":
-        return "bg-blue-50 text-blue-600 border-blue-100";
+        return "bg-[hsl(var(--status-new))] text-[hsl(var(--status-new-foreground))] border-[hsl(var(--status-new))]";
       case "Invoice sent":
-        return "bg-indigo-50 text-indigo-600 border-indigo-100";
+        return "bg-accent/10 text-accent border-accent/20";
       case "To be delivered":
-        return "bg-orange-50 text-orange-600 border-orange-100";
+        return "bg-[hsl(var(--warning)/0.15)] text-[hsl(var(--warning))] border-[hsl(var(--warning)/0.20)]";
       case "Make invoice":
-        return "bg-amber-50 text-amber-600 border-amber-100";
+        return "bg-[hsl(var(--warning)/0.15)] text-[hsl(var(--warning))] border-[hsl(var(--warning)/0.20)]";
       default:
-        return "bg-gray-50 text-gray-600 border-gray-100";
+        return "bg-muted text-muted-foreground border-muted";
     }
   };
 
@@ -97,7 +97,7 @@ export function LanguagePairBadge({ sourceLang, targetLang }: LanguagePairBadgeP
   return (
     <Badge
       variant="outline"
-      className="rounded-md border px-2 py-1 text-xs font-medium bg-indigo-50 text-indigo-600 border-indigo-100"
+      className="rounded-md border px-2 py-1 text-xs font-medium bg-accent/10 text-accent border-accent/20"
     >
       {cleanSourceLang} → {cleanTargetLang}
     </Badge>
