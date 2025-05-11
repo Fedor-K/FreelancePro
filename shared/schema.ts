@@ -2,6 +2,35 @@ import { pgTable, text, serial, integer, boolean, timestamp, pgEnum, doublePreci
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// User schema
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  email: text("email").notNull(),
+  fullName: text("full_name"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Strong type definition with validation for user registration
+export const userRegistrationSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.string().email("Please enter a valid email address"),
+  fullName: z.string().optional(),
+});
+
+// Login schema
+export const userLoginSchema = z.object({
+  username: z.string(),
+  password: z.string(),
+});
+
 // External data schema
 export const externalData = pgTable("external_data", {
   id: serial("id").primaryKey(),
@@ -25,6 +54,7 @@ export const clients = pgTable("clients", {
   email: text("email").notNull(),
   company: text("company"),
   language: text("language"),
+  userId: integer("user_id").references(() => users.id),
 });
 
 export const insertClientSchema = createInsertSchema(clients).omit({
@@ -64,6 +94,7 @@ export const projects = pgTable("projects", {
   labels: text("labels").array(),  // Store multiple labels
   invoiceSent: boolean("invoice_sent").default(false),
   isPaid: boolean("is_paid").default(false),
+  userId: integer("user_id").references(() => users.id),
 });
 
 export const insertProjectSchema = createInsertSchema(projects, {
@@ -81,6 +112,7 @@ export const documents = pgTable("documents", {
   projectId: integer("project_id").references(() => projects.id),
   content: text("content").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
+  userId: integer("user_id").references(() => users.id),
 });
 
 export const insertDocumentSchema = createInsertSchema(documents).omit({
@@ -89,13 +121,14 @@ export const insertDocumentSchema = createInsertSchema(documents).omit({
 });
 
 // Define types from schemas
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+
 export type Client = typeof clients.$inferSelect;
 export type InsertClient = z.infer<typeof insertClientSchema>;
 
 export type Project = typeof projects.$inferSelect;
 export type InsertProject = z.infer<typeof insertProjectSchema>;
-
-
 
 export type Document = typeof documents.$inferSelect;
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
@@ -114,6 +147,7 @@ export const resumes = pgTable("resumes", {
   targetCompany: text("target_company"),
   htmlContent: text("html_content").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
+  userId: integer("user_id").references(() => users.id),
 });
 
 export const insertResumeSchema = createInsertSchema(resumes).omit({
