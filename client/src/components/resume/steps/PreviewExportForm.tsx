@@ -124,12 +124,23 @@ export default function PreviewExportForm({ formData, updateField }: PreviewExpo
               
               <CardContent className="border-t pt-4">
                 <div className="relative">
-                  <iframe
-                    title="Resume Preview"
-                    srcDoc={createResumePreviewHTML(formData)}
-                    className="w-full h-[40rem] border rounded"
-                    style={{ backgroundColor: "white" }}
-                  />
+                  {formData.selectedProjects && formData.selectedProjects.length > 0 ? (
+                    <iframe
+                      title="Resume Preview"
+                      srcDoc={createResumePreviewHTML(formData)}
+                      className="w-full h-[40rem] border rounded"
+                      style={{ backgroundColor: "white" }}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-[40rem] border rounded bg-gray-50">
+                      <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" />
+                      <h3 className="text-lg font-medium mb-2">No projects selected</h3>
+                      <p className="text-muted-foreground text-center max-w-md">
+                        Please select at least one project in the Resume Building step
+                        to generate your resume preview.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
               

@@ -126,9 +126,6 @@ export default function ProjectSelectionForm({ formData, updateField }: ProjectS
     );
   };
   
-  // States for the dropdown
-  const [open, setOpen] = useState(false);
-  
   return (
     <div className="space-y-6">      
       {/* Loading state */}
