@@ -230,11 +230,11 @@ export default function Dashboard() {
         <h1 className="text-2xl font-semibold text-gray-900"></h1>
       </div>
       
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 gap-5 mb-8 sm:grid-cols-2 lg:grid-cols-4">
-        {isLoadingStats ? (
+      {/* Display amounts from In Progress and Delivered projects */}
+      <div className="grid grid-cols-1 gap-5 mb-8 sm:grid-cols-2">
+        {isLoadingProjects ? (
           // Loading skeletons for stats
-          [...Array(4)].map((_, i) => (
+          [...Array(2)].map((_, i) => (
             <Card key={i} className="overflow-hidden bg-white rounded-lg shadow">
               <CardContent className="p-5">
                 <div className="flex items-center">
@@ -248,35 +248,21 @@ export default function Dashboard() {
             </Card>
           ))
         ) : (
-          // Actual stats
+          // Only show amounts from projects
           <>
             <StatsCard
-              title="Active Clients"
-              value={stats?.activeClients || 0}
-              icon={Users}
-              iconColor="#2B6CB0"
-              iconBgColor="#EBF8FF"
-            />
-            <StatsCard
-              title="Ongoing Projects"
-              value={stats?.ongoingProjects || 0}
+              title="In Progress Amount"
+              value={formatCurrency(projects.filter(p => p.status === "In Progress").reduce((sum, project) => sum + (project.amount || 0), 0))}
               icon={ClipboardList}
               iconColor="#975A16"
               iconBgColor="#FEFCBF"
             />
             <StatsCard
-              title="Revenue this month"
-              value={formatCurrency(stats?.monthlyRevenue || 0)}
+              title="Delivered Amount"
+              value={formatCurrency(projects.filter(p => p.status === "Delivered").reduce((sum, project) => sum + (project.amount || 0), 0))}
               icon={DollarSign}
               iconColor="#48BB78"
               iconBgColor="#C6F6D5"
-            />
-            <StatsCard
-              title="Documents Generated"
-              value={stats?.documentsGenerated || 0}
-              icon={FileText}
-              iconColor="#805AD5"
-              iconBgColor="#E9D8FD"
             />
           </>
         )}
