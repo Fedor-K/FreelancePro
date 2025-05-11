@@ -188,12 +188,9 @@ export default function Projects() {
   const deliveredCount = projects.filter(p => p.status === "Delivered").length;
   const paidCount = projects.filter(p => p.status === "Paid").length;
   
-  // Filter projects based on search term, archived status, and active tab
+  // Filter projects based on search term and active tab
   const filteredProjects = projects
     .filter(project => {
-      // Filter by archived status
-      if (!showArchived && project.isArchived) return false;
-      
       // Filter by active tab
       if (project.status !== activeTab) return false;
       
@@ -312,7 +309,7 @@ export default function Projects() {
                 filteredProjects.map((project) => (
                   <TableRow 
                     key={project.id} 
-                    className={project.isArchived ? "bg-gray-50" : ""}
+                    className=""
                   >
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -493,45 +490,7 @@ export default function Projects() {
                             Edit
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              
-                              // Toggle archive status directly via API
-                              apiRequest("PATCH", `/api/projects/${project.id}`, {
-                                isArchived: !project.isArchived
-                              }).then(() => {
-                                // Invalidate queries to refresh data
-                                queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
-                                
-                                toast({
-                                  title: project.isArchived ? "Project unarchived" : "Project archived",
-                                  description: project.isArchived ? 
-                                    "Project has been moved to active projects." : 
-                                    "Project has been archived."
-                                });
-                              }).catch(error => {
-                                toast({
-                                  title: "Error",
-                                  description: "Failed to update project. Please try again.",
-                                  variant: "destructive",
-                                });
-                              });
-                            }}
-                          >
-                            {project.isArchived ? (
-                              <>
-                                <Archive className="mr-2 h-4 w-4" />
-                                Unarchive
-                              </>
-                            ) : (
-                              <>
-                                <Archive className="mr-2 h-4 w-4" />
-                                Archive
-                              </>
-                            )}
-                          </DropdownMenuItem>
+                          {/* Archive functionality removed */}
                           <DropdownMenuItem 
                             className="text-red-600"
                             onClick={(e) => {
