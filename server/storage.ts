@@ -238,6 +238,41 @@ export class MemStorage implements IStorage {
   }
 
   async deleteUser(id: number): Promise<boolean> {
+    // First get all data related to this user
+    const userClients = await this.getClientsByUser(id);
+    const userProjects = await this.getProjectsByUser(id);
+    const userDocuments = await this.getDocumentsByUser(id);
+    const userResumes = await this.getResumesByUser(id);
+    const userExternalData = await this.getExternalDataByUser(id);
+    
+    // Delete all related data
+    
+    // Delete documents
+    for (const doc of userDocuments) {
+      await this.deleteDocument(doc.id);
+    }
+    
+    // Delete resumes
+    for (const resume of userResumes) {
+      await this.deleteResume(resume.id);
+    }
+    
+    // Delete external data
+    for (const data of userExternalData) {
+      await this.deleteExternalData(data.id);
+    }
+    
+    // Delete projects
+    for (const project of userProjects) {
+      await this.deleteProject(project.id);
+    }
+    
+    // Delete clients
+    for (const client of userClients) {
+      await this.deleteClient(client.id);
+    }
+    
+    // Finally delete the user
     return this.users.delete(id);
   }
 
