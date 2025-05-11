@@ -160,8 +160,12 @@ export default function TargetPositionForm({ formData, updateField, nextStep }: 
           <Card className="border-green-200 overflow-hidden">
             {isEditingContent ? (
               <CardContent className="p-0">
+                <div className="bg-amber-50 text-amber-800 text-xs p-2 border-b border-amber-200">
+                  <AlertTriangle className="h-3 w-3 inline-block mr-1" />
+                  You are editing HTML content. Be careful with tags and formatting.
+                </div>
                 <Textarea 
-                  className="w-full h-[300px] border-0 rounded-none resize-none" 
+                  className="w-full h-[350px] border-0 rounded-none resize-none font-mono text-sm p-4" 
                   value={editableContent}
                   onChange={(e) => setEditableContent(e.target.value)}
                 />

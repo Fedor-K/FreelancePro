@@ -1,0 +1,76 @@
+
+    <div class="space-y-6 p-4">
+      <!-- Header -->
+      <div class="text-center">
+        <h1 class="text-2xl font-bold">John Doe</h1>
+        <h2 class="text-lg mt-1">Professional Translator</h2>
+        
+        <!-- Contact Info -->
+        <div class="text-sm mt-2">
+  <p>john@example.com • +1 (555) 123-4567 • New York, NY • https://johndoe.com</p>
+        </div>
+      </div>
+  
+      <!-- Summary Section -->
+      <div>
+        <h3 class="text-base font-bold border-b pb-1 mb-2">Professional Summary</h3>
+        <p class="text-sm">Freelance translator and editor with 5+ years of experience in technical and business translation. Specialized in English to French and English to Spanish translations for software, legal, and marketing materials.</p>
+      </div>
+    
+      <!-- Skills Section -->
+      <div>
+        <h3 class="text-base font-bold border-b pb-1 mb-2">Skills</h3>
+        <p class="text-sm">Translation, Localization, Proofreading, CAT Tools, SDL Trados, MemoQ, Terminology Management</p>
+      </div>
+    
+      <!-- Languages Section -->
+      <div>
+        <h3 class="text-base font-bold border-b pb-1 mb-2">Languages</h3>
+        <div class="grid grid-cols-2 gap-2 text-sm">
+    
+        <div>
+          <span class="font-semibold">English:</span> Native
+        </div>
+      
+        <div>
+          <span class="font-semibold">Spanish:</span> Fluent (C2)
+        </div>
+      
+        <div>
+          <span class="font-semibold">French:</span> Fluent (C1)
+        </div>
+      
+        <div>
+          <span class="font-semibold">German:</span> Intermediate (B1)
+        </div>
+      
+        </div>
+      </div>
+    
+      <!-- Work Experience Section -->
+      <div>
+        <h3 class="text-base font-bold border-b pb-1 mb-2">Work Experience</h3>
+    
+        <div class="mb-4">
+          <h4 class="text-sm font-bold">Senior Translator</h4>
+          <p class="text-sm">GlobalTech Translations</p>
+      <p class="text-sm">2018 - Present</p><p class="text-sm mt-2">Led translation projects for major tech clients, managing terminology databases and ensuring consistency across all materials.</p></div>
+        <div class="mb-4">
+          <h4 class="text-sm font-bold">Freelance Translator</h4>
+          <p class="text-sm">Self-employed</p>
+      <p class="text-sm">2015 - 2018</p><p class="text-sm mt-2">Provided translation services for various clients in technical, legal, and marketing fields.</p></div></div>
+      <!-- Education Section -->
+      <div>
+        <h3 class="text-base font-bold border-b pb-1 mb-2">Education</h3>
+    
+        <div class="mb-4">
+          <h4 class="text-sm font-bold">Master's in Translation Studies</h4>
+          <p class="text-sm">University of Translation</p>
+      <p class="text-sm">2015</p><p class="text-sm mt-2">Specialized in technical and scientific translation</p></div></div>
+      <!-- Projects Section -->
+      <div>
+        <h3 class="text-base font-bold border-b pb-1 mb-2">Projects</h3>
+    
+        <div class="mb-4">
+          <h4 class="text-sm font-bold">Website Translation - German</h4>
+      <p class="text-sm mt-1">Translate website content to German</p><p class="text-sm">English → German</p></div></div></div>
