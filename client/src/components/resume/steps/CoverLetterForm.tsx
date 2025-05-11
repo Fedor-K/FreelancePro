@@ -104,10 +104,10 @@ export default function CoverLetterForm({ formData, updateField }: CoverLetterFo
             <CardHeader>
               <CardTitle className="flex items-center text-lg">
                 <Sparkles className="h-5 w-5 mr-2 text-primary" />
-                AI Cover Letter Generator
+                Professional Cover Letter Generator
               </CardTitle>
               <CardDescription>
-                Using OpenAI's advanced AI to create a professional, tailored cover letter
+                Creates a concise, straightforward cover letter focused on your skills and experience
               </CardDescription>
             </CardHeader>
             
@@ -119,13 +119,13 @@ export default function CoverLetterForm({ formData, updateField }: CoverLetterFo
               >
                 {isGenerating ? (
                   <div className="flex items-center">
-                    <span className="mr-2">Creating AI Letter...</span>
+                    <span className="mr-2">Creating Letter...</span>
                     <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
                   </div>
                 ) : (
                   <div className="flex items-center">
                     <Sparkles className="mr-2 h-4 w-4" />
-                    Create Professional AI Cover Letter
+                    Generate Concise Professional Cover Letter
                   </div>
                 )}
               </Button>

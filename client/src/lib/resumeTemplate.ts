@@ -455,64 +455,13 @@ export const createCoverLetterDocument = (formData: any): jsPDF => {
 
 // Function to generate the HTML for the cover letter preview that matches the PDF layout
 export const createCoverLetterPreviewHTML = (formData: any): string => {
-  const today = new Date();
-  const dateStr = today.toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  });
-  
+  // Simple, clean cover letter with no header elements
   let html = `
     <div class="space-y-4 p-4 text-sm">
-      <!-- Date -->
-      <div class="text-right">
-        <p>${dateStr}</p>
-      </div>
-      
-      <!-- Sender Info -->
-      <div>
-  `;
-  
-  if (formData.name) {
-    html += `<p>${formData.name}</p>`;
-  }
-  
-  if (formData.email) {
-    html += `<p>${formData.email}</p>`;
-  }
-  
-  if (formData.phone) {
-    html += `<p>${formData.phone}</p>`;
-  }
-  
-  if (formData.location) {
-    html += `<p>${formData.location}</p>`;
-  }
-  
-  html += `
-      </div>
-      
-      <!-- Recipient Info -->
-      <div class="mt-8">
-        <p>Hiring Manager</p>
-  `;
-  
-  if (formData.targetCompany) {
-    html += `<p>${formData.targetCompany}</p>`;
-  }
-  
-  html += `
-      </div>
-      
-      <!-- No separate salutation needed - will be in the content from OpenAI -->
-      <div class="mt-8"></div>
-      
-      <!-- Content -->
+      <!-- Cover Letter Content only (no date, addresses, or other header info) -->
       <div class="mt-4">
         <p style="white-space: pre-line">${formData.coverLetter ? formData.coverLetter.replace(/<[^>]*>/g, '') : ""}</p>
       </div>
-      
-      <!-- No separate closing needed - will be included in the content from OpenAI -->
     </div>
   `;
   
