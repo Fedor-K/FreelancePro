@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { ResumeSettings, getResumeSettings, saveResumeSettings } from "@/lib/settingsService";
+import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -87,22 +86,12 @@ const invoiceFormSchema = z.object({
   sendReminders: z.boolean().default(true),
 });
 
-// Resume settings schema
-const resumeFormSchema = z.object({
-  defaultTitle: z.string().min(2, { message: "Title must be at least 2 characters" }),
-  skills: z.string().max(500, { message: "Skills must not exceed 500 characters" }),
-  languages: z.string().max(200, { message: "Languages must not exceed 200 characters" }),
-  education: z.string().max(500, { message: "Education must not exceed 500 characters" }),
-  experience: z.string().max(1000, { message: "Experience must not exceed 1000 characters" }),
-  projects: z.string().max(1000, { message: "Projects must not exceed 1000 characters" }),
-  defaultTemplate: z.string().default("professional"),
-});
+
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 type BusinessFormValues = z.infer<typeof businessFormSchema>;
 type NotificationFormValues = z.infer<typeof notificationFormSchema>;
 type InvoiceFormValues = z.infer<typeof invoiceFormSchema>;
-type ResumeFormValues = z.infer<typeof resumeFormSchema>;
 
 export default function Settings() {
   const { toast } = useToast();
@@ -157,33 +146,7 @@ export default function Settings() {
     },
   });
   
-  // Resume form
-  const resumeForm = useForm<ResumeFormValues>({
-    resolver: zodResolver(resumeFormSchema),
-    defaultValues: {
-      defaultTitle: "Professional Translator Resume",
-      skills: "Translation, Editing, Proofreading, Content Writing, Localization",
-      languages: "English (Native), French (Fluent), Spanish (Intermediate)",
-      education: "BA in Linguistics, University of California, 2018",
-      experience: "Freelance Translator (2018-Present)\n- Translated over 50 documents for various clients\n- Specialized in technical and marketing content",
-      projects: "Website Translation for ABC Corp\n- Translated company website from English to Spanish\n- Adapted marketing content for cultural relevance",
-      defaultTemplate: "professional",
-    },
-  });
-  
-  // Load resume settings on component mount
-  useEffect(() => {
-    const loadResumeSettings = async () => {
-      try {
-        const settings = await getResumeSettings();
-        resumeForm.reset(settings);
-      } catch (error) {
-        console.error("Failed to load resume settings:", error);
-      }
-    };
-    
-    loadResumeSettings();
-  }, [resumeForm]);
+
 
   // Form submit handlers
   const onProfileSubmit = (data: ProfileFormValues) => {
@@ -218,23 +181,7 @@ export default function Settings() {
     console.log("Invoice data:", data);
   };
 
-  const onResumeSubmit = async (data: ResumeFormValues) => {
-    try {
-      await saveResumeSettings(data);
-      
-      toast({
-        title: "Resume settings updated",
-        description: "Your resume settings have been saved and will be used in the Resume Builder.",
-      });
-    } catch (error) {
-      console.error("Failed to save resume settings:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save resume settings. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
+
 
   // Helper to render the setting tab content
   const renderTabContent = () => {
