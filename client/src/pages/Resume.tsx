@@ -7,9 +7,16 @@ import SavedResumes from "@/components/resume/SavedResumes";
 
 export default function Resume() {
   const [showBuilder, setShowBuilder] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   
   const handleCreateResume = () => {
     setShowBuilder(true);
+  };
+  
+  const handleBackToResumes = () => {
+    setShowBuilder(false);
+    // Increment the refresh key to trigger a reload of the saved resumes
+    setRefreshKey(prev => prev + 1);
   };
   
   return (
@@ -34,7 +41,7 @@ export default function Resume() {
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold">New Resume</h2>
-            <Button variant="outline" onClick={() => setShowBuilder(false)}>
+            <Button variant="outline" onClick={handleBackToResumes}>
               Back to Saved Resumes
             </Button>
           </div>
@@ -93,7 +100,7 @@ export default function Resume() {
         </div>
       ) : (
         <div className="space-y-6">
-          <SavedResumes />
+          <SavedResumes key={refreshKey} />
         </div>
       )}
     </div>

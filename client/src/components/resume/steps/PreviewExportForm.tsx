@@ -44,19 +44,62 @@ export default function PreviewExportForm({ formData, updateField }: PreviewExpo
   };
   
   // Handle save
-  const handleSave = () => {
-    // Here we would send the resume to the server for saving
-    // For now, just simulate with a timeout
-    setTimeout(() => {
+  const handleSave = async () => {
+    try {
+      // Determine what to save based on active tab
+      const type = activeTab === "resume" ? "resume" : "cover_letter";
+      const name = activeTab === "resume" 
+        ? resumeName 
+        : `Cover Letter - ${formData.targetPosition || "General"}`;
+      
+      // Create HTML content for preview
+      const htmlContent = activeTab === "resume" 
+        ? createResumePreviewHTML(formData) 
+        : createCoverLetterPreviewHTML(formData);
+      
+      // Prepare data to save
+      const resumeData = {
+        name,
+        type,
+        content: activeTab === "resume" ? JSON.stringify(formData) : formData.coverLetter,
+        htmlContent,
+        projectId: formData.selectedProjects && formData.selectedProjects.length > 0 
+          ? formData.selectedProjects[0].id 
+          : null,
+        targetPosition: formData.targetPosition || null,
+        targetCompany: formData.targetCompany || null
+      };
+      
+      // Send to server
+      const response = await fetch('/api/resumes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(resumeData)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Error saving ${type}: ${response.statusText}`);
+      }
+      
+      // Show success message
       toast({
-        title: "Resume saved",
-        description: "Your resume has been saved to your account",
+        title: `${activeTab === "resume" ? "Resume" : "Cover letter"} saved`,
+        description: `Your ${activeTab === "resume" ? "resume" : "cover letter"} has been saved to your account`,
       });
       setIsSaved(true);
       
       // Reset after some time
       setTimeout(() => setIsSaved(false), 3000);
-    }, 500);
+    } catch (error) {
+      console.error("Error saving resume:", error);
+      toast({
+        title: "Save failed",
+        description: "There was an error saving your document. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
   
   // Handle copy
