@@ -91,7 +91,7 @@ type InvoiceFormValues = z.infer<typeof invoiceFormSchema>;
 
 export default function Settings() {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, deleteAccountMutation } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   
   // Profile form
@@ -569,6 +569,78 @@ export default function Settings() {
           </Card>
         );
         
+      case "account":
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Account Settings</CardTitle>
+              <CardDescription>
+                Manage your account security and account deletion options.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-8">
+              <div>
+                <h3 className="text-lg font-medium">Account Security</h3>
+                <p className="text-sm text-muted-foreground mt-2">
+                  You can change your password and update security settings here.
+                </p>
+                <div className="mt-4">
+                  <Button variant="outline" className="mr-2">
+                    Change Password
+                  </Button>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="text-lg font-medium text-destructive">Danger Zone</h3>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Once you delete your account, all of your data will be permanently removed. This action cannot be undone.
+                </p>
+                
+                <div className="mt-6 p-4 border border-destructive/20 bg-destructive/5 rounded-md">
+                  <h4 className="font-medium text-destructive">Delete My Account</h4>
+                  <p className="text-sm mt-2 mb-4">
+                    This will permanently delete your account and all associated data including clients, projects, invoices, and documents.
+                  </p>
+                  
+                  <div className="flex flex-col space-y-4">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox id="confirm-delete" />
+                      <label
+                        htmlFor="confirm-delete"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        I understand that this action is irreversible
+                      </label>
+                    </div>
+                    
+                    <Button 
+                      variant="destructive"
+                      onClick={() => {
+                        const checkbox = document.getElementById("confirm-delete") as HTMLInputElement;
+                        
+                        if (checkbox?.checked) {
+                          if (window.confirm("Are you absolutely sure you want to delete your account? This action cannot be undone.")) {
+                            deleteAccountMutation.mutate();
+                          }
+                        } else {
+                          toast({
+                            title: "Confirmation required",
+                            description: "Please confirm that you understand this action is irreversible.",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                      disabled={deleteAccountMutation.isPending}
+                    >
+                      {deleteAccountMutation.isPending ? "Deleting..." : "Delete My Account"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
     }
   };
 
