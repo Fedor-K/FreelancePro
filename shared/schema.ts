@@ -105,6 +105,27 @@ export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 export type ExternalData = typeof externalData.$inferSelect;
 export type InsertExternalData = z.infer<typeof insertExternalDataSchema>;
 
+// Resume schema
+export const resumes = pgTable("resumes", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // 'resume' or 'cover_letter'
+  content: text("content").notNull(),
+  projectId: integer("project_id").references(() => projects.id),
+  targetPosition: text("target_position"),
+  targetCompany: text("target_company"),
+  htmlContent: text("html_content").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertResumeSchema = createInsertSchema(resumes).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type Resume = typeof resumes.$inferSelect;
+export type InsertResume = z.infer<typeof insertResumeSchema>;
+
 // Define webhook payload schema
 export const webhookPayloadSchema = z.object({
   type: z.string().min(1, "Type is required"),

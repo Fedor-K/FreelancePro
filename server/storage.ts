@@ -22,8 +22,6 @@ export interface IStorage {
   updateProject(id: number, project: Partial<InsertProject>): Promise<Project | undefined>;
   deleteProject(id: number): Promise<boolean>;
 
-
-
   // Document operations
   getDocuments(): Promise<Document[]>;
   getDocumentsByProject(projectId: number): Promise<Document[]>;
@@ -31,6 +29,14 @@ export interface IStorage {
   createDocument(document: InsertDocument): Promise<Document>;
   updateDocument(id: number, document: Partial<{ content: string }>): Promise<Document | undefined>;
   deleteDocument(id: number): Promise<boolean>;
+  
+  // Resume operations
+  getResumes(): Promise<Resume[]>;
+  getResumesByType(type: string): Promise<Resume[]>;
+  getResume(id: number): Promise<Resume | undefined>;
+  createResume(resume: InsertResume): Promise<Resume>;
+  updateResume(id: number, resume: Partial<InsertResume>): Promise<Resume | undefined>;
+  deleteResume(id: number): Promise<boolean>;
   
   // External data operations
   getExternalData(): Promise<ExternalData[]>;
