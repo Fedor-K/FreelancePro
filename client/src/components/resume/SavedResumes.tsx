@@ -290,88 +290,84 @@ export default function SavedResumes() {
           </DialogHeader>
           
           <ScrollArea className="h-[60vh] border rounded-md">
-            <div className="p-6">
-              {/* This would be replaced with an actual resume preview */}
-              <div className="space-y-6">
-                <div className="text-center">
-                  <h1 className="text-2xl font-bold">John Smith</h1>
-                  <p className="text-muted-foreground">Senior Translation Specialist</p>
-                  <div className="flex justify-center gap-2 text-sm mt-1">
-                    <span>john@example.com</span>
-                    <span>•</span>
-                    <span>+1 (555) 123-4567</span>
-                    <span>•</span>
-                    <span>New York, NY</span>
-                  </div>
-                </div>
-                
-                <div>
-                  <h2 className="text-lg font-semibold border-b pb-1 mb-2">Summary</h2>
-                  <p className="text-sm">
-                    Experienced translator with over 8 years of expertise in technical and business translation. Specialized in English to Spanish and English to French translations for software, legal, and marketing materials.
-                  </p>
-                </div>
-                
-                <div>
-                  <h2 className="text-lg font-semibold border-b pb-1 mb-2">Professional Experience</h2>
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="font-medium">Senior Translator</h3>
-                      <p className="text-sm text-muted-foreground">GlobalTech Translations • 2018-Present</p>
-                      <p className="text-sm mt-1">
-                        Led translation projects for major tech clients, managing terminology databases and ensuring consistency across all materials.
-                      </p>
-                    </div>
-                    <div>
-                      <h3 className="font-medium">Freelance Translator</h3>
-                      <p className="text-sm text-muted-foreground">Self-employed • 2015-2018</p>
-                      <p className="text-sm mt-1">
-                        Provided translation services for various clients in technical, legal, and marketing fields.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <h2 className="text-lg font-semibold border-b pb-1 mb-2">Skills</h2>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline">Translation</Badge>
-                    <Badge variant="outline">Localization</Badge>
-                    <Badge variant="outline">Proofreading</Badge>
-                    <Badge variant="outline">CAT Tools</Badge>
-                    <Badge variant="outline">SDL Trados</Badge>
-                    <Badge variant="outline">MemoQ</Badge>
-                    <Badge variant="outline">Terminology Management</Badge>
-                  </div>
-                </div>
-                
-                <div>
-                  <h2 className="text-lg font-semibold border-b pb-1 mb-2">Languages</h2>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="text-sm">
-                      <span className="font-medium">English:</span> Native
-                    </div>
-                    <div className="text-sm">
-                      <span className="font-medium">Spanish:</span> Fluent (C2)
-                    </div>
-                    <div className="text-sm">
-                      <span className="font-medium">French:</span> Fluent (C1)
-                    </div>
-                    <div className="text-sm">
-                      <span className="font-medium">German:</span> Intermediate (B1)
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <h2 className="text-lg font-semibold border-b pb-1 mb-2">Education</h2>
-                  <div>
-                    <h3 className="font-medium">Master's in Translation Studies</h3>
-                    <p className="text-sm text-muted-foreground">University of Translation • 2015</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <iframe
+              srcDoc={`
+                <html>
+                  <head>
+                    <style>
+                      body {
+                        font-family: Arial, sans-serif;
+                        line-height: 1.6;
+                        color: #333;
+                        margin: 0;
+                        padding: 1rem;
+                      }
+                      h1, h2, h3, h4 {
+                        margin-top: 0;
+                        color: #2B6CB0;
+                      }
+                      h1 { font-size: 24px; text-align: center; margin-bottom: 0.5rem; }
+                      h2 { font-size: 18px; text-align: center; font-weight: normal; margin-bottom: 1rem; }
+                      h3 { font-size: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.25rem; margin-top: 1.5rem; }
+                      p { margin: 0.5rem 0; }
+                      ul { padding-left: 1.5rem; }
+                      .contact-info { text-align: center; margin-bottom: 1.5rem; font-size: 14px; }
+                      .job-title { font-weight: bold; margin-bottom: 0; }
+                      .company { margin-bottom: 0; }
+                      .dates { font-style: italic; margin-bottom: 0.5rem; font-size: 14px; }
+                      .section { margin-bottom: 1.5rem; }
+                      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+                      .language-item { margin-bottom: 0.5rem; }
+                      .language-name { font-weight: bold; }
+                    </style>
+                  </head>
+                  <body>
+                    ${createResumePreviewHTML({
+                      name: "John Smith",
+                      professionalTitle: "Senior Translation Specialist",
+                      email: "john@example.com",
+                      phone: "+1 (555) 123-4567",
+                      location: "New York, NY",
+                      website: "johnsmith.portfolio.com",
+                      summary: "Experienced translator with over 8 years of expertise in technical and business translation. Specialized in English to Spanish and English to French translations for software, legal, and marketing materials.",
+                      skills: ["Translation", "Localization", "Proofreading", "CAT Tools", "SDL Trados", "MemoQ", "Terminology Management"],
+                      languages: [
+                        { language: "English", level: "Native" },
+                        { language: "Spanish", level: "Fluent (C2)" },
+                        { language: "French", level: "Fluent (C1)" },
+                        { language: "German", level: "Intermediate (B1)" }
+                      ],
+                      experience: [
+                        {
+                          role: "Senior Translator",
+                          company: "GlobalTech Translations",
+                          startDate: "2018",
+                          endDate: "Present",
+                          description: "Led translation projects for major tech clients, managing terminology databases and ensuring consistency across all materials."
+                        },
+                        {
+                          role: "Freelance Translator",
+                          company: "Self-employed",
+                          startDate: "2015",
+                          endDate: "2018",
+                          description: "Provided translation services for various clients in technical, legal, and marketing fields."
+                        }
+                      ],
+                      education: [
+                        {
+                          degree: "Master's in Translation Studies",
+                          institution: "University of Translation",
+                          year: "2015",
+                          description: ""
+                        }
+                      ]
+                    })}
+                  </body>
+                </html>
+              `}
+              style={{ width: '100%', height: '100%', border: 'none', minHeight: '500px' }}
+              title="Resume Preview"
+            />
           </ScrollArea>
           
           <DialogFooter className="flex justify-end gap-2">
