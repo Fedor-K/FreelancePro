@@ -1,9 +1,8 @@
 import { ReactNode } from "react";
 import Sidebar from "@/components/Sidebar";
 import { useLocation } from "wouter";
-import { Menu, Bell, HelpCircle, Search, LogOut } from "lucide-react";
+import { Menu, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
 
 interface LayoutProps {
@@ -62,19 +61,8 @@ export default function Layout({ children }: LayoutProps) {
             <Menu className="h-5 w-5" />
           </Button>
           <div className="flex justify-between flex-1 px-4">
-            <div className="flex flex-1">
-              <div className="flex w-full md:ml-0">
-                <div className="relative w-full text-gray-400 focus-within:text-gray-600">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <Search className="h-5 w-5" />
-                  </div>
-                  <Input
-                    className="block w-full h-full py-2 pl-10 pr-3 text-gray-900 placeholder-gray-500 bg-gray-50 border border-transparent rounded-md focus:outline-none focus:bg-white focus:border-primary sm:text-sm"
-                    placeholder="Search clients, projects..."
-                  />
-                </div>
-              </div>
-            </div>
+            {/* Removed search bar */}
+            <div className="flex-1"></div>
             <div className="flex items-center ml-4 md:ml-6">
               {user && (
                 <div className="flex items-center">
@@ -92,18 +80,7 @@ export default function Layout({ children }: LayoutProps) {
                   </Button>
                 </div>
               )}
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="p-1 text-gray-400 bg-white rounded-full hover:text-gray-500">
-                <Bell className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="p-1 ml-3 text-gray-400 bg-white rounded-full hover:text-gray-500">
-                <HelpCircle className="h-5 w-5" />
-              </Button>
+              {/* Removed notification bell and help circle icons */}
             </div>
           </div>
         </div>
