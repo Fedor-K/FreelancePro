@@ -16,6 +16,7 @@ type AuthContextType = {
   logoutMutation: UseMutationResult<void, Error, void>;
   registerMutation: UseMutationResult<User, Error, RegisterData>;
   deleteAccountMutation: UseMutationResult<void, Error, void>;
+  changePasswordMutation: UseMutationResult<void, Error, PasswordChangeData>;
 };
 
 type LoginData = {
@@ -28,6 +29,11 @@ type RegisterData = {
   password: string;
   email: string;
   fullName?: string;
+};
+
+type PasswordChangeData = {
+  currentPassword: string;
+  newPassword: string;
 };
 
 export const AuthContext = createContext<AuthContextType | null>(null);
@@ -127,6 +133,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  const changePasswordMutation = useMutation({
+    mutationFn: async (data: PasswordChangeData) => {
+      await apiRequest("POST", "/api/user/change-password", data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Password changed",
+        description: "Your password has been successfully updated.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to change password",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   return (
     <AuthContext.Provider
       value={{
@@ -137,6 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logoutMutation,
         registerMutation,
         deleteAccountMutation,
+        changePasswordMutation,
       }}
     >
       {children}

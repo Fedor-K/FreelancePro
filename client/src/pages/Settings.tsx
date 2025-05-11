@@ -26,6 +26,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 // Removed unused tabs imports that were causing console errors
 import {
   Select,
@@ -101,9 +110,19 @@ type PasswordFormValues = z.infer<typeof passwordFormSchema>;
 
 export default function Settings() {
   const { toast } = useToast();
-  const { user, deleteAccountMutation } = useAuth();
+  const { user, deleteAccountMutation, changePasswordMutation } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  
+  // Password form
+  const passwordForm = useForm<PasswordFormValues>({
+    resolver: zodResolver(passwordFormSchema),
+    defaultValues: {
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    },
+  });
   
   // Profile form
   const profileForm = useForm<ProfileFormValues>({
@@ -195,6 +214,21 @@ export default function Settings() {
       description: "Your invoice settings have been saved.",
     });
     console.log("Invoice data:", data);
+  };
+  
+  const onPasswordSubmit = (data: PasswordFormValues) => {
+    changePasswordMutation.mutate(
+      { 
+        currentPassword: data.currentPassword, 
+        newPassword: data.newPassword 
+      },
+      {
+        onSuccess: () => {
+          setIsPasswordDialogOpen(false);
+          passwordForm.reset();
+        }
+      }
+    );
   };
 
 
@@ -596,7 +630,11 @@ export default function Settings() {
                   You can change your password and update security settings here.
                 </p>
                 <div className="mt-4">
-                  <Button variant="outline" className="mr-2">
+                  <Button 
+                    variant="outline" 
+                    className="mr-2"
+                    onClick={() => setIsPasswordDialogOpen(true)}
+                  >
                     Change Password
                   </Button>
                 </div>
