@@ -16,31 +16,11 @@ export default function SavedResumes() {
   const { toast } = useToast();
   const [previewResume, setPreviewResume] = useState<any>(null);
   
-  // This would normally fetch saved resumes from the API
-  const { data: resumes, isLoading } = useQuery({
+  // Fetch resumes from the API
+  const { data: resumes, isLoading, refetch } = useQuery({
     queryKey: ['/api/resumes'],
-    enabled: false, // Disable until we have the API endpoint
+    enabled: true,
   });
-  
-  // For demonstration, using mock data
-  const mockResumes = [
-    {
-      id: 1,
-      name: "Software Developer Resume",
-      createdAt: "2023-05-10T14:30:00Z",
-      lastUpdated: "2023-05-11T09:15:00Z",
-      targetPosition: "Senior Software Developer",
-      template: "professional",
-    },
-    {
-      id: 2,
-      name: "Technical Writer Position",
-      createdAt: "2023-04-22T11:20:00Z",
-      lastUpdated: "2023-04-22T11:20:00Z",
-      targetPosition: "Technical Writer",
-      template: "minimal",
-    }
-  ];
   
   // Handle resume preview
   const handlePreview = (resume: any) => {
@@ -135,19 +115,82 @@ export default function SavedResumes() {
   };
   
   // Handle resume delete
-  const handleDelete = (resumeId: number) => {
-    toast({
-      title: "Resume Deleted",
-      description: "The resume has been deleted successfully.",
-    });
+  const handleDelete = async (resumeId: number) => {
+    try {
+      const response = await fetch(`/api/resumes/${resumeId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to delete resume: ${response.statusText}`);
+      }
+      
+      // Refetch the data to update the UI
+      refetch();
+      
+      toast({
+        title: "Resume Deleted",
+        description: "The resume has been deleted successfully.",
+      });
+    } catch (error) {
+      console.error("Error deleting resume:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete the resume. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
   
   // Handle resume copy
-  const handleCopy = (resumeId: number) => {
-    toast({
-      title: "Resume Duplicated",
-      description: "A copy of the resume has been created.",
-    });
+  const handleCopy = async (resumeId: number) => {
+    try {
+      // First get the resume to copy
+      const getResponse = await fetch(`/api/resumes/${resumeId}`);
+      
+      if (!getResponse.ok) {
+        throw new Error(`Failed to get resume: ${getResponse.statusText}`);
+      }
+      
+      const resumeToCopy = await getResponse.json();
+      
+      // Create a new resume with the same data but a different name
+      const newResume = {
+        ...resumeToCopy,
+        name: `${resumeToCopy.name} (Copy)`,
+      };
+      
+      // Remove id and createdAt as they'll be set by the server
+      delete newResume.id;
+      delete newResume.createdAt;
+      
+      const createResponse = await fetch('/api/resumes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newResume),
+      });
+      
+      if (!createResponse.ok) {
+        throw new Error(`Failed to create resume copy: ${createResponse.statusText}`);
+      }
+      
+      // Refetch the data to update the UI
+      refetch();
+      
+      toast({
+        title: "Resume Duplicated",
+        description: "A copy of the resume has been created.",
+      });
+    } catch (error) {
+      console.error("Error copying resume:", error);
+      toast({
+        title: "Error",
+        description: "Failed to duplicate the resume. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
   
   if (isLoading) {
@@ -191,9 +234,9 @@ export default function SavedResumes() {
         </TabsList>
         
         <TabsContent value="resumes" className="space-y-4">
-          {mockResumes.length > 0 ? (
+          {resumes && resumes.filter(r => r.type === 'resume').length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {mockResumes.map((resume) => (
+              {resumes.filter(resume => resume.type === 'resume').map((resume) => (
                 <Card key={resume.id}>
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
@@ -270,12 +313,84 @@ export default function SavedResumes() {
         </TabsContent>
         
         <TabsContent value="cover-letters" className="space-y-4">
-          <Alert>
-            <AlertTitle>No saved cover letters</AlertTitle>
-            <AlertDescription>
-              You haven't created any standalone cover letters yet. You can create cover letters along with your resumes.
-            </AlertDescription>
-          </Alert>
+          {resumes && resumes.filter(r => r.type === 'cover_letter').length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {resumes.filter(resume => resume.type === 'cover_letter').map((resume) => (
+                <Card key={resume.id}>
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="text-lg">{resume.name}</CardTitle>
+                        <CardDescription>
+                          {new Date(resume.createdAt).toLocaleDateString()}
+                        </CardDescription>
+                      </div>
+                      {resume.targetPosition && (
+                        <Badge variant="outline">{resume.targetPosition}</Badge>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pb-2">
+                    <div className="text-sm text-muted-foreground">
+                      <span>Created: {new Date(resume.createdAt).toLocaleDateString()}</span>
+                      {resume.targetCompany && (
+                        <div className="mt-1">Company: {resume.targetCompany}</div>
+                      )}
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex flex-wrap gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handlePreview(resume)}
+                    >
+                      <Eye className="mr-1 h-4 w-4" />
+                      Preview
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleEdit(resume.id)}
+                    >
+                      <FileEdit className="mr-1 h-4 w-4" />
+                      Edit
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleDownload(resume.id)}
+                    >
+                      <Download className="mr-1 h-4 w-4" />
+                      Download
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleCopy(resume.id)}
+                    >
+                      <Copy className="mr-1 h-4 w-4" />
+                      Duplicate
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="destructive"
+                      onClick={() => handleDelete(resume.id)}
+                    >
+                      <Trash2 className="mr-1 h-4 w-4" />
+                      Delete
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Alert>
+              <AlertTitle>No saved cover letters</AlertTitle>
+              <AlertDescription>
+                You haven't created any standalone cover letters yet. You can create cover letters along with your resumes.
+              </AlertDescription>
+            </Alert>
+          )}
         </TabsContent>
       </Tabs>
       

@@ -629,6 +629,101 @@ Date: ____________
     }
   });
 
+  // Resume routes
+  app.get("/api/resumes", async (req: Request, res: Response) => {
+    try {
+      let resumes;
+      // Filter by type if provided
+      if (req.query.type) {
+        const type = req.query.type as string;
+        resumes = await storage.getResumesByType(type);
+      } else {
+        resumes = await storage.getResumes();
+      }
+      res.json(resumes);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch resumes" });
+    }
+  });
+
+  app.get("/api/resumes/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid resume ID" });
+      }
+      
+      const resume = await storage.getResume(id);
+      if (!resume) {
+        return res.status(404).json({ message: "Resume not found" });
+      }
+      
+      res.json(resume);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch resume" });
+    }
+  });
+
+  app.post("/api/resumes", async (req: Request, res: Response) => {
+    try {
+      const result = insertResumeSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ 
+          message: "Invalid resume data", 
+          errors: result.error.format() 
+        });
+      }
+      
+      const resume = await storage.createResume(result.data);
+      res.status(201).json(resume);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create resume" });
+    }
+  });
+
+  app.patch("/api/resumes/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid resume ID" });
+      }
+      
+      const updateData = req.body;
+      
+      const resume = await storage.getResume(id);
+      if (!resume) {
+        return res.status(404).json({ message: "Resume not found" });
+      }
+      
+      const updatedResume = await storage.updateResume(id, updateData);
+      if (!updatedResume) {
+        return res.status(500).json({ message: "Failed to update resume" });
+      }
+      
+      res.json(updatedResume);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update resume" });
+    }
+  });
+
+  app.delete("/api/resumes/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid resume ID" });
+      }
+      
+      const success = await storage.deleteResume(id);
+      if (!success) {
+        return res.status(404).json({ message: "Resume not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete resume" });
+    }
+  });
+
   // AI-powered cover letter generation
   app.post("/api/ai/generate-cover-letter", async (req: Request, res: Response) => {
     try {
