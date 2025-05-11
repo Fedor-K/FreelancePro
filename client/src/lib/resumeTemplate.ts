@@ -480,9 +480,10 @@ export const createCoverLetterDocument = (formData: any): jsPDF => {
   doc.text("Dear Hiring Manager,", margin, yPos);
   yPos += 10;
   
-  // Add cover letter content
+  // Add cover letter content with sanitization to remove any potential HTML
   doc.setFontSize(10);
-  const splitText = doc.splitTextToSize(formData.coverLetter, pageWidth - (margin * 2));
+  const sanitizedText = formData.coverLetter ? formData.coverLetter.replace(/<[^>]*>/g, '') : "";
+  const splitText = doc.splitTextToSize(sanitizedText, pageWidth - (margin * 2));
   doc.text(splitText, margin, yPos);
   
   // Calculate the position for the closing, accounting for the text height
@@ -491,11 +492,9 @@ export const createCoverLetterDocument = (formData: any): jsPDF => {
   // Add closing
   doc.text("Sincerely,", margin, yPos);
   yPos += 15;
-  if (formData.name) {
-    doc.text(formData.name, margin, yPos);
-  } else {
-    doc.text("Your Name", margin, yPos);
-  }
+  // Sanitize name to remove any HTML content
+  const sanitizedName = formData.name ? formData.name.replace(/<[^>]*>/g, '') : "Your Name";
+  doc.text(sanitizedName, margin, yPos);
   
   return doc;
 };
@@ -558,13 +557,13 @@ export const createCoverLetterPreviewHTML = (formData: any): string => {
       
       <!-- Content -->
       <div class="mt-4">
-        <p style="white-space: pre-line">${formData.coverLetter || ""}</p>
+        <p style="white-space: pre-line">${formData.coverLetter ? formData.coverLetter.replace(/<[^>]*>/g, '') : ""}</p>
       </div>
       
       <!-- Closing -->
       <div class="mt-8">
         <p>Sincerely,</p>
-        <p class="mt-8">${formData.name || "Your Name"}</p>
+        <p class="mt-8">${formData.name ? formData.name.replace(/<[^>]*>/g, '') : "Your Name"}</p>
       </div>
     </div>
   `;
