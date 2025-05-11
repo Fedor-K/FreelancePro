@@ -197,4 +197,33 @@ export function setupAuth(app: Express): void {
     
     res.json(userWithoutPassword);
   });
+  
+  // Delete account endpoint
+  app.delete("/api/user", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      
+      const userId = req.user.id;
+      
+      // Delete the user and all associated data
+      const success = await storage.deleteUser(userId);
+      
+      if (!success) {
+        return res.status(500).json({ error: "Failed to delete account" });
+      }
+      
+      // Log the user out
+      req.logout((err) => {
+        if (err) {
+          return res.status(500).json({ error: "Logout failed after account deletion" });
+        }
+        
+        res.status(200).json({ message: "Account successfully deleted" });
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete account" });
+    }
+  });
 }

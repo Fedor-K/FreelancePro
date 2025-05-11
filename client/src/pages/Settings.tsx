@@ -608,7 +608,13 @@ export default function Settings() {
               <Database className="h-4 w-4 mr-2" />
               Invoicing
             </button>
-
+            <button 
+              className={`flex items-center justify-start px-3 py-2 text-sm ${activeTab === "account" ? "bg-muted font-medium" : "text-muted-foreground hover:bg-muted/50"} rounded-md transition-colors`}
+              onClick={() => setActiveTab("account")}
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Account
+            </button>
           </div>
         </aside>
         
