@@ -51,11 +51,11 @@ export default function TargetPositionForm({ formData, updateField, nextStep }: 
   
   const handleEditCV = () => {
     setIsEditing(true);
-    setResumeGenerated(false);
+    // Keep the resume generated state true so the preview remains visible
     
     toast({
       title: "Editing CV",
-      description: "You can now edit the CV details",
+      description: "You can now edit the CV details and regenerate when ready",
     });
   };
   
@@ -112,7 +112,7 @@ export default function TargetPositionForm({ formData, updateField, nextStep }: 
             ) : (
               <div className="flex items-center">
                 <FileText className="mr-2 h-4 w-4" />
-                Generate CV
+                {isEditing ? "Update Preview" : "Generate CV"}
               </div>
             )}
           </Button>
@@ -121,7 +121,14 @@ export default function TargetPositionForm({ formData, updateField, nextStep }: 
       
       {resumeGenerated && (
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">CV Preview</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold">CV Preview</h3>
+            {isEditing && (
+              <span className="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded">
+                Editing
+              </span>
+            )}
+          </div>
           <Card className="border-green-200 overflow-hidden">
             <CardContent className="p-0 h-[300px] overflow-auto">
               <div
