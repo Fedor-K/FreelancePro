@@ -20,6 +20,7 @@ export default function CoverLetterForm({ formData, updateField }: CoverLetterFo
   const [isGenerating, setIsGenerating] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [coverLetterGenerated, setCoverLetterGenerated] = useState(false);
+  const [formTab, setFormTab] = useState<"edit" | "preview">("edit");
   
   // Handle cover letter generation
   const generateCoverLetter = async () => {
@@ -230,6 +231,16 @@ ${formData.name || "Your Name"}
                   <CardTitle className="text-base">Cover Letter Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <Label htmlFor="edit-mode">Edit Mode</Label>
+                    <Tabs value={formTab} onValueChange={(v) => setFormTab(v as "edit" | "preview")} className="w-[120px]">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="edit">Edit</TabsTrigger>
+                        <TabsTrigger value="preview">View</TabsTrigger>
+                      </TabsList>
+                    </Tabs>
+                  </div>
+                  
                   <Button 
                     className="w-full justify-start"
                     onClick={() => generateCoverLetter()}
@@ -286,12 +297,50 @@ ${formData.name || "Your Name"}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
-                  <Textarea
-                    value={formData.coverLetter || ""}
-                    onChange={(e) => updateField("coverLetter", e.target.value)}
-                    className="min-h-[500px] rounded-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 resize-none font-serif"
-                    placeholder="Your cover letter will appear here. You can edit it directly."
-                  />
+                  {formTab === "edit" ? (
+                    <Textarea
+                      value={formData.coverLetter || ""}
+                      onChange={(e) => updateField("coverLetter", e.target.value)}
+                      className="min-h-[500px] rounded-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 resize-none font-serif"
+                      placeholder="Your cover letter will appear here. You can edit it directly."
+                    />
+                  ) : (
+                    <div className="flex flex-col h-full">
+                      <div className="p-0 flex-1 min-h-[500px]">
+                        <iframe
+                          srcDoc={`
+                            <html>
+                              <head>
+                                <style>
+                                  body {
+                                    font-family: Georgia, 'Times New Roman', serif;
+                                    line-height: 1.6;
+                                    color: #333;
+                                    margin: 0;
+                                    padding: 1.5rem;
+                                    background-color: white;
+                                  }
+                                  p { margin: 0.5rem 0; }
+                                  .letter-heading { text-align: right; margin-bottom: 2rem; }
+                                  .sender-info { margin-bottom: 2rem; }
+                                  .recipient-info { margin-bottom: 2rem; }
+                                  .salutation { margin-bottom: 1rem; }
+                                  .content { margin-bottom: 2rem; white-space: pre-line; }
+                                  .closing { margin-bottom: 0.5rem; }
+                                  .signature { margin-top: 2rem; }
+                                </style>
+                              </head>
+                              <body>
+                                ${createCoverLetterPreviewHTML(formData)}
+                              </body>
+                            </html>
+                          `}
+                          style={{ width: '100%', height: '100%', border: 'none', minHeight: '500px' }}
+                          title="Cover Letter Preview"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>

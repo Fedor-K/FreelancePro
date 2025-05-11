@@ -10,7 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { jsPDF } from "jspdf";
+import { createResumePreviewHTML, downloadResume } from "@/lib/resumeTemplate";
 
 export default function SavedResumes() {
   const { toast } = useToast();
@@ -75,177 +75,50 @@ export default function SavedResumes() {
         return;
       }
       
-      // Create PDF document that matches the preview
-      const doc = new jsPDF();
-      const pageWidth = doc.internal.pageSize.getWidth();
+      // Sample resume data that matches the preview
+      const resumeData = {
+        name: "John Smith",
+        professionalTitle: "Senior Translation Specialist",
+        email: "john@example.com",
+        phone: "+1 (555) 123-4567",
+        location: "New York, NY",
+        website: "johnsmith.portfolio.com",
+        summary: "Experienced translator with over 8 years of expertise in technical and business translation. Specialized in English to Spanish and English to French translations for software, legal, and marketing materials.",
+        skills: ["Translation", "Localization", "Proofreading", "CAT Tools", "SDL Trados", "MemoQ", "Terminology Management"],
+        languages: [
+          { language: "English", level: "Native" },
+          { language: "Spanish", level: "Fluent (C2)" },
+          { language: "French", level: "Fluent (C1)" },
+          { language: "German", level: "Intermediate (B1)" }
+        ],
+        experience: [
+          {
+            role: "Senior Translator",
+            company: "GlobalTech Translations",
+            startDate: "2018",
+            endDate: "Present",
+            description: "Led translation projects for major tech clients, managing terminology databases and ensuring consistency across all materials."
+          },
+          {
+            role: "Freelance Translator",
+            company: "Self-employed",
+            startDate: "2015",
+            endDate: "2018",
+            description: "Provided translation services for various clients in technical, legal, and marketing fields."
+          }
+        ],
+        education: [
+          {
+            degree: "Master's in Translation Studies",
+            institution: "University of Translation",
+            year: "2015",
+            description: ""
+          }
+        ]
+      };
       
-      // Add header with name and title
-      doc.setFontSize(20);
-      doc.setFont("helvetica", "bold");
-      doc.text("John Smith", pageWidth/2, 20, { align: "center" });
-      
-      doc.setFontSize(14);
-      doc.setFont("helvetica", "normal");
-      doc.text("Senior Translation Specialist", pageWidth/2, 30, { align: "center" });
-      
-      // Add contact info
-      doc.setFontSize(10);
-      const contactInfo = ["john@example.com", "+1 (555) 123-4567", "New York, NY"];
-      doc.text(contactInfo.join(" • "), pageWidth/2, 40, { align: "center" });
-      
-      // Summary
-      let yPosition = 50;
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "bold");
-      doc.text("Summary", 20, yPosition);
-      doc.line(20, yPosition + 1, pageWidth - 20, yPosition + 1);
-      
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "normal");
-      const summary = "Experienced translator with over 8 years of expertise in technical and business translation. Specialized in English to Spanish and English to French translations for software, legal, and marketing materials.";
-      const splitSummary = doc.splitTextToSize(summary, pageWidth - 40);
-      doc.text(splitSummary, 20, yPosition + 10);
-      
-      yPosition += 10 + (splitSummary.length * 5) + 10;
-      
-      // Professional Experience
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "bold");
-      doc.text("Professional Experience", 20, yPosition);
-      doc.line(20, yPosition + 1, pageWidth - 20, yPosition + 1);
-      
-      yPosition += 10;
-      
-      // First job
-      doc.setFontSize(11);
-      doc.setFont("helvetica", "bold");
-      doc.text("Senior Translator", 20, yPosition);
-      yPosition += 5;
-      
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "normal");
-      doc.text("GlobalTech Translations", 20, yPosition);
-      yPosition += 5;
-      doc.text("2018-Present", 20, yPosition);
-      yPosition += 5;
-      
-      const jobDesc = "Led translation projects for major tech clients, managing terminology databases and ensuring consistency across all materials.";
-      const splitJobDesc = doc.splitTextToSize(jobDesc, pageWidth - 40);
-      doc.text(splitJobDesc, 20, yPosition);
-      
-      yPosition += (splitJobDesc.length * 5) + 10;
-      
-      // Second job
-      doc.setFontSize(11);
-      doc.setFont("helvetica", "bold");
-      doc.text("Freelance Translator", 20, yPosition);
-      yPosition += 5;
-      
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "normal");
-      doc.text("Self-employed", 20, yPosition);
-      yPosition += 5;
-      doc.text("2015-2018", 20, yPosition);
-      yPosition += 5;
-      
-      const job2Desc = "Provided translation services for various clients in technical, legal, and marketing fields.";
-      const splitJob2Desc = doc.splitTextToSize(job2Desc, pageWidth - 40);
-      doc.text(splitJob2Desc, 20, yPosition);
-      
-      yPosition += (splitJob2Desc.length * 5) + 15;
-      
-      // Skills
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "bold");
-      doc.text("Skills", 20, yPosition);
-      doc.line(20, yPosition + 1, pageWidth - 20, yPosition + 1);
-      
-      yPosition += 10;
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "normal");
-      
-      const skills = ["Translation", "Localization", "Proofreading", "CAT Tools", "SDL Trados", "MemoQ", "Terminology Management"];
-      let skillsText = skills.join(", ");
-      
-      const splitSkills = doc.splitTextToSize(skillsText, pageWidth - 40);
-      doc.text(splitSkills, 20, yPosition);
-      
-      yPosition += (splitSkills.length * 5) + 15;
-      
-      // Languages
-      if (yPosition > 220) {
-        doc.addPage();
-        yPosition = 20;
-      }
-      
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "bold");
-      doc.text("Languages", 20, yPosition);
-      doc.line(20, yPosition + 1, pageWidth - 20, yPosition + 1);
-      
-      yPosition += 10;
-      doc.setFontSize(10);
-      
-      // Format languages in a grid
-      const languages = [
-        { language: "English", level: "Native" },
-        { language: "Spanish", level: "Fluent (C2)" },
-        { language: "French", level: "Fluent (C1)" },
-        { language: "German", level: "Intermediate (B1)" }
-      ];
-      
-      const languageRows = Math.ceil(languages.length / 2);
-      
-      for (let i = 0; i < languageRows; i++) {
-        // First column
-        if (i < languages.length) {
-          const lang = languages[i];
-          doc.setFont("helvetica", "bold");
-          doc.text(`${lang.language}:`, 20, yPosition);
-          doc.setFont("helvetica", "normal");
-          doc.text(lang.level, 60, yPosition);
-        }
-        
-        // Second column (if there's an item)
-        if (i + languageRows < languages.length) {
-          const lang = languages[i + languageRows];
-          doc.setFont("helvetica", "bold");
-          doc.text(`${lang.language}:`, pageWidth/2, yPosition);
-          doc.setFont("helvetica", "normal");
-          doc.text(lang.level, pageWidth/2 + 40, yPosition);
-        }
-        
-        yPosition += 7;
-      }
-      
-      yPosition += 15;
-      
-      // Education
-      if (yPosition > 220) {
-        doc.addPage();
-        yPosition = 20;
-      }
-      
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "bold");
-      doc.text("Education", 20, yPosition);
-      doc.line(20, yPosition + 1, pageWidth - 20, yPosition + 1);
-      
-      yPosition += 10;
-      
-      doc.setFontSize(11);
-      doc.setFont("helvetica", "bold");
-      doc.text("Master's in Translation Studies", 20, yPosition);
-      yPosition += 5;
-      
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "normal");
-      doc.text("University of Translation", 20, yPosition);
-      yPosition += 5;
-      doc.text("2015", 20, yPosition);
-      
-      // Save the PDF with the appropriate name
-      doc.save(`${resume.name.replace(/\s+/g, "-").toLowerCase()}.pdf`);
+      // Use our shared template function for downloading
+      downloadResume(resumeData, resume.name);
       
       toast({
         title: "Downloaded Successfully",
