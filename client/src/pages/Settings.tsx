@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/select";
 
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { 
   Settings as SettingsIcon, 
   User, 
@@ -90,19 +91,28 @@ type InvoiceFormValues = z.infer<typeof invoiceFormSchema>;
 
 export default function Settings() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   
   // Profile form
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-      name: "John Doe",
-      email: "john@example.com",
+      name: "",
+      email: "",
       bio: "Freelance translator and editor with 5+ years of experience.",
       website: "https://johndoe.com",
       jobTitle: "Professional Translator",
     },
   });
+  
+  // Update form values when user data is loaded
+  useEffect(() => {
+    if (user) {
+      profileForm.setValue("name", user.fullName || "");
+      profileForm.setValue("email", user.email);
+    }
+  }, [user, profileForm]);
 
   // Business form
   const businessForm = useForm<BusinessFormValues>({
