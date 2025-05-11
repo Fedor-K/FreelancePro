@@ -161,11 +161,13 @@ export default function ProjectSelectionForm({ formData, updateField }: ProjectS
           </div>
           
           {/* Single dropdown with all projects */}
-          <Select onValueChange={(value) => {
-            const project = projects.find(p => p.id === parseInt(value));
-            if (project) toggleProject(project);
-          }}>
-            <SelectTrigger className="w-full">
+          <Select 
+            onValueChange={(value) => {
+              const project = projects.find(p => p.id === parseInt(value));
+              if (project) toggleProject(project);
+            }}
+          >
+            <SelectTrigger className="w-full flex items-center justify-between p-2.5">
               <SelectValue placeholder="Choose Project" />
             </SelectTrigger>
             <SelectContent className="max-h-[400px]">
@@ -189,34 +191,41 @@ export default function ProjectSelectionForm({ formData, updateField }: ProjectS
                     <SelectItem 
                       key={project.id} 
                       value={project.id.toString()}
+                      className="focus:bg-accent cursor-pointer p-0"
                     >
-                      <div className="flex items-center py-1 gap-3" onClick={(e) => {
+                      <div className="flex items-start py-2 gap-3 w-full" onClick={(e) => {
                         e.stopPropagation();
                         toggleProject(project);
                       }}>
-                        <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex-shrink-0 pt-1 ml-2" onClick={(e) => e.stopPropagation()}>
                           <Checkbox 
                             checked={isProjectSelected(project.id)}
                             onCheckedChange={() => toggleProject(project)}
                           />
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="font-medium">{project.name}</div>
+                        <div className="min-w-0 flex-1 pr-2">
+                          <h4 className="font-medium text-base">{project.name}</h4>
                           <div className="text-sm text-muted-foreground">
                             Client ID: {project.clientId}
                             {project.description && <span className="ml-1">- {project.description.substring(0, 40)}{project.description.length > 40 ? '...' : ''}</span>}
                           </div>
-                          <div className="flex flex-wrap gap-1 mt-1">
+                          <div className="flex items-center flex-wrap gap-2 mt-2">
                             {project.status && renderStatusBadge(project.status)}
+                            
                             {project.deadline && (
-                              <Badge variant="outline" className="text-xs">
-                                {new Date(project.deadline).toLocaleDateString()}
-                              </Badge>
+                              <span className="text-sm whitespace-nowrap">
+                                {new Date(project.deadline).toLocaleDateString('en-US', {
+                                  day: '2-digit',
+                                  month: '2-digit', 
+                                  year: 'numeric'
+                                })}
+                              </span>
                             )}
+                            
                             {project.sourceLang && project.targetLang && (
-                              <Badge variant="outline" className="text-xs">
+                              <span className="text-sm whitespace-nowrap ml-auto">
                                 {project.sourceLang} → {project.targetLang}
-                              </Badge>
+                              </span>
                             )}
                           </div>
                         </div>
@@ -243,48 +252,63 @@ export default function ProjectSelectionForm({ formData, updateField }: ProjectS
       
       {/* Selected projects preview */}
       {formData.selectedProjects.length > 0 && (
-        <div className="space-y-3">
+        <div className="mt-8 space-y-3">
           <h3 className="text-sm font-medium">Selected projects:</h3>
           <div className="space-y-2">
             {formData.selectedProjects.map((project: Project) => (
               <div 
                 key={project.id}
-                className="flex flex-col border rounded-md overflow-hidden"
+                className="flex flex-col border rounded-md overflow-hidden bg-purple-50"
               >
-                <div className={`py-3 px-4 ${project.status === "In Progress" ? "bg-purple-200" : project.status === "Delivered" ? "bg-yellow-100" : "bg-green-100"}`}>
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-base">{project.name}</h3>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-8 w-8 p-0 rounded-full hover:bg-white/30"
-                      onClick={() => toggleProject(project)}
-                    >
-                      <span className="sr-only">Remove</span>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                      </svg>
-                    </Button>
+                <div className="flex items-center justify-between p-4">
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-base">{project.name}</h3>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-8 w-8 p-0 rounded-full hover:bg-white/30 text-gray-500"
+                        onClick={() => toggleProject(project)}
+                      >
+                        <span className="sr-only">Remove</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </Button>
+                    </div>
+                    <p className="text-sm text-gray-600">Client ID: {project.clientId} {project.description ? `- ${project.description}` : ''}</p>
+                    
+                    <div className="flex items-center mt-3 gap-3 text-sm">
+                      <span 
+                        className={`py-1 px-2.5 rounded-full 
+                          ${project.status === "In Progress" ? 
+                            "bg-blue-100 text-blue-700" : 
+                            project.status === "Delivered" ? 
+                              "bg-yellow-100 text-yellow-700" : 
+                              "bg-green-100 text-green-700"
+                          }`}
+                      >
+                        {project.status}
+                      </span>
+                      
+                      {project.deadline && (
+                        <span className="text-gray-600">
+                          {new Date(project.deadline).toLocaleDateString('en-US', { 
+                            month: '2-digit', 
+                            day: '2-digit', 
+                            year: 'numeric' 
+                          })}
+                        </span>
+                      )}
+                      
+                      {project.sourceLang && project.targetLang && (
+                        <span className="text-gray-600 ml-auto">
+                          {project.sourceLang} → {project.targetLang}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <p className="text-sm text-gray-600">Client ID: {project.clientId} {project.description ? `- ${project.description}` : ''}</p>
-                </div>
-                <div className="px-4 py-2 bg-white flex items-center gap-3">
-                  <Badge variant={project.status === "In Progress" ? "secondary" : project.status === "Delivered" ? "outline" : "default"} className="rounded-full">
-                    {project.status}
-                  </Badge>
-                  
-                  {project.deadline && (
-                    <Badge variant="outline" className="rounded-full">
-                      {new Date(project.deadline).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
-                    </Badge>
-                  )}
-                  
-                  {project.sourceLang && project.targetLang && (
-                    <Badge variant="outline" className="rounded-full ml-auto">
-                      {project.sourceLang} → {project.targetLang}
-                    </Badge>
-                  )}
                 </div>
               </div>
             ))}
