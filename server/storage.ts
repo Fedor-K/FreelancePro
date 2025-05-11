@@ -45,20 +45,17 @@ export interface IStorage {
 export class MemStorage implements IStorage {
   private clients: Map<number, Client>;
   private projects: Map<number, Project>;
-  private resumes: Map<number, Resume>;
   private documents: Map<number, Document>;
   private externalDataItems: Map<number, ExternalData>;
   
   private clientId: number = 1;
   private projectId: number = 1;
-  private resumeId: number = 1;
   private documentId: number = 1;
   private externalDataId: number = 1;
 
   constructor() {
     this.clients = new Map();
     this.projects = new Map();
-    this.resumes = new Map();
     this.documents = new Map();
     this.externalDataItems = new Map();
 
@@ -253,36 +250,7 @@ export class MemStorage implements IStorage {
     return this.projects.delete(id);
   }
 
-  // Resume methods
-  async getResumes(): Promise<Resume[]> {
-    return Array.from(this.resumes.values());
-  }
 
-  async getResume(id: number): Promise<Resume | undefined> {
-    return this.resumes.get(id);
-  }
-
-  async createResume(resume: InsertResume & { content: string }): Promise<Resume> {
-    const id = this.resumeId++;
-    const newResume = { ...resume, id };
-    this.resumes.set(id, newResume);
-    return newResume;
-  }
-
-  async updateResume(id: number, resume: Partial<InsertResume & { content: string }>): Promise<Resume | undefined> {
-    const existingResume = this.resumes.get(id);
-    if (!existingResume) {
-      return undefined;
-    }
-    
-    const updatedResume = { ...existingResume, ...resume };
-    this.resumes.set(id, updatedResume);
-    return updatedResume;
-  }
-
-  async deleteResume(id: number): Promise<boolean> {
-    return this.resumes.delete(id);
-  }
 
   // Document methods
   async getDocuments(): Promise<Document[]> {
