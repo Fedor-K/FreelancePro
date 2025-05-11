@@ -35,6 +35,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 // Removed unused tabs imports that were causing console errors
 import {
   Select,
@@ -113,6 +124,7 @@ export default function Settings() {
   const { user, deleteAccountMutation, changePasswordMutation } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [isDeleteAccountDialogOpen, setIsDeleteAccountDialogOpen] = useState(false);
   
   // Password form
   const passwordForm = useForm<PasswordFormValues>({
@@ -730,39 +742,37 @@ export default function Settings() {
                     This will permanently delete your account and all associated data including clients, projects, invoices, and documents.
                   </p>
                   
-                  <div className="flex flex-col space-y-4">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="confirm-delete" />
-                      <label
-                        htmlFor="confirm-delete"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  <AlertDialog open={isDeleteAccountDialogOpen} onOpenChange={setIsDeleteAccountDialogOpen}>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="destructive"
+                        disabled={deleteAccountMutation.isPending}
                       >
-                        I understand that this action is irreversible
-                      </label>
-                    </div>
-                    
-                    <Button 
-                      variant="destructive"
-                      onClick={() => {
-                        const checkbox = document.getElementById("confirm-delete") as HTMLInputElement;
-                        
-                        if (checkbox?.checked) {
-                          if (window.confirm("Are you absolutely sure you want to delete your account? This action cannot be undone.")) {
+                        {deleteAccountMutation.isPending ? "Deleting..." : "Delete My Account"}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete your account and all associated data including clients, projects, invoices, and documents.
+                          This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => {
                             deleteAccountMutation.mutate();
-                          }
-                        } else {
-                          toast({
-                            title: "Confirmation required",
-                            description: "Please confirm that you understand this action is irreversible.",
-                            variant: "destructive",
-                          });
-                        }
-                      }}
-                      disabled={deleteAccountMutation.isPending}
-                    >
-                      {deleteAccountMutation.isPending ? "Deleting..." : "Delete My Account"}
-                    </Button>
-                  </div>
+                            setIsDeleteAccountDialogOpen(false);
+                          }}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Delete Account
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
             </CardContent>
