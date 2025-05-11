@@ -163,8 +163,8 @@ export default function Settings() {
       businessName: "",
       taxId: "",
       address: "",
-      vatRate: "0",
-      defaultCurrency: "USD",
+      vatRate: "",
+      defaultCurrency: "",
     },
   });
 
@@ -186,10 +186,9 @@ export default function Settings() {
     resolver: zodResolver(invoiceFormSchema),
     defaultValues: {
       invoicePrefix: "",
-      paymentTerms: "14", // Keeping this as a sensible default
+      paymentTerms: "", // Empty by default
       defaultNotes: "",
       latePaymentFee: "",
-      sendReminders: true, // Keeping this enabled by default
     },
   });
   
@@ -675,26 +674,7 @@ export default function Settings() {
                       )}
                     />
                     
-                    <FormField
-                      control={invoiceForm.control}
-                      name="sendReminders"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between space-x-3 h-full">
-                          <div className="space-y-0.5">
-                            <FormLabel>Automatic Payment Reminders</FormLabel>
-                            <FormDescription>
-                              Send automatic reminders for overdue invoices
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
+
                   </div>
                   
                   <Button type="submit">Save Invoice Settings</Button>
