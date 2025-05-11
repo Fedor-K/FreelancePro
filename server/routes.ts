@@ -14,6 +14,7 @@ import OpenAI from "openai";
 import { isValidApiKey, getApiKeySource } from "./config";
 import { WebSocketServer, WebSocket } from 'ws';
 import { log } from './vite';
+import { setupAuth } from "./auth";
 
 // Initialize OpenAI
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || "sk-dummy-key" });

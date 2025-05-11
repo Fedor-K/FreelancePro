@@ -8,23 +8,35 @@ import Resume from "@/pages/Resume";
 import Documents from "@/pages/Documents";
 import Reports from "@/pages/Reports";
 import Settings from "@/pages/Settings";
+import AuthPage from "@/pages/auth-page";
 import NotFound from "@/pages/not-found";
+import { AuthProvider } from "@/hooks/use-auth";
+import { ProtectedRoute } from "@/lib/protected-route";
+
+function AppRoutes() {
+  return (
+    <Switch>
+      <ProtectedRoute path="/" component={Dashboard} />
+      <ProtectedRoute path="/clients" component={Clients} />
+      <ProtectedRoute path="/projects" component={Projects} />
+      <ProtectedRoute path="/projects/:projectId" component={ProjectDetails} />
+      <ProtectedRoute path="/resume" component={Resume} />
+      <ProtectedRoute path="/documents" component={Documents} />
+      <ProtectedRoute path="/reports" component={Reports} />
+      <ProtectedRoute path="/settings" component={Settings} />
+      <Route path="/auth" component={AuthPage} />
+      <Route component={NotFound} />
+    </Switch>
+  );
+}
 
 function App() {
   return (
-    <Layout>
-      <Switch>
-        <Route path="/" component={Dashboard} />
-        <Route path="/clients" component={Clients} />
-        <Route path="/projects" component={Projects} />
-        <Route path="/projects/:projectId" component={ProjectDetails} />
-        <Route path="/resume" component={Resume} />
-        <Route path="/documents" component={Documents} />
-        <Route path="/reports" component={Reports} />
-        <Route path="/settings" component={Settings} />
-        <Route component={NotFound} />
-      </Switch>
-    </Layout>
+    <AuthProvider>
+      <Layout>
+        <AppRoutes />
+      </Layout>
+    </AuthProvider>
   );
 }
 

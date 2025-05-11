@@ -1,9 +1,10 @@
 import { ReactNode } from "react";
 import Sidebar from "@/components/Sidebar";
 import { useLocation } from "wouter";
-import { Menu, Bell, HelpCircle, Search } from "lucide-react";
+import { Menu, Bell, HelpCircle, Search, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/use-auth";
 
 interface LayoutProps {
   children: ReactNode;
@@ -11,6 +12,10 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const [location] = useLocation();
+  const { user, logoutMutation } = useAuth();
+  
+  // Check if this is an auth page
+  const isAuthPage = location === "/auth";
   
   // Get page title based on current location
   const getPageTitle = () => {
@@ -23,11 +28,22 @@ export default function Layout({ children }: LayoutProps) {
         return "Resume Builder";
       case "/documents":
         return "Documents";
+      case "/reports":
+        return "Reports";
       case "/settings":
         return "Settings";
       default:
         return "Dashboard";
     }
+  };
+
+  // If it's the auth page, render without layout
+  if (isAuthPage) {
+    return <>{children}</>;
+  }
+
+  const handleLogout = () => {
+    logoutMutation.mutate();
   };
 
   return (
@@ -60,6 +76,22 @@ export default function Layout({ children }: LayoutProps) {
               </div>
             </div>
             <div className="flex items-center ml-4 md:ml-6">
+              {user && (
+                <div className="flex items-center">
+                  <span className="mr-4 text-sm font-medium text-gray-700">
+                    {user.username}
+                  </span>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="p-1 text-gray-400 bg-white rounded-full hover:text-gray-500"
+                    onClick={handleLogout}
+                    disabled={logoutMutation.isPending}
+                  >
+                    <LogOut className="h-5 w-5" />
+                  </Button>
+                </div>
+              )}
               <Button 
                 variant="ghost" 
                 size="icon" 
