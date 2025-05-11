@@ -6,6 +6,7 @@ import {
   insertProjectSchema,
   insertDocumentSchema,
   insertExternalDataSchema,
+  insertResumeSchema,
   webhookPayloadSchema
 } from "@shared/schema";
 import { z } from "zod";
