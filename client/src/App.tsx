@@ -4,6 +4,7 @@ import Dashboard from "@/pages/Dashboard";
 import Clients from "@/pages/Clients";
 import Projects from "@/pages/Projects";
 import ProjectDetails from "@/pages/ProjectDetails";
+import Resume from "@/pages/Resume";
 import Documents from "@/pages/Documents";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/not-found";
@@ -16,6 +17,7 @@ function App() {
         <Route path="/clients" component={Clients} />
         <Route path="/projects" component={Projects} />
         <Route path="/projects/:projectId" component={ProjectDetails} />
+        <Route path="/resume" component={Resume} />
         <Route path="/documents" component={Documents} />
         <Route path="/settings" component={Settings} />
         <Route component={NotFound} />
