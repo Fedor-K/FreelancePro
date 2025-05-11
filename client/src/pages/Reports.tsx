@@ -45,22 +45,21 @@ import {
 
 export default function Reports() {
   // State for filtering
-  const [timeRange, setTimeRange] = useState("6months");
+  const [timeRange, setTimeRange] = useState("thisMonth");
   const [selectedTab, setSelectedTab] = useState("revenue");
   
-  // Function to calculate the total volume translated this month
+  // Function to calculate the total volume for the selected period
   const calculateMonthlyVolume = (): number => {
     if (!projects || projects.length === 0) return 0;
     
-    const now = new Date();
-    const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfCurrentMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    // Use the same date range that we use for filtering projects
+    const { start, end } = getDateRange();
     
     return projects
       .filter(project => {
         if (!project.deadline) return false;
         const projectDate = new Date(project.deadline);
-        return projectDate >= startOfCurrentMonth && projectDate <= endOfCurrentMonth;
+        return projectDate >= start && projectDate <= end;
       })
       .reduce((total, project) => total + (project.volume || 0), 0);
   };
@@ -80,6 +79,17 @@ export default function Reports() {
   const getDateRange = () => {
     const now = new Date();
     switch (timeRange) {
+      case "thisMonth":
+        return { 
+          start: startOfMonth(now), 
+          end: endOfMonth(now) 
+        };
+      case "lastMonth":
+        const lastMonth = subMonths(now, 1);
+        return { 
+          start: startOfMonth(lastMonth), 
+          end: endOfMonth(lastMonth) 
+        };
       case "3months":
         return { start: subMonths(now, 3), end: now };
       case "6months":
@@ -136,6 +146,8 @@ export default function Reports() {
             <SelectContent>
               <SelectGroup>
                 <SelectLabel>Time Range</SelectLabel>
+                <SelectItem value="thisMonth">This Month</SelectItem>
+                <SelectItem value="lastMonth">Last Month</SelectItem>
                 <SelectItem value="3months">Last 3 months</SelectItem>
                 <SelectItem value="6months">Last 6 months</SelectItem>
                 <SelectItem value="12months">Last 12 months</SelectItem>
@@ -192,7 +204,13 @@ export default function Reports() {
             <div className="flex items-center space-x-2">
               <BarChartIcon className="h-10 w-10 text-primary" />
               <div>
-                <div className="text-sm text-muted-foreground">Volume This Month</div>
+                <div className="text-sm text-muted-foreground">
+                  {timeRange === "thisMonth" ? "Volume This Month" : 
+                   timeRange === "lastMonth" ? "Volume Last Month" : 
+                   `Volume (${timeRange === "3months" ? "3" : 
+                              timeRange === "6months" ? "6" : 
+                              timeRange === "12months" ? "12" : "6"} months)`}
+                </div>
                 <div className="text-2xl font-bold">
                   {calculateMonthlyVolume().toLocaleString('en-US')} words
                 </div>
