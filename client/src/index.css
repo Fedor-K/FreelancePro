@@ -5,35 +5,62 @@
 @tailwind utilities;
 
 :root {
+  /* Base colors */
   --background: 220 33% 98%;
   --foreground: 222 47% 11%;
+  
+  /* Content areas */
   --muted: 210 40% 96.1%;
   --muted-foreground: 215.4 16.3% 46.9%;
   --popover: 0 0% 100%;
   --popover-foreground: 222 47% 11%;
   --card: 0 0% 100%;
   --card-foreground: 222 47% 11%;
+  
+  /* Form elements */
   --border: 214.3 31.8% 91.4%;
   --input: 214.3 31.8% 91.4%;
-  --primary: 210 79% 40%; /* #2B6CB0 */
-  --primary-foreground: 210 40% 98%;
-  --secondary: 142 70.6% 45.3%; /* #48BB78 */
-  --secondary-foreground: 355.7 100% 97.3%;
-  --accent: 270 67% 47%; /* #805AD5 */
-  --accent-foreground: 210 40% 98%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
   --ring: 215 20.2% 65.1%;
   --radius: 0.5rem;
+  
+  /* Primary brand color - Professional blue */
+  --primary: 210 79% 40%; /* #2B6CB0 */
+  --primary-foreground: 210 40% 98%;
+  
+  /* Secondary - Success green */
+  --secondary: 142 70.6% 45.3%; /* #48BB78 */
+  --secondary-foreground: 355.7 100% 97.3%;
+  
+  /* Accent - Purple */
+  --accent: 270 67% 47%; /* #805AD5 */
+  --accent-foreground: 210 40% 98%;
+  
+  /* Warning and Destructive */
+  --warning: 45 93% 47%; /* #F6AD55 orange */
+  --warning-foreground: 210 40% 98%;
+  --destructive: 0 84.2% 60.2%; /* #FC8181 red */
+  --destructive-foreground: 210 40% 98%;
+  
+  /* Status colors */
+  --status-new: 210 100% 97%; /* #EBF8FF light blue */
+  --status-new-foreground: 210 79% 40%; /* #2B6CB0 */
+  --status-in-progress: 49 100% 93%; /* #FEFCBF light yellow */
+  --status-in-progress-foreground: 36 60% 34%; /* #975A16 */
+  --status-paid: 142 76% 87%; /* #C6F6D5 light green */
+  --status-paid-foreground: 142 76% 22%; /* #276749 */
+  --status-completed: 270 76% 92%; /* #E9D8FD light purple */
+  --status-completed-foreground: 269 54% 42%; /* #553C9A */
+  --status-overdue: 0 84% 95%; /* #FED7D7 light red */
+  --status-overdue-foreground: 0 72% 51%; /* #E53E3E */
   
   /* Chart colors */
   --chart-1: var(--primary);
   --chart-2: var(--secondary);
   --chart-3: var(--accent);
-  --chart-4: 30 84% 60%;
-  --chart-5: 260 84% 60%;
+  --chart-4: 30 84% 60%; /* #F6AD55 orange */
+  --chart-5: 260 84% 60%; /* #9F7AEA purple */
   
-  /* Sidebar colors (same as main for now) */
+  /* Sidebar colors */
   --sidebar-background: 0 0% 100%;
   --sidebar-foreground: 222 47% 11%;
   --sidebar-primary: 210 79% 40%;
