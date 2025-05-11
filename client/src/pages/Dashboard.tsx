@@ -6,11 +6,9 @@ import {
   ClipboardList, 
   DollarSign, 
   FileText,
-  Search, 
   Edit, 
   Trash2, 
   MoreHorizontal,
-  X,
   Plus,
   ExternalLink,
   Archive,
@@ -62,7 +60,6 @@ export default function Dashboard() {
   const [_, navigate] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState("");
   const [formProject, setFormProject] = useState<Project | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -130,15 +127,7 @@ export default function Dashboard() {
   const filteredProjects = projects
     .filter(project => {
       // Filter by active tab
-      if (project.status !== activeTab) return false;
-      
-      // Filter by search term
-      return (
-        project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        project.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (getClientName(project.clientId).toLowerCase().includes(searchTerm.toLowerCase()))
-      );
+      return project.status === activeTab;
     })
     // Sort by urgency (overdue first, then by closest deadline)
     .sort((a, b) => getProjectUrgencyScore(a) - getProjectUrgencyScore(b));
@@ -268,25 +257,7 @@ export default function Dashboard() {
       {/* Projects List */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-            <Input
-              className="pl-10"
-              placeholder="Search projects..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm("")}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                <X size={16} />
-              </button>
-            )}
-          </div>
-          
-          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+          <div className="flex items-center gap-3 w-full justify-between sm:justify-start">
 
             
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -355,9 +326,7 @@ export default function Dashboard() {
                 ) : filteredProjects.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-10 text-gray-500">
-                      {searchTerm 
-                        ? "No projects match your search. Try a different term."
-                        : `No ${activeTab} projects found.${activeTab === "In Progress" ? " Add a project to get started." : ""}`}
+                      {`No ${activeTab} projects found.${activeTab === "In Progress" ? " Add a project to get started." : ""}`}
                     </TableCell>
                   </TableRow>
                 ) : (
