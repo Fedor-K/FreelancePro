@@ -55,6 +55,22 @@ export default function ProjectSelectionForm({ formData, updateField }: ProjectS
     return formData.selectedProjects.some((p: Project) => p.id === projectId);
   };
   
+  // Get selected projects IDs as an array
+  const getSelectedProjectIds = (): number[] => {
+    return formData.selectedProjects.map((p: Project) => p.id);
+  };
+  
+  // Handle multiple select change
+  const handleSelectionChange = (selectedIds: number[]) => {
+    if (!projects) return;
+    
+    // Create a new array of selected projects using the IDs
+    const newSelectedProjects = projects
+      .filter(project => selectedIds.includes(project.id));
+      
+    updateField("selectedProjects", newSelectedProjects);
+  };
+  
   // Render status badge
   const renderStatusBadge = (status: string) => {
     let color = "bg-gray-100 text-gray-800";
@@ -67,6 +83,32 @@ export default function ProjectSelectionForm({ formData, updateField }: ProjectS
       <Badge className={color} variant="outline">
         {status}
       </Badge>
+    );
+  };
+  
+  // Format project option display
+  const formatProjectOption = (project: Project) => {
+    return (
+      <div className="flex flex-col w-full py-1">
+        <div className="font-medium">{project.name}</div>
+        <div className="text-xs text-muted-foreground">
+          Client ID: {project.clientId}
+          {project.description && <span className="ml-2">- {project.description.substring(0, 50)}{project.description.length > 50 ? '...' : ''}</span>}
+        </div>
+        <div className="flex flex-wrap gap-1 mt-1">
+          {project.status && renderStatusBadge(project.status)}
+          {project.deadline && (
+            <Badge variant="outline" className="text-xs">
+              {new Date(project.deadline).toLocaleDateString()}
+            </Badge>
+          )}
+          {project.sourceLang && project.targetLang && (
+            <Badge variant="outline" className="text-xs">
+              {project.sourceLang} → {project.targetLang}
+            </Badge>
+          )}
+        </div>
+      </div>
     );
   };
   
@@ -85,17 +127,9 @@ export default function ProjectSelectionForm({ formData, updateField }: ProjectS
       {/* Loading state */}
       {isLoading && (
         <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <Card key={i}>
-              <CardHeader className="pb-2">
-                <Skeleton className="h-6 w-2/3" />
-              </CardHeader>
-              <CardContent className="pb-2">
-                <Skeleton className="h-4 w-full mb-2" />
-                <Skeleton className="h-4 w-3/4" />
-              </CardContent>
-            </Card>
-          ))}
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
         </div>
       )}
       
@@ -120,58 +154,34 @@ export default function ProjectSelectionForm({ formData, updateField }: ProjectS
         </Alert>
       )}
       
-      {/* Project list */}
-      <div className="space-y-3">
-        {filteredProjects?.map(project => (
-          <Card 
-            key={project.id} 
-            className={`${
-              isProjectSelected(project.id) 
-                ? "border-primary bg-primary/5" 
-                : ""
-            } cursor-pointer transition-colors`}
-            onClick={() => toggleProject(project)}
-          >
-            <CardHeader className="pb-2 flex flex-row items-center gap-4">
-              <div className="flex-1">
-                <CardTitle className="text-base">{project.name}</CardTitle>
-                {project.clientId && (
-                  <CardDescription>
-                    Client ID: {project.clientId}
-                  </CardDescription>
-                )}
+      {/* Project dropdown multi-select */}
+      {filteredProjects && filteredProjects.length > 0 && (
+        <div className="space-y-1.5">
+          <Label htmlFor="project-select">Select projects</Label>
+          <div className="border rounded-md divide-y">
+            {filteredProjects.map(project => (
+              <div 
+                key={project.id}
+                className={`flex items-center gap-3 p-3 hover:bg-accent cursor-pointer ${
+                  isProjectSelected(project.id) ? "bg-primary/5 border-primary" : ""
+                }`}
+                onClick={() => toggleProject(project)}
+              >
+                <Checkbox 
+                  id={`project-${project.id}`}
+                  checked={isProjectSelected(project.id)}
+                  onCheckedChange={() => toggleProject(project)}
+                  onClick={(e) => e.stopPropagation()}
+                  className="h-5 w-5"
+                />
+                <div className="flex-1">
+                  {formatProjectOption(project)}
+                </div>
               </div>
-              <Checkbox 
-                checked={isProjectSelected(project.id)}
-                onCheckedChange={() => toggleProject(project)}
-                onClick={(e) => e.stopPropagation()}
-              />
-            </CardHeader>
-            <CardContent className="pb-2">
-              {project.description && (
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {project.description}
-                </p>
-              )}
-            </CardContent>
-            <CardFooter className="pt-0 pb-3">
-              <div className="flex flex-wrap gap-2 text-xs">
-                {project.status && renderStatusBadge(project.status)}
-                {project.deadline && (
-                  <Badge variant="outline">
-                    Deadline: {new Date(project.deadline).toLocaleDateString()}
-                  </Badge>
-                )}
-                {project.sourceLang && project.targetLang && (
-                  <Badge variant="outline">
-                    {project.sourceLang} → {project.targetLang}
-                  </Badge>
-                )}
-              </div>
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
+            ))}
+          </div>
+        </div>
+      )}
       
       {/* Selected projects counter */}
       <div className="text-sm font-medium">
