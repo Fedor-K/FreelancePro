@@ -33,9 +33,10 @@ interface ProjectSelectionFormProps {
 export default function ProjectSelectionForm({ formData, updateField }: ProjectSelectionFormProps) {
   // States for the dropdown
   const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   
   // Fetch projects from the API
-  const { data: projects, isLoading, error } = useQuery<Project[]>({
+  const { data: projects = [], isLoading, error } = useQuery<Project[]>({
     queryKey: ['/api/projects'],
   });
   
@@ -147,11 +148,11 @@ export default function ProjectSelectionForm({ formData, updateField }: ProjectS
         </Alert>
       )}
       
-      {/* Project dropdown multi-select */}
+      {/* Project selection area */}
       {!isLoading && !error && projects && (
-        <div className="space-y-1.5">
+        <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <Label htmlFor="project-select">Select projects</Label>
+            <Label htmlFor="project-select" className="text-base font-medium">Select projects to include in your resume</Label>
             {formData.selectedProjects.length > 0 && (
               <Button 
                 variant="ghost" 
@@ -164,53 +165,70 @@ export default function ProjectSelectionForm({ formData, updateField }: ProjectS
             )}
           </div>
           
-          <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={open}
-                className="w-full justify-between h-auto py-3"
-              >
-                {formData.selectedProjects.length === 0 ? (
-                  <span className="text-muted-foreground">Select projects to include in your resume</span>
-                ) : (
-                  <span className="font-medium">
-                    {formData.selectedProjects.length} project{formData.selectedProjects.length !== 1 ? 's' : ''} selected
-                  </span>
-                )}
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-full p-0" align="start">
-              <Command>
-                <CommandInput placeholder="Search projects..." className="h-9" />
-                <CommandList>
-                  <CommandEmpty>No projects found.</CommandEmpty>
-                  <CommandGroup className="max-h-[300px] overflow-auto">
-                    {projects.map((project) => (
-                      <CommandItem
-                        key={project.id}
-                        value={project.name}
-                        onSelect={() => {
-                          toggleProject(project);
-                        }}
-                        className="flex items-center gap-2 py-2 pl-2"
-                      >
-                        <Checkbox 
-                          checked={isProjectSelected(project.id)}
-                          className="mr-1"
-                          onCheckedChange={() => toggleProject(project)}
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                        {formatProjectOption(project)}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
+          {/* Search input */}
+          <div className="relative">
+            <Input
+              placeholder="Search projects..."
+              className="pl-9"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <SearchX className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          </div>
+          
+          {/* Project list with checkboxes */}
+          <div className="space-y-3 border rounded-md p-2">
+            {projects
+              .filter(project => 
+                project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase()))
+              )
+              .map((project) => (
+                <div
+                  key={project.id}
+                  className="flex items-center gap-3 p-3 border rounded-md hover:bg-gray-50 cursor-pointer"
+                  onClick={() => toggleProject(project)}
+                >
+                  <Checkbox 
+                    checked={isProjectSelected(project.id)}
+                    onCheckedChange={() => toggleProject(project)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <div className="flex-1">
+                    <div className="font-medium">{project.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      Client ID: {project.clientId}
+                      {project.description && <span className="ml-2">- {project.description.substring(0, 50)}{project.description.length > 50 ? '...' : ''}</span>}
+                    </div>
+                    <div className="flex gap-2 mt-1">
+                      {project.status && renderStatusBadge(project.status)}
+                      {project.deadline && (
+                        <Badge variant="outline" className="text-xs">
+                          {new Date(project.deadline).toLocaleDateString()}
+                        </Badge>
+                      )}
+                      {project.sourceLang && project.targetLang && (
+                        <Badge variant="outline" className="text-xs">
+                          {project.sourceLang} → {project.targetLang}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            
+            {/* Empty state */}
+            {projects.filter(project => 
+              project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase()))
+            ).length === 0 && (
+              <div className="text-center py-6 text-muted-foreground">
+                {searchTerm ? 
+                  "No projects match your search. Try a different term." : 
+                  "No projects available. Create some projects first."}
+              </div>
+            )}
+          </div>
         </div>
       )}
       
