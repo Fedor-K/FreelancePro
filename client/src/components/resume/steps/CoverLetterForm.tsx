@@ -114,6 +114,7 @@ export default function CoverLetterForm({ formData, updateField }: CoverLetterFo
             <CardFooter className="pt-0">
               <Button 
                 className="w-full"
+                variant="accent"
                 onClick={generateCoverLetter}
                 disabled={isGenerating}
               >
