@@ -35,7 +35,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 export default function Clients() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState("");
   const [formClient, setFormClient] = useState<Client | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -45,14 +44,6 @@ export default function Clients() {
   const { data: clients = [], isLoading } = useQuery<Client[]>({
     queryKey: ['/api/clients'],
   });
-
-  // Filter clients based on search term
-  const filteredClients = clients.filter(client => 
-    client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (client.company && client.company.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (client.language && client.language.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
 
   // Generate avatar fallback from client name
   const getAvatarFallback = (name: string) => {
@@ -96,23 +87,6 @@ export default function Clients() {
     <div className="py-6">
       <div className="mb-6 flex justify-between items-center">
         <h1 className="text-2xl font-semibold text-gray-900">Clients</h1>
-        <div className="relative w-72">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-          <Input
-            className="pl-10"
-            placeholder="Search clients..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          {searchTerm && (
-            <button
-              onClick={() => setSearchTerm("")}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              <X size={16} />
-            </button>
-          )}
-        </div>
         
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
