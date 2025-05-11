@@ -233,7 +233,10 @@ export const createResumeDocument = (formData: any, resumeName: string = "Resume
       }
       
       if (project.sourceLang && project.targetLang) {
-        doc.text(`${project.sourceLang} → ${project.targetLang}`, 20, yPosition);
+        // Clean up language formatting by removing spacing and strange characters
+        const sourceLang = project.sourceLang.replace(/[!'\s]/g, '').trim();
+        const targetLang = project.targetLang.replace(/[!'\s]/g, '').trim();
+        doc.text(`${sourceLang} → ${targetLang}`, 20, yPosition);
         yPosition += 5;
       }
       
@@ -399,7 +402,10 @@ export const createResumePreviewHTML = (formData: any): string => {
       }
       
       if (project.sourceLang && project.targetLang) {
-        html += `<p class="text-sm">${project.sourceLang} → ${project.targetLang}</p>`;
+        // Clean up language formatting by removing spacing and strange characters
+        const sourceLang = project.sourceLang.replace(/[!'\s]/g, '').trim();
+        const targetLang = project.targetLang.replace(/[!'\s]/g, '').trim();
+        html += `<p class="text-sm">${sourceLang} → ${targetLang}</p>`;
       }
       
       html += `</div>`;
