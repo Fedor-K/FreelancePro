@@ -142,9 +142,9 @@ export default function Settings() {
     defaultValues: {
       name: "",
       email: "",
-      bio: "Freelance translator and editor with 5+ years of experience.",
-      website: "https://johndoe.com",
-      jobTitle: "Professional Translator",
+      bio: "",
+      website: "",
+      jobTitle: "",
     },
   });
   
@@ -160,9 +160,9 @@ export default function Settings() {
   const businessForm = useForm<BusinessFormValues>({
     resolver: zodResolver(businessFormSchema),
     defaultValues: {
-      businessName: "JD Translations",
-      taxId: "123456789",
-      address: "123 Main St, New York, NY 10001",
+      businessName: "",
+      taxId: "",
+      address: "",
       vatRate: "0",
       defaultCurrency: "USD",
     },
@@ -185,11 +185,11 @@ export default function Settings() {
   const invoiceForm = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
     defaultValues: {
-      invoicePrefix: "INV-",
-      paymentTerms: "14",
-      defaultNotes: "Thank you for your business!",
-      latePaymentFee: "5",
-      sendReminders: true,
+      invoicePrefix: "",
+      paymentTerms: "14", // Keeping this as a sensible default
+      defaultNotes: "",
+      latePaymentFee: "",
+      sendReminders: true, // Keeping this enabled by default
     },
   });
   
