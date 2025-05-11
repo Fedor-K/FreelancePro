@@ -34,16 +34,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+// Removed unused imports: Badge and Button since we removed the export functionality
 import {
   Calendar,
   CreditCard,
   DollarSign,
   Users,
   BarChart as BarChartIcon,
-  Download,
-  Languages,
 } from "lucide-react";
 
 export default function Reports() {
@@ -131,10 +128,6 @@ export default function Reports() {
               </SelectGroup>
             </SelectContent>
           </Select>
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Export Report
-          </Button>
         </div>
       </div>
       
