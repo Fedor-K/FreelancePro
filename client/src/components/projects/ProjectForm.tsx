@@ -419,26 +419,7 @@ export function ProjectForm({ defaultValues, projectId, onSuccess }: ProjectForm
               )}
             />
             
-            <FormField
-              control={form.control}
-              name="isArchived"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Archive</FormLabel>
-                    <FormDescription>
-                      Hide from active projects
-                    </FormDescription>
-                  </div>
-                </FormItem>
-              )}
-            />
+
           </div>
         )}
         
