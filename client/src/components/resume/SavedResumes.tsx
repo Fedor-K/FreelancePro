@@ -38,11 +38,14 @@ export default function SavedResumes() {
   
   // Handle resume edit
   const handleEdit = (resumeId: number) => {
-    // Implementation would load this resume into the builder
-    toast({
-      title: "Edit Resume",
-      description: "This would load the resume into the builder for editing.",
-    });
+    if (props.onEditResume) {
+      props.onEditResume(resumeId);
+    } else {
+      toast({
+        title: "Edit Resume",
+        description: "This would load the resume into the builder for editing.",
+      });
+    }
   };
   
   // Handle resume download
