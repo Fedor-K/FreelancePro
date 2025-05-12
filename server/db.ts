@@ -16,6 +16,9 @@ if (!process.env.DATABASE_URL) {
 }
 
 // Опции для улучшения подключения
+// Важно: для Neon PostgreSQL необходимо использовать правильный формат URL:
+// postgres://username:password@hostname.region-postgres.render.com/dbname?ssl=true
+// Обратите внимание на '.region-postgres.render.com' в имени хоста и '?ssl=true' в конце
 const poolConfig = {
   connectionString: process.env.DATABASE_URL,
   max: 10,                  // Максимум 10 одновременных соединений

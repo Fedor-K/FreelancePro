@@ -13,7 +13,7 @@ Configure the following environment variables in the Render.com dashboard:
 |----------|-------|-------------|
 | `NODE_ENV` | `production` | Sets the application to production mode |
 | `SESSION_SECRET` | `[generate a random string]` | Secret for session encryption. Use a long random string. |
-| `DATABASE_URL` | `[your database connection string]` | Already configured in your Render.com service |
+| `DATABASE_URL` | `postgres://username:password@hostname.region-postgres.render.com/dbname?ssl=true` | **ВАЖНО**: Убедитесь, что DATABASE_URL содержит полное доменное имя (FQDN) с `.region-postgres.render.com` и параметр `?ssl=true` |
 
 > **Important**: For `SESSION_SECRET`, use a secure random string. You can generate one with this command:
 > ```
@@ -101,3 +101,47 @@ The application now includes basic database connection monitoring:
 2. Connection errors are captured with detailed information
 3. Automatic retry capability for temporary connection issues
 4. Better user feedback for database-related errors
+
+## Исправление проблем с подключением к Neon PostgreSQL
+
+Если вы видите ошибку "connect ECONNREFUSED" при подключении к Neon PostgreSQL, выполните следующие действия:
+
+### 1. Проверьте формат URL для Neon PostgreSQL
+
+Neon PostgreSQL требует специального формата URL с правильным доменным именем. Убедитесь, что ваш URL имеет следующий формат:
+
+```
+postgres://username:password@hostname.region-postgres.render.com/dbname?ssl=true
+```
+
+Например:
+```
+postgres://freelanly_user:password@dpg-d0gb52juibrs73feqcd0-a.frankfurt-postgres.render.com/freelanly?ssl=true
+```
+
+### 2. Проверьте настройки в Render Dashboard
+
+Убедитесь, что в настройках вашего сервиса на Render.com указан правильный формат DATABASE_URL:
+
+1. Перейдите в Dashboard Render
+2. Выберите ваш сервис
+3. Перейдите на вкладку "Environment"
+4. Проверьте, что DATABASE_URL содержит полное доменное имя с расширением `.region-postgres.render.com`
+5. Убедитесь, что URL содержит параметр `?ssl=true`
+
+### 3. Проверьте подключение вручную
+
+Для проверки подключения к базе данных можно использовать следующую команду:
+
+```bash
+psql "postgres://username:password@hostname.region-postgres.render.com/dbname?ssl=true"
+```
+
+### 4. Обновите настройки базы данных на Neon Dashboard
+
+Если ничего не помогает, проверьте настройки в панели управления Neon PostgreSQL:
+
+1. Перейдите на dashboard.neon.tech
+2. Выберите ваш проект
+3. Проверьте настройки подключения и разрешенные IP-адреса
+4. Убедитесь, что ваш проект не находится в режиме ожидания (спящем режиме)
