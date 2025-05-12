@@ -18,7 +18,7 @@ export default function Sidebar() {
   const { user } = useAuth();
 
   const navItems = [
-    { href: "/", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/clients", label: "Clients", icon: Users },
     { href: "/projects", label: "Projects", icon: ClipboardList },
     { href: "/resume", label: "Resume Builder", icon: FileEdit },

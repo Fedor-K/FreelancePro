@@ -19,6 +19,8 @@ export default function Layout({ children }: LayoutProps) {
   // Get page title based on current location
   const getPageTitle = () => {
     switch (location) {
+      case "/dashboard":
+        return "Dashboard";
       case "/clients":
         return "Clients";
       case "/projects":
@@ -32,7 +34,7 @@ export default function Layout({ children }: LayoutProps) {
       case "/settings":
         return "Settings";
       default:
-        return "Dashboard";
+        return "Freelanly";
     }
   };
 

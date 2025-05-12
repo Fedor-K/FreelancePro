@@ -1,5 +1,7 @@
 import { Switch, Route } from "wouter";
 import Layout from "@/components/Layout";
+import PublicLayout from "@/components/PublicLayout";
+import LandingPage from "@/pages/LandingPage";
 import Dashboard from "@/pages/Dashboard";
 import Clients from "@/pages/Clients";
 import Projects from "@/pages/Projects";
@@ -16,7 +18,18 @@ import { ProtectedRoute } from "@/lib/protected-route";
 function AppRoutes() {
   return (
     <Switch>
-      <ProtectedRoute path="/" component={Dashboard} />
+      {/* Public routes */}
+      <Route path="/">
+        {() => (
+          <PublicLayout>
+            <LandingPage />
+          </PublicLayout>
+        )}
+      </Route>
+      <Route path="/auth" component={AuthPage} />
+      
+      {/* Protected routes */}
+      <ProtectedRoute path="/dashboard" component={Dashboard} />
       <ProtectedRoute path="/clients" component={Clients} />
       <ProtectedRoute path="/projects" component={Projects} />
       <ProtectedRoute path="/projects/:projectId" component={ProjectDetails} />
@@ -24,7 +37,8 @@ function AppRoutes() {
       <ProtectedRoute path="/documents" component={Documents} />
       <ProtectedRoute path="/reports" component={Reports} />
       <ProtectedRoute path="/settings" component={Settings} />
-      <Route path="/auth" component={AuthPage} />
+      
+      {/* Fallback */}
       <Route component={NotFound} />
     </Switch>
   );
