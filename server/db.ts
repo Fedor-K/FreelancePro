@@ -15,12 +15,17 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Исправляем URL для Render.com, если он содержит неполный домен
+// Получаем URL подключения к базе данных
 let connectionString = process.env.DATABASE_URL;
 
-// Проверяем, что URL содержит dpg- (характерное начало ID хоста на Render PostgreSQL)
-if (connectionString.includes('dpg-') && !connectionString.includes('.postgres.render.com')) {
-  console.log('Неполный URL базы данных на Render. Исправляем...');
+// Определяем, используется ли внутренний URL Render (10.x.x.x)
+const isInternalUrl = connectionString && /\b10\.\d+\.\d+\.\d+\b/.test(connectionString);
+
+if (isInternalUrl) {
+  console.log('Обнаружен внутренний URL базы данных Render. Использование внутренней сети...');
+  // Для внутренних URL не требуется дополнительных настроек
+} else if (connectionString && connectionString.includes('dpg-') && !connectionString.includes('.postgres.render.com')) {
+  console.log('Обнаружен внешний URL базы данных Render без полного домена. Исправляем...');
   
   // Находим ID хоста (dpg-xxx)
   const matches = connectionString.match(/(postgres[ql]:\/\/.*?@)(dpg-[a-z0-9]+)/i);
@@ -31,14 +36,14 @@ if (connectionString.includes('dpg-') && !connectionString.includes('.postgres.r
     
     // Собираем полный URL с добавлением домена региона
     connectionString = `${prefix}${hostId}.frankfurt-postgres.render.com${restOfUrl}`;
-    console.log('Исправленный URL:', connectionString);
+    console.log('URL исправлен для внешнего доступа');
   }
-}
-
-// Добавляем параметр ssl=true, если его нет
-if (!connectionString.includes('ssl=true')) {
-  connectionString += connectionString.includes('?') ? '&ssl=true' : '?ssl=true';
-  console.log('Добавлен параметр SSL');
+  
+  // Добавляем параметр ssl=true только для внешних подключений
+  if (!connectionString.includes('ssl=true')) {
+    connectionString += connectionString.includes('?') ? '&ssl=true' : '?ssl=true';
+    console.log('Добавлен параметр SSL для внешнего доступа');
+  }
 }
 
 // Опции для улучшения подключения
@@ -47,7 +52,8 @@ const poolConfig = {
   max: 10,                  // Максимум 10 одновременных соединений
   idleTimeoutMillis: 30000, // Таймаут неактивных соединений
   connectionTimeoutMillis: 20000, // Таймаут установки соединения
-  ssl: true                 // Принудительно использовать SSL
+  // Включаем SSL только для внешних подключений, для внутренних он не нужен
+  ssl: !isInternalUrl
 };
 
 console.log('Connecting to database...');

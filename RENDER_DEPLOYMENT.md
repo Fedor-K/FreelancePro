@@ -13,7 +13,7 @@ Configure the following environment variables in the Render.com dashboard:
 |----------|-------|-------------|
 | `NODE_ENV` | `production` | Sets the application to production mode |
 | `SESSION_SECRET` | `[generate a random string]` | Secret for session encryption. Use a long random string. |
-| `DATABASE_URL` | `[автоматически предоставляется Render]` | **ВАЖНО**: Остальные настройки URL базы данных будут автоматически исправлены скриптом `render-start.cjs` |
+| `DATABASE_URL` | `[автоматически предоставляется Render]` | Работает как с внутренним URL (10.x.x.x), так и с внешним URL. Формат будет автоматически исправлен если необходимо |
 
 > **Important**: For `SESSION_SECRET`, use a secure random string. You can generate one with this command:
 > ```
@@ -31,24 +31,29 @@ Configure the following environment variables in the Render.com dashboard:
 
 Мы реализовали два уровня исправления проблем:
 
-#### 1. Автоматическое исправление URL базы данных в коде приложения
+#### 1. Автоматическое определение и поддержка внутренних и внешних URL Render
 
 В файле `server/db.ts` мы добавили код, который:
-- Проверяет формат URL базы данных и автоматически добавляет `.frankfurt-postgres.render.com` если его нет
-- Добавляет параметр `?ssl=true` для безопасного соединения
+- Автоматически определяет, используется ли внутренний URL (10.x.x.x) или внешний URL
+- Для внешних URL: добавляет домен `.frankfurt-postgres.render.com` если его нет
+- Для внешних URL: добавляет параметр `?ssl=true` для безопасного соединения
+- Для внутренних URL: не изменяет URL и отключает SSL (он не нужен для внутренней сети)
 
 ```javascript
-// Проверяем, что URL содержит dpg- (характерное начало ID хоста на Render PostgreSQL)
-if (connectionString.includes('dpg-') && !connectionString.includes('.postgres.render.com')) {
-  console.log('Неполный URL базы данных на Render. Исправляем...');
+// Определяем, используется ли внутренний URL Render (10.x.x.x)
+const isInternalUrl = connectionString && /\b10\.\d+\.\d+\.\d+\b/.test(connectionString);
+
+if (isInternalUrl) {
+  console.log('Обнаружен внутренний URL базы данных Render. Использование внутренней сети...');
+  // Для внутренних URL не требуется дополнительных настроек
+} else if (connectionString && connectionString.includes('dpg-') && !connectionString.includes('.postgres.render.com')) {
+  console.log('Обнаружен внешний URL базы данных Render без полного домена. Исправляем...');
   
-  // Находим ID хоста (dpg-xxx)
-  const matches = connectionString.match(/(postgres[ql]:\/\/.*?@)(dpg-[a-z0-9]+)/i);
-  if (matches && matches.length >= 3) {
-    // Собираем полный URL с добавлением домена региона
-    connectionString = `${prefix}${hostId}.frankfurt-postgres.render.com${restOfUrl}`;
-  }
+  // Исправляем URL для внешнего доступа...
 }
+
+// Включаем SSL только для внешних подключений
+ssl: !isInternalUrl
 ```
 
 #### 2. Безопасные миграции Drizzle для Render.com
@@ -132,13 +137,19 @@ The application now includes basic database connection monitoring:
 
 ## Исправление проблем с подключением к PostgreSQL на Render
 
-Если вы видите ошибку "connect ECONNREFUSED" при подключении к Neon PostgreSQL, выполните следующие действия:
+Если вы видите ошибку "connect ECONNREFUSED" при подключении к базе данных на Render, выполните следующие действия:
 
-### 1. Проверьте формат URL для Render PostgreSQL
+### 1. Определите, какой тип URL вы используете
 
-Render PostgreSQL требует правильного формата URL. Убедитесь, что ваш URL имеет следующий формат:
+Render предоставляет два типа URL для доступа к базе данных:
 
-#### Для DATABASE_URL (используется приложением):
+#### Внутренний URL (для сервисов в одном регионе)
+```
+postgres://username:password@10.x.x.x:5432/dbname
+```
+Такой URL используется для подключения между сервисами Render через приватную сеть. Наше приложение автоматически распознает такие URL и настраивает соединение без SSL.
+
+#### Внешний URL (для доступа извне)
 ```
 postgres://username:password@hostname.region-postgres.render.com/dbname?ssl=true
 ```
@@ -148,20 +159,14 @@ postgres://username:password@hostname.region-postgres.render.com/dbname?ssl=true
 postgres://freelanly_user:password@dpg-d0gb52juibrs73feqcd0-a.frankfurt-postgres.render.com/freelanly?ssl=true
 ```
 
-#### Для MIGRATE_DATABASE_URL (используется миграциями Drizzle):
-```
-postgresql://username:password@hostname.region-postgres.render.com/dbname
-```
+### 2. Подключение работает автоматически с обоими типами URL
 
-Например:
-```
-postgresql://freelanly_user:password@dpg-d0gb52juibrs73feqcd0-a.frankfurt-postgres.render.com/freelanly
-```
+Наше приложение теперь автоматически определяет тип URL и настраивает соединение соответствующим образом:
 
-**Важно!** Обратите внимание на различия в форматах:
-1. `postgres://` для приложения и `postgresql://` для миграций
-2. Параметр `?ssl=true` добавляется только для основного подключения
-3. Полное доменное имя с `.region-postgres.render.com` необходимо в обоих случаях
+- Для **внутренних URL** с IP-адресами (10.x.x.x): оставляет URL без изменений и отключает SSL
+- Для **внешних URL**: автоматически добавляет доменную часть и включает SSL
+
+Поэтому вам **не нужно вручную изменять URL**, приложение сделает это автоматически!
 
 ### 2. Проверьте настройки в Render Dashboard
 
