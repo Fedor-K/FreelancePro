@@ -234,6 +234,7 @@ export class MemStorage implements IStorage {
     const newUser: User = { 
       ...user, 
       id,
+      fullName: user.fullName || null,
       createdAt: new Date()
     };
     this.users.set(id, newUser);
@@ -307,7 +308,13 @@ export class MemStorage implements IStorage {
 
   async createClient(client: InsertClient): Promise<Client> {
     const id = this.clientId++;
-    const newClient = { ...client, id };
+    const newClient: Client = { 
+      ...client, 
+      id,
+      company: client.company || null,
+      language: client.language || null,
+      userId: client.userId || null
+    };
     this.clients.set(id, newClient);
     return newClient;
   }
@@ -350,7 +357,21 @@ export class MemStorage implements IStorage {
 
   async createProject(project: InsertProject): Promise<Project> {
     const id = this.projectId++;
-    const newProject = { ...project, id };
+    const newProject: Project = { 
+      ...project, 
+      id,
+      status: project.status || "In Progress",
+      userId: project.userId || null,
+      description: project.description || null,
+      deadline: project.deadline || null,
+      amount: project.amount || null,
+      volume: project.volume || null,
+      sourceLang: project.sourceLang || null,
+      targetLang: project.targetLang || null,
+      labels: project.labels || [],
+      invoiceSent: project.invoiceSent || false,
+      isPaid: project.isPaid || false
+    };
     this.projects.set(id, newProject);
     return newProject;
   }
@@ -395,10 +416,14 @@ export class MemStorage implements IStorage {
 
   async createDocument(document: InsertDocument): Promise<Document> {
     const id = this.documentId++;
-    const newDocument = { 
+    const newDocument: Document = { 
       ...document, 
       id, 
-      createdAt: new Date() 
+      createdAt: document.createdAt || new Date(),
+      userId: document.userId || null,
+      projectId: document.projectId || null,
+      type: document.type,
+      content: document.content
     };
     this.documents.set(id, newDocument);
     return newDocument;
