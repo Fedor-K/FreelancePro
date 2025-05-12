@@ -36,7 +36,8 @@ function AppWithAuth() {
   
   // If user is authenticated and trying to access the auth page, redirect to dashboard
   if (user && location === "/auth") {
-    window.location.href = "/dashboard";
+    // Use wouter navigation instead of window.location for smoother transitions
+    navigate("/dashboard");
     return null;
   }
 

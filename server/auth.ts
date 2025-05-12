@@ -51,7 +51,9 @@ export function setupAuth(app: Express): void {
       }),
       resave: false,
       saveUninitialized: false,
-      secret: process.env.SESSION_SECRET || "freelanly-session-secret",
+      secret: process.env.SESSION_SECRET || (process.env.NODE_ENV === 'production' 
+        ? randomBytes(32).toString('hex') // Generate secure random secret if not provided in production
+        : "freelanly-dev-session-secret"),
     })
   );
   
