@@ -39,15 +39,18 @@ export function ClientForm({ defaultValues, clientId, onSuccess }: ClientFormPro
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
+  // Convert null values to empty strings for form fields
+  const initialValues = {
+    name: defaultValues?.name || "",
+    email: defaultValues?.email || "",
+    company: defaultValues?.company || "",
+    language: defaultValues?.language || "",
+    comments: defaultValues?.comments || "",
+  };
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: defaultValues || {
-      name: "",
-      email: "",
-      company: "",
-      language: "",
-      comments: "",
-    },
+    defaultValues: initialValues,
   });
 
   const onSubmit = async (data: FormValues) => {
@@ -147,11 +150,8 @@ export function ClientForm({ defaultValues, clientId, onSuccess }: ClientFormPro
               <FormControl>
                 <Input 
                   placeholder="e.g. Acme Corporation (optional)" 
+                  {...field} 
                   value={field.value || ''}
-                  onChange={field.onChange} 
-                  onBlur={field.onBlur}
-                  ref={field.ref}
-                  name={field.name}
                 />
               </FormControl>
               <FormDescription>Leave blank if the client is an individual</FormDescription>
@@ -169,11 +169,8 @@ export function ClientForm({ defaultValues, clientId, onSuccess }: ClientFormPro
               <FormControl>
                 <Input 
                   placeholder="e.g. English, Spanish (optional)" 
+                  {...field} 
                   value={field.value || ''}
-                  onChange={field.onChange} 
-                  onBlur={field.onBlur}
-                  ref={field.ref}
-                  name={field.name}
                 />
               </FormControl>
               <FormDescription>Languages the client communicates in or needs translation for</FormDescription>
@@ -192,11 +189,8 @@ export function ClientForm({ defaultValues, clientId, onSuccess }: ClientFormPro
                 <Textarea 
                   placeholder="Add any notes or comments about this client (optional)" 
                   className="min-h-[100px]"
+                  {...field}
                   value={field.value || ''}
-                  onChange={field.onChange} 
-                  onBlur={field.onBlur}
-                  ref={field.ref}
-                  name={field.name}
                 />
               </FormControl>
               <FormDescription>Additional information, special requirements or notes</FormDescription>
