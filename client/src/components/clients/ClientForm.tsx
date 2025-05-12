@@ -39,18 +39,14 @@ export function ClientForm({ defaultValues, clientId, onSuccess }: ClientFormPro
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
-  // Convert null values to empty strings for form fields
-  const initialValues = {
-    name: defaultValues?.name || "",
-    email: defaultValues?.email || "",
-    company: defaultValues?.company || "",
-    language: defaultValues?.language || "",
-    comments: defaultValues?.comments || "",
-  };
-
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: initialValues,
+    defaultValues: defaultValues || {
+      name: "",
+      email: "",
+      company: "",
+      language: "",
+    },
   });
 
   const onSubmit = async (data: FormValues) => {
@@ -148,11 +144,7 @@ export function ClientForm({ defaultValues, clientId, onSuccess }: ClientFormPro
             <FormItem>
               <FormLabel>Company</FormLabel>
               <FormControl>
-                <Input 
-                  placeholder="e.g. Acme Corporation (optional)" 
-                  {...field} 
-                  value={field.value || ''}
-                />
+                <Input placeholder="e.g. Acme Corporation (optional)" {...field} />
               </FormControl>
               <FormDescription>Leave blank if the client is an individual</FormDescription>
               <FormMessage />
@@ -167,33 +159,9 @@ export function ClientForm({ defaultValues, clientId, onSuccess }: ClientFormPro
             <FormItem>
               <FormLabel>Languages</FormLabel>
               <FormControl>
-                <Input 
-                  placeholder="e.g. English, Spanish (optional)" 
-                  {...field} 
-                  value={field.value || ''}
-                />
+                <Input placeholder="e.g. English, Spanish (optional)" {...field} />
               </FormControl>
               <FormDescription>Languages the client communicates in or needs translation for</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="comments"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Comments</FormLabel>
-              <FormControl>
-                <Textarea 
-                  placeholder="Add any notes or comments about this client (optional)" 
-                  className="min-h-[100px]"
-                  {...field}
-                  value={field.value || ''}
-                />
-              </FormControl>
-              <FormDescription>Additional information, special requirements or notes</FormDescription>
               <FormMessage />
             </FormItem>
           )}

@@ -55,7 +55,6 @@ export const clients = pgTable("clients", {
   email: text("email").notNull(),
   company: text("company"),
   language: text("language"),
-  comments: text("comments"),
   userId: integer("user_id").references(() => users.id),
 });
 
