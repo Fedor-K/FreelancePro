@@ -13,45 +13,41 @@ Configure the following environment variables in the Render.com dashboard:
 |----------|-------|-------------|
 | `NODE_ENV` | `production` | Sets the application to production mode |
 | `SESSION_SECRET` | `[generate a random string]` | Secret for session encryption. Use a long random string. |
-| `DATABASE_URL` | `postgres://username:password@hostname.region-postgres.render.com/dbname?ssl=true` | **ВАЖНО**: Убедитесь, что DATABASE_URL содержит полное доменное имя (FQDN) с `.region-postgres.render.com` и параметр `?ssl=true` |
-| `MIGRATE_DATABASE_URL` | `postgresql://username:password@hostname.region-postgres.render.com/dbname` | **ТОЛЬКО ДЛЯ МИГРАЦИЙ**: Использовать стандартный формат PostgreSQL без WebSocket для миграций Drizzle |
+| `DATABASE_URL` | `[автоматически предоставляется Render]` | **ВАЖНО**: Остальные настройки URL базы данных будут автоматически исправлены скриптом `render-start.cjs` |
 
 > **Important**: For `SESSION_SECRET`, use a secure random string. You can generate one with this command:
 > ```
 > node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 > ```
 
-## Build and Start Commands
+## Build and Start Commands для автоматического деплоя через GitHub
 
-Ensure your Render.com service is configured with the following commands:
+Настройте следующие команды в панели Render.com для вашего сервиса:
 
-- **Build Command**: `npm run build`
-- **Start Command**: `npx drizzle-kit push:pg --config=custom && NODE_ENV=production node dist/index.js`
+- **Build Command**: `npm run build && chmod +x render-start.cjs`
+- **Start Command**: `node render-start.cjs`
 
-### Настройка миграций Drizzle
+### Автоматическое исправление проблем с PostgreSQL
 
-Для предотвращения ошибки `cannot drop view pg_stat_statements_info`, создайте файл `custom-drizzle.config.js` в корне проекта с следующим содержимым:
+Мы создали скрипт `render-start.cjs`, который:
+
+1. Автоматически исправляет формат URL базы данных, добавляя домен `.region-postgres.render.com`
+2. Добавляет параметр `?ssl=true` к URL если его нет
+3. Создает временный конфиг для Drizzle, который игнорирует ошибки с pg_stat_statements_info
+4. Запускает миграции с помощью этого конфига
+5. Запускает основное приложение
+
+**Вам не нужно ничего настраивать вручную!** Скрипт автоматически обнаружит и исправит проблемы с подключением к базе данных.
 
 ```javascript
-// custom-drizzle.config.js
-module.exports = {
-  out: "./migrations",
-  schema: "./shared/schema.js",  // обратите внимание на расширение .js вместо .ts
-  dialect: "postgresql",
-  dbCredentials: {
-    url: process.env.MIGRATE_DATABASE_URL || process.env.DATABASE_URL,
-  },
-  // Игнорируем системные вьюшки PostgreSQL
-  ignore: {
-    views: ["pg_stat_statements_info"],
-  },
-};
-```
-
-Затем используйте этот конфиг в команде запуска:
-
-```bash
-npx drizzle-kit push:pg --config=custom-drizzle.config.js && NODE_ENV=production node dist/index.js
+// Пример как работает скрипт render-start.cjs (фрагмент):
+if (dbUrl && dbUrl.includes('dpg-') && !dbUrl.includes('postgres.render.com')) {
+  // Преобразует URL вида: 
+  // postgres://user:pass@dpg-id/dbname
+  // в формат:
+  // postgres://user:pass@dpg-id.frankfurt-postgres.render.com/dbname?ssl=true
+  // ...
+}
 ```
 
 ## Troubleshooting Database Errors
