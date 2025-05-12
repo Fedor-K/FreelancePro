@@ -3,11 +3,16 @@ import { drizzle } from 'drizzle-orm/neon-serverless';
 import ws from "ws";
 import * as schema from "@shared/schema";
 
-// Установка конструктора WebSocket для Neon
+// Настройка WebSocket для Neon (поддерживаемые опции)
 neonConfig.webSocketConstructor = ws;
-
-// Использовать защищенное соединение
 neonConfig.useSecureWebSocket = true;
+
+// Добавляем настройки таймаута на уровне сокета
+// Эти опции поддерживаются в @neondatabase/serverless
+if ('pipelineConnect' in neonConfig) {
+  // @ts-ignore - Опциональные настройки, которые могут быть в новых версиях
+  neonConfig.pipelineConnect = false;
+}
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -59,15 +64,59 @@ const poolConfig = {
 };
 
 console.log('Connecting to database...');
-export const pool = new Pool(poolConfig);
-export const db = drizzle({ client: pool, schema });
 
-// Проверка подключения к базе данных
-pool.connect((err, client, done) => {
-  if (err) {
-    console.error('Error connecting to the database:', err.message);
-  } else {
-    console.log('Successfully connected to the database!');
-    done(); // Возвращаем клиент в пул
+// Создаем функцию для подключения с повторными попытками
+const connectWithRetry = async (maxAttempts = 5, delay = 3000): Promise<Pool> => {
+  let lastError: Error = new Error("No connection attempts made");
+  let attemptCount = 0;
+
+  while (attemptCount < maxAttempts) {
+    attemptCount++;
+    try {
+      // Создаем пул подключений
+      const pool = new Pool(poolConfig);
+      
+      // Проверяем соединение
+      const client = await pool.connect();
+      console.log(`Successfully connected to the database! (attempt ${attemptCount}/${maxAttempts})`);
+      client.release();
+      
+      return pool;
+    } catch (err) {
+      // Преобразуем ошибку в тип Error
+      const error = err instanceof Error ? err : new Error(String(err));
+      lastError = error;
+      console.error(`Connection attempt ${attemptCount}/${maxAttempts} failed:`, error.message);
+      
+      // Если это последняя попытка, не ждем
+      if (attemptCount < maxAttempts) {
+        console.log(`Waiting ${delay/1000} seconds before retry...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
   }
-});
+
+  // Если все попытки не удались, возвращаем пул без проверки соединения
+  console.error(`All ${maxAttempts} connection attempts failed. Last error:`, lastError.message);
+  console.log('Creating pool without connection check...');
+  return new Pool(poolConfig);
+};
+
+// Экспортируем пул и db с правильными типами
+export let pool: Pool | undefined;
+export let db: ReturnType<typeof drizzle> | undefined;
+
+// Инициализируем подключение (асинхронно)
+(async () => {
+  try {
+    pool = await connectWithRetry();
+    db = drizzle({ client: pool, schema });
+    console.log('Database connection initialized and ready to use.');
+  } catch (err) {
+    // Преобразуем ошибку в тип Error
+    const error = err instanceof Error ? err : new Error(String(err));
+    console.error('Failed to initialize database connection:', error.message);
+    // В этом случае pool и db останутся undefined
+    // Приложение будет выдавать ошибки при попытке обращения к БД
+  }
+})();
