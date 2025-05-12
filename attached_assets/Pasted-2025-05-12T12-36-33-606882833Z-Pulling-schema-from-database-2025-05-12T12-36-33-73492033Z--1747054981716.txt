@@ -1,0 +1,50 @@
+2025-05-12T12:36:33.606882833Z [⣯] Pulling schema from database...
+2025-05-12T12:36:33.73492033Z [⣟] Pulling schema from database...
+2025-05-12T12:36:33.862739083Z [⡿] Pulling schema from database...
+2025-05-12T12:36:33.991091466Z [⢿] Pulling schema from database...
+2025-05-12T12:36:34.119073301Z [⣻] Pulling schema from database...
+2025-05-12T12:36:34.24718056Z [⣽] Pulling schema from database...
+2025-05-12T12:36:34.375768417Z [⣷] Pulling schema from database...
+2025-05-12T12:36:34.503732822Z [⣯] Pulling schema from database...
+2025-05-12T12:36:34.63184586Z [⣟] Pulling schema from database...
+2025-05-12T12:36:34.75398297Z [✓] Pulling schema from database...
+2025-05-12T12:36:34.780195816Z error: cannot drop view pg_stat_statements_info because extension pg_stat_statements requires it
+2025-05-12T12:36:34.780212367Z     at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+2025-05-12T12:36:34.780216017Z     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-05-12T12:36:34.780219467Z     at async Object.query (/opt/render/project/src/node_modules/drizzle-kit/bin.cjs:66575:26)
+2025-05-12T12:36:34.780221937Z     at async pgPush (/opt/render/project/src/node_modules/drizzle-kit/bin.cjs:70117:13)
+2025-05-12T12:36:34.780223717Z     at async Object.handler (/opt/render/project/src/node_modules/drizzle-kit/bin.cjs:79124:9)
+2025-05-12T12:36:34.780225467Z     at async run (/opt/render/project/src/node_modules/drizzle-kit/bin.cjs:78381:7) {
+2025-05-12T12:36:34.780227147Z   length: 210,
+2025-05-12T12:36:34.780229557Z   severity: 'ERROR',
+2025-05-12T12:36:34.780231887Z   code: '2BP01',
+2025-05-12T12:36:34.780234937Z   detail: undefined,
+2025-05-12T12:36:34.780238607Z   hint: 'You can drop extension pg_stat_statements instead.',
+2025-05-12T12:36:34.780241387Z   position: undefined,
+2025-05-12T12:36:34.780244907Z   internalPosition: undefined,
+2025-05-12T12:36:34.780247427Z   internalQuery: undefined,
+2025-05-12T12:36:34.780249707Z   where: undefined,
+2025-05-12T12:36:34.780252147Z   schema: undefined,
+2025-05-12T12:36:34.780254517Z   table: undefined,
+2025-05-12T12:36:34.780256837Z   column: undefined,
+2025-05-12T12:36:34.780259117Z   dataType: undefined,
+2025-05-12T12:36:34.780261437Z   constraint: undefined,
+2025-05-12T12:36:34.780264068Z   file: 'dependency.c',
+2025-05-12T12:36:34.780266368Z   line: '843',
+2025-05-12T12:36:34.780269377Z   routine: 'findDependentObjects'
+2025-05-12T12:36:34.780271878Z }
+2025-05-12T12:36:36.566182533Z file:///opt/render/project/src/dist/index.js:264
+2025-05-12T12:36:36.566207624Z import { Pool } from "pg";
+2025-05-12T12:36:36.566227434Z          ^^^^
+2025-05-12T12:36:36.566230854Z SyntaxError: Named export 'Pool' not found. The requested module 'pg' is a CommonJS module, which may not support all module.exports as named exports.
+2025-05-12T12:36:36.566234665Z CommonJS modules can always be imported via the default export, for example using:
+2025-05-12T12:36:36.566236534Z 
+2025-05-12T12:36:36.566241495Z import pkg from 'pg';
+2025-05-12T12:36:36.566243735Z const { Pool } = pkg;
+2025-05-12T12:36:36.566245485Z 
+2025-05-12T12:36:36.566247985Z     at ModuleJob._instantiate (node:internal/modules/esm/module_job:180:21)
+2025-05-12T12:36:36.566250315Z     at async ModuleJob.run (node:internal/modules/esm/module_job:263:5)
+2025-05-12T12:36:36.566252525Z     at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:578:26)
+2025-05-12T12:36:36.566254705Z     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)
+2025-05-12T12:36:36.566256775Z 
+2025-05-12T12:36:36.566258935Z Node.js v22.14.0
