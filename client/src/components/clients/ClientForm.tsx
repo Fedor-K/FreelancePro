@@ -46,6 +46,7 @@ export function ClientForm({ defaultValues, clientId, onSuccess }: ClientFormPro
       email: "",
       company: "",
       language: "",
+      comments: "",
     },
   });
 
@@ -162,6 +163,25 @@ export function ClientForm({ defaultValues, clientId, onSuccess }: ClientFormPro
                 <Input placeholder="e.g. English, Spanish (optional)" {...field} />
               </FormControl>
               <FormDescription>Languages the client communicates in or needs translation for</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="comments"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Comments</FormLabel>
+              <FormControl>
+                <Textarea 
+                  placeholder="Add any notes or comments about this client (optional)" 
+                  className="min-h-[100px]"
+                  {...field} 
+                />
+              </FormControl>
+              <FormDescription>Additional information, special requirements or notes</FormDescription>
               <FormMessage />
             </FormItem>
           )}
