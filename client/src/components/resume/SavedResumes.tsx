@@ -243,7 +243,7 @@ export default function SavedResumes(props: SavedResumesProps) {
         </TabsList>
         
         <TabsContent value="resumes" className="space-y-4">
-          {resumes && resumes.filter((r: any) => r.type === 'resume').length > 0 ? (
+          {resumes && Array.isArray(resumes) && resumes.filter((r: any) => r.type === 'resume').length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {resumes.filter((resume: any) => resume.type === 'resume').map((resume: any) => (
                 <Card key={resume.id}>
@@ -324,7 +324,7 @@ export default function SavedResumes(props: SavedResumesProps) {
         </TabsContent>
         
         <TabsContent value="cover-letters" className="space-y-4">
-          {resumes && resumes.filter((r: any) => r.type === 'cover_letter').length > 0 ? (
+          {resumes && Array.isArray(resumes) && resumes.filter((r: any) => r.type === 'cover_letter').length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {resumes.filter((resume: any) => resume.type === 'cover_letter').map((resume: any) => (
                 <Card key={resume.id}>

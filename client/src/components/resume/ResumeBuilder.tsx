@@ -5,6 +5,18 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 
+// Define types for resume data
+interface ResumeData {
+  id: number;
+  name: string;
+  content: string;
+  type: string;
+  targetPosition?: string;
+  targetCompany?: string;
+  createdAt: string;
+  userId: number;
+}
+
 import ProjectSelectionForm from "./steps/ProjectSelectionForm";
 import TargetPositionForm from "./steps/TargetPositionForm";
 import PreviewExportForm from "./steps/PreviewExportForm";
@@ -28,7 +40,7 @@ export default function ResumeBuilder({ resumeId }: ResumeBuilderProps) {
   const [isEditMode, setIsEditMode] = useState(!!resumeId);
   
   // Fetch resume data if in edit mode
-  const { data: resumeData, isLoading: isLoadingResume } = useQuery({
+  const { data: resumeData, isLoading: isLoadingResume } = useQuery<ResumeData>({
     queryKey: [`/api/resumes/${resumeId}`],
     enabled: !!resumeId, // Only run if resumeId is provided
     staleTime: Infinity, // Don't refetch automatically
@@ -39,16 +51,16 @@ export default function ResumeBuilder({ resumeId }: ResumeBuilderProps) {
     if (resumeData && isEditMode) {
       try {
         // If the resume has content, parse it as JSON
-        if (resumeData.content) {
-          const parsedContent = JSON.parse(resumeData.content);
+        if (resumeData && typeof resumeData === 'object' && 'content' in resumeData) {
+          const parsedContent = JSON.parse(resumeData.content as string);
           
           // Update form data with the parsed content
           setFormData(prev => ({
             ...prev,
             ...parsedContent,
             // Additional fields that might be in the top level of resumeData
-            targetPosition: resumeData.targetPosition || prev.targetPosition,
-            targetCompany: resumeData.targetCompany || prev.targetCompany,
+            targetPosition: ('targetPosition' in resumeData) ? resumeData.targetPosition : prev.targetPosition,
+            targetCompany: ('targetCompany' in resumeData) ? resumeData.targetCompany : prev.targetCompany,
           }));
           
           // Display success message
