@@ -14,6 +14,7 @@ Configure the following environment variables in the Render.com dashboard:
 | `NODE_ENV` | `production` | Sets the application to production mode |
 | `SESSION_SECRET` | `[generate a random string]` | Secret for session encryption. Use a long random string. |
 | `DATABASE_URL` | `postgres://username:password@hostname.region-postgres.render.com/dbname?ssl=true` | **ВАЖНО**: Убедитесь, что DATABASE_URL содержит полное доменное имя (FQDN) с `.region-postgres.render.com` и параметр `?ssl=true` |
+| `MIGRATE_DATABASE_URL` | `postgresql://username:password@hostname.region-postgres.render.com/dbname` | **ТОЛЬКО ДЛЯ МИГРАЦИЙ**: Использовать стандартный формат PostgreSQL без WebSocket для миграций Drizzle |
 
 > **Important**: For `SESSION_SECRET`, use a secure random string. You can generate one with this command:
 > ```
@@ -25,11 +26,32 @@ Configure the following environment variables in the Render.com dashboard:
 Ensure your Render.com service is configured with the following commands:
 
 - **Build Command**: `npm run build`
-- **Start Command**: `NODE_ENV=production node dist/index.js`
+- **Start Command**: `npx drizzle-kit push:pg --config=custom && NODE_ENV=production node dist/index.js`
 
-Альтернативная команда запуска (если вы получаете ошибку Drizzle):
+### Настройка миграций Drizzle
+
+Для предотвращения ошибки `cannot drop view pg_stat_statements_info`, создайте файл `custom-drizzle.config.js` в корне проекта с следующим содержимым:
+
+```javascript
+// custom-drizzle.config.js
+module.exports = {
+  out: "./migrations",
+  schema: "./shared/schema.js",  // обратите внимание на расширение .js вместо .ts
+  dialect: "postgresql",
+  dbCredentials: {
+    url: process.env.MIGRATE_DATABASE_URL || process.env.DATABASE_URL,
+  },
+  // Игнорируем системные вьюшки PostgreSQL
+  ignore: {
+    views: ["pg_stat_statements_info"],
+  },
+};
 ```
-NODE_ENV=production node dist/index.js
+
+Затем используйте этот конфиг в команде запуска:
+
+```bash
+npx drizzle-kit push:pg --config=custom-drizzle.config.js && NODE_ENV=production node dist/index.js
 ```
 
 ## Troubleshooting Database Errors
@@ -102,14 +124,15 @@ The application now includes basic database connection monitoring:
 3. Automatic retry capability for temporary connection issues
 4. Better user feedback for database-related errors
 
-## Исправление проблем с подключением к Neon PostgreSQL
+## Исправление проблем с подключением к PostgreSQL на Render
 
 Если вы видите ошибку "connect ECONNREFUSED" при подключении к Neon PostgreSQL, выполните следующие действия:
 
-### 1. Проверьте формат URL для Neon PostgreSQL
+### 1. Проверьте формат URL для Render PostgreSQL
 
-Neon PostgreSQL требует специального формата URL с правильным доменным именем. Убедитесь, что ваш URL имеет следующий формат:
+Render PostgreSQL требует правильного формата URL. Убедитесь, что ваш URL имеет следующий формат:
 
+#### Для DATABASE_URL (используется приложением):
 ```
 postgres://username:password@hostname.region-postgres.render.com/dbname?ssl=true
 ```
@@ -118,6 +141,21 @@ postgres://username:password@hostname.region-postgres.render.com/dbname?ssl=true
 ```
 postgres://freelanly_user:password@dpg-d0gb52juibrs73feqcd0-a.frankfurt-postgres.render.com/freelanly?ssl=true
 ```
+
+#### Для MIGRATE_DATABASE_URL (используется миграциями Drizzle):
+```
+postgresql://username:password@hostname.region-postgres.render.com/dbname
+```
+
+Например:
+```
+postgresql://freelanly_user:password@dpg-d0gb52juibrs73feqcd0-a.frankfurt-postgres.render.com/freelanly
+```
+
+**Важно!** Обратите внимание на различия в форматах:
+1. `postgres://` для приложения и `postgresql://` для миграций
+2. Параметр `?ssl=true` добавляется только для основного подключения
+3. Полное доменное имя с `.region-postgres.render.com` необходимо в обоих случаях
 
 ### 2. Проверьте настройки в Render Dashboard
 
