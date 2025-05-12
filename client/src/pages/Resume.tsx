@@ -24,9 +24,6 @@ export default function Resume() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Resume Builder</h1>
-          <p className="text-muted-foreground">
-            Create, manage, and optimize your professional resumes
-          </p>
         </div>
         
         {!showBuilder && (
