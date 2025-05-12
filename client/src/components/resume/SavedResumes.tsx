@@ -13,7 +13,11 @@ import { useToast } from "@/hooks/use-toast";
 import { createResumePreviewHTML, downloadResume, createCoverLetterPreviewHTML, downloadCoverLetter } from "@/lib/resumeTemplate";
 import jsPDF from "jspdf";
 
-export default function SavedResumes() {
+interface SavedResumesProps {
+  onEditResume?: (resumeId: number) => void;
+}
+
+export default function SavedResumes(props: SavedResumesProps) {
   const { toast } = useToast();
   const [previewResume, setPreviewResume] = useState<any>(null);
   

@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 
 import ProjectSelectionForm from "./steps/ProjectSelectionForm";
 import TargetPositionForm from "./steps/TargetPositionForm";
@@ -17,9 +18,56 @@ const STEPS = [
   { id: 'preview-export', title: 'Preview & Export' },
 ];
 
-export default function ResumeBuilder() {
+interface ResumeBuilderProps {
+  resumeId: number | null;
+}
+
+export default function ResumeBuilder({ resumeId }: ResumeBuilderProps) {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
+  const [isEditMode, setIsEditMode] = useState(!!resumeId);
+  
+  // Fetch resume data if in edit mode
+  const { data: resumeData, isLoading: isLoadingResume } = useQuery({
+    queryKey: [`/api/resumes/${resumeId}`],
+    enabled: !!resumeId, // Only run if resumeId is provided
+    staleTime: Infinity, // Don't refetch automatically
+  });
+  
+  // Update form data when resume data is loaded
+  useEffect(() => {
+    if (resumeData && isEditMode) {
+      try {
+        // If the resume has content, parse it as JSON
+        if (resumeData.content) {
+          const parsedContent = JSON.parse(resumeData.content);
+          
+          // Update form data with the parsed content
+          setFormData(prev => ({
+            ...prev,
+            ...parsedContent,
+            // Additional fields that might be in the top level of resumeData
+            targetPosition: resumeData.targetPosition || prev.targetPosition,
+            targetCompany: resumeData.targetCompany || prev.targetCompany,
+          }));
+          
+          // Display success message
+          toast({
+            title: "Resume loaded",
+            description: "Resume data has been loaded for editing.",
+            variant: "default",
+          });
+        }
+      } catch (error) {
+        console.error("Error parsing resume content:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load resume data. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
+  }, [resumeData, isEditMode, toast]);
   const [formData, setFormData] = useState({
     // Basic information (auto-populated from settings)
     name: "John Doe",
