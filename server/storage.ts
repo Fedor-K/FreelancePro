@@ -151,7 +151,8 @@ export class MemStorage implements IStorage {
       status: "In Progress",
       labels: ["In Progress"],
       invoiceSent: false,
-      isPaid: false
+      isPaid: false,
+      userId: null
     };
 
     const project3: Project = {
@@ -167,7 +168,8 @@ export class MemStorage implements IStorage {
       status: "Delivered",
       labels: ["Delivered", "Pending payment"],
       invoiceSent: true,
-      isPaid: false
+      isPaid: false,
+      userId: null
     };
 
     const project4: Project = {
@@ -183,7 +185,8 @@ export class MemStorage implements IStorage {
       status: "Paid",
       labels: ["Paid"],
       invoiceSent: true,
-      isPaid: true
+      isPaid: true,
+      userId: null
     };
     
     // Project with an overdue deadline
@@ -200,7 +203,8 @@ export class MemStorage implements IStorage {
       status: "In Progress",
       labels: ["In Progress", "Overdue"],
       invoiceSent: false,
-      isPaid: false
+      isPaid: false,
+      userId: null
     };
 
     this.projects.set(project1.id, project1);
@@ -227,7 +231,11 @@ export class MemStorage implements IStorage {
 
   async createUser(user: InsertUser): Promise<User> {
     const id = this.userId++;
-    const newUser: User = { ...user, id };
+    const newUser: User = { 
+      ...user, 
+      id,
+      createdAt: new Date()
+    };
     this.users.set(id, newUser);
     return newUser;
   }
