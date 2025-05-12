@@ -31,7 +31,8 @@ function AppWithAuth() {
   
   // If user is authenticated and trying to access the landing page, redirect to dashboard
   if (user && location === "/") {
-    return <Dashboard />;
+    window.location.href = "/dashboard";
+    return null;
   }
   
   // If user is authenticated and trying to access the auth page, redirect to dashboard
