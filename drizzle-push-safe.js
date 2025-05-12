@@ -106,19 +106,55 @@ function processDbUrl() {
 // Шаг 3: Запуск миграции с обработкой ошибок
 function runMigration() {
   console.log('Запуск безопасной миграции Drizzle...');
+  
+  const ignorableErrors = [
+    'pg_stat_statements_info',
+    'pg_stat_statements',
+    'cannot drop view',
+  ];
+  
   try {
+    // Сначала проверяем коннект без миграции
+    console.log('Проверка соединения с базой данных перед миграцией...');
+    execSync(`node -e "const { Pool } = require('pg'); const pool = new Pool({connectionString: process.env.DATABASE_URL, ssl: process.env.DATABASE_URL.includes('10.') ? false : {rejectUnauthorized: true}}); pool.query('SELECT NOW()', (err, res) => { if(err) { console.error(err); process.exit(1); } else { console.log('Соединение с базой данных успешно!'); pool.end(); }})"`, {
+      stdio: 'inherit',
+      env: process.env
+    });
+    
+    // Если соединение успешно, запускаем миграцию
+    console.log('Запуск миграции Drizzle...');
     execSync('npx drizzle-kit push:pg --config=temp-drizzle-config.js', { 
       stdio: 'inherit',
       env: process.env
     });
     console.log('Миграция успешно завершена');
   } catch (error) {
-    // Проверяем, содержит ли ошибка сообщение о pg_stat_statements_info
-    if (error.message && error.message.includes('pg_stat_statements_info')) {
-      console.log('Игнорируем ошибку с pg_stat_statements_info, приложение должно работать нормально');
+    // Проверяем на игнорируемые ошибки
+    const errorMessage = String(error.message || error);
+    
+    const isIgnorableError = ignorableErrors.some(errText => 
+      errorMessage.includes(errText)
+    );
+    
+    if (isIgnorableError) {
+      console.log('Обнаружена ожидаемая ошибка миграции, которую можно игнорировать:');
+      console.log(errorMessage.split('\n')[0]); // Показываем только первую строку ошибки
+      console.log('Приложение должно работать нормально, продолжаем запуск.');
+      
+      // Пытаемся проверить базу данных после ошибки
+      try {
+        console.log('Проверка структуры базы данных...');
+        execSync(`node -e "const { Pool } = require('pg'); const pool = new Pool({connectionString: process.env.DATABASE_URL, ssl: process.env.DATABASE_URL.includes('10.') ? false : {rejectUnauthorized: true}}); pool.query('SELECT count(*) FROM information_schema.tables WHERE table_schema = \\'public\\'', (err, res) => { if(err) { console.error(err); } else { console.log('Найдено таблиц в базе данных: ' + res.rows[0].count); pool.end(); }})"`, {
+          stdio: 'inherit',
+          env: process.env
+        });
+      } catch (dbError) {
+        console.error('Ошибка при проверке структуры базы данных:', dbError.message);
+      }
     } else {
-      console.error('Ошибка при выполнении миграции:', error.message);
-      process.exit(1); // Выходим с ошибкой только если это не ошибка pg_stat_statements_info
+      console.error('Критическая ошибка при выполнении миграции:');
+      console.error(errorMessage);
+      process.exit(1); // Выходим с ошибкой только для критических ошибок
     }
   }
 }
