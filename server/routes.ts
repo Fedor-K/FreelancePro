@@ -117,8 +117,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/clients/:id", async (req: Request, res: Response) => {
+  app.patch("/api/clients/:id", requireAuth, async (req: Request, res: Response) => {
     try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
         return res.status(400).json({ message: "Invalid client ID" });
@@ -127,6 +132,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const client = await storage.getClient(id);
       if (!client) {
         return res.status(404).json({ message: "Client not found" });
+      }
+      
+      // Verify user ownership
+      if (client.userId !== null && client.userId !== userId) {
+        return res.status(403).json({ message: "You do not have access to this client" });
       }
       
       const result = insertClientSchema.partial().safeParse(req.body);
@@ -141,11 +151,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/clients/:id", async (req: Request, res: Response) => {
+  app.delete("/api/clients/:id", requireAuth, async (req: Request, res: Response) => {
     try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
         return res.status(400).json({ message: "Invalid client ID" });
+      }
+      
+      // Check if the client exists and belongs to the user
+      const client = await storage.getClient(id);
+      if (!client) {
+        return res.status(404).json({ message: "Client not found" });
+      }
+      
+      // Verify user ownership
+      if (client.userId !== null && client.userId !== userId) {
+        return res.status(403).json({ message: "You do not have access to this client" });
       }
       
       const success = await storage.deleteClient(id);
