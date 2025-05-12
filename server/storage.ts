@@ -94,7 +94,8 @@ export class MemStorage implements IStorage {
       name: "Tom Cook", 
       email: "tom@example.com", 
       company: "Acme Corporation", 
-      language: "English, German" 
+      language: "English, German",
+      userId: 1
     };
     
     const client2: Client = { 
@@ -102,7 +103,8 @@ export class MemStorage implements IStorage {
       name: "Sarah Johnson", 
       email: "sarah@techstyle.com", 
       company: "TechStyle Inc.", 
-      language: "English, Spanish" 
+      language: "English, Spanish",
+      userId: 1
     };
     
     const client3: Client = { 
@@ -110,7 +112,8 @@ export class MemStorage implements IStorage {
       name: "Michael Rodriguez", 
       email: "michael@greenleaf.com", 
       company: "GreenLeaf Agency", 
-      language: "French, Italian" 
+      language: "French, Italian",
+      userId: 1
     };
 
     this.clients.set(client1.id, client1);
@@ -131,7 +134,8 @@ export class MemStorage implements IStorage {
       status: "In Progress",
       labels: ["In Progress"],
       invoiceSent: false,
-      isPaid: false
+      isPaid: false,
+      userId: 1
     };
 
     const project2: Project = {
