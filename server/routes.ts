@@ -999,10 +999,17 @@ Date: ____________
           if (!projectRooms.has(projectId)) {
             projectRooms.set(projectId, new Set());
           }
-          projectRooms.get(projectId).add(connectionId);
+          
+          const roomSet = projectRooms.get(projectId);
+          if (roomSet) {
+            roomSet.add(connectionId);
+          }
           
           // Update connection data
-          connections.get(connectionId).projectId = projectId;
+          const conn = connections.get(connectionId);
+          if (conn) {
+            conn.projectId = projectId;
+          }
           
           log(`Client ${connectionId} joined project ${projectId}`, 'websocket');
           
@@ -1012,26 +1019,30 @@ Date: ____________
             projectId,
             status: 'success'
           }));
-        } 
-        else if (data.type === 'node_update' || data.type === 'edge_update' || 
-                 data.type === 'node_add' || data.type === 'edge_add' || 
-                 data.type === 'node_remove' || data.type === 'edge_remove') {
+        } else if (data.type === 'node_update' || data.type === 'edge_update' || 
+                   data.type === 'node_add' || data.type === 'edge_add' || 
+                   data.type === 'node_remove' || data.type === 'edge_remove') {
           // Forward updates to all clients in the same project room
           const connection = connections.get(connectionId);
-          const projectId = connection.projectId;
           
-          if (projectId && projectRooms.has(projectId)) {
-            const roomConnections = projectRooms.get(projectId);
+          if (connection && connection.projectId) {
+            const projectId = connection.projectId;
             
-            // Broadcast to all other connections in the same room
-            roomConnections.forEach((connId: string) => {
-              if (connId !== connectionId) { // Don't send back to sender
-                const targetConn = connections.get(connId);
-                if (targetConn && targetConn.ws.readyState === WebSocket.OPEN) {
-                  targetConn.ws.send(JSON.stringify(data));
-                }
+            if (projectRooms.has(projectId)) {
+              const roomConnections = projectRooms.get(projectId);
+              
+              if (roomConnections) {
+                // Broadcast to all other connections in the same room
+                roomConnections.forEach((connId) => {
+                  if (connId !== connectionId) { // Don't send back to sender
+                    const targetConn = connections.get(connId);
+                    if (targetConn && targetConn.ws.readyState === WebSocket.OPEN) {
+                      targetConn.ws.send(JSON.stringify(data));
+                    }
+                  }
+                });
               }
-            });
+            }
           }
         }
       } catch (error) {
@@ -1044,12 +1055,17 @@ Date: ____________
       const connection = connections.get(connectionId);
       if (connection && connection.projectId) {
         const projectId = connection.projectId;
-        if (projectRooms.has(projectId)) {
-          projectRooms.get(projectId).delete(connectionId);
+        
+        if (projectId && projectRooms.has(projectId)) {
+          const room = projectRooms.get(projectId);
           
-          // Remove project room if empty
-          if (projectRooms.get(projectId).size === 0) {
-            projectRooms.delete(projectId);
+          if (room) {
+            room.delete(connectionId);
+            
+            // Remove project room if empty
+            if (room.size === 0) {
+              projectRooms.delete(projectId);
+            }
           }
         }
       }
