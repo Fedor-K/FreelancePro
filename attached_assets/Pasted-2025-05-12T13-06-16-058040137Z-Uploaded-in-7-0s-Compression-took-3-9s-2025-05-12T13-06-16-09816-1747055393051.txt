@@ -1,0 +1,58 @@
+2025-05-12T13:06:16.058040137Z ==> Uploaded in 7.0s. Compression took 3.9s
+2025-05-12T13:06:16.098161892Z ==> Build successful 🎉
+2025-05-12T13:06:18.428756359Z ==> Deploying...
+2025-05-12T13:06:35.437002563Z ==> Running 'npx drizzle-kit push && NODE_ENV=production node dist/index.js'
+2025-05-12T13:06:36.650533724Z No config path provided, using default 'drizzle.config.ts'
+2025-05-12T13:06:36.650768349Z Reading config file '/opt/render/project/src/drizzle.config.ts'
+2025-05-12T13:06:38.249335629Z Using 'pg' driver for database querying
+2025-05-12T13:06:38.929307531Z [⣷] Pulling schema from database...
+2025-05-12T13:06:39.050224013Z [⣯] Pulling schema from database...
+2025-05-12T13:06:39.178152554Z [⣟] Pulling schema from database...
+2025-05-12T13:06:39.306625737Z [⡿] Pulling schema from database...
+2025-05-12T13:06:39.4370225Z [⢿] Pulling schema from database...
+2025-05-12T13:06:39.562823796Z [⣻] Pulling schema from database...
+2025-05-12T13:06:39.690262936Z [⣽] Pulling schema from database...
+2025-05-12T13:06:39.818610966Z [⣷] Pulling schema from database...
+2025-05-12T13:06:39.946134828Z [⣯] Pulling schema from database...
+2025-05-12T13:06:40.074435737Z [⣟] Pulling schema from database...
+2025-05-12T13:06:40.202643004Z [⡿] Pulling schema from database...
+2025-05-12T13:06:40.330536124Z [⢿] Pulling schema from database...
+2025-05-12T13:06:40.442429514Z [✓] Pulling schema from database...
+2025-05-12T13:06:40.466614328Z error: cannot drop view pg_stat_statements_info because extension pg_stat_statements requires it
+2025-05-12T13:06:40.466637179Z     at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+2025-05-12T13:06:40.466639969Z     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-05-12T13:06:40.466641939Z     at async Object.query (/opt/render/project/src/node_modules/drizzle-kit/bin.cjs:66575:26)
+2025-05-12T13:06:40.466647849Z     at async pgPush (/opt/render/project/src/node_modules/drizzle-kit/bin.cjs:70117:13)
+2025-05-12T13:06:40.466649919Z     at async Object.handler (/opt/render/project/src/node_modules/drizzle-kit/bin.cjs:79124:9)
+2025-05-12T13:06:40.466651889Z     at async run (/opt/render/project/src/node_modules/drizzle-kit/bin.cjs:78381:7) {
+2025-05-12T13:06:40.466654109Z   length: 210,
+2025-05-12T13:06:40.466657039Z   severity: 'ERROR',
+2025-05-12T13:06:40.466659319Z   code: '2BP01',
+2025-05-12T13:06:40.466661149Z   detail: undefined,
+2025-05-12T13:06:40.466663619Z   hint: 'You can drop extension pg_stat_statements instead.',
+2025-05-12T13:06:40.466665519Z   position: undefined,
+2025-05-12T13:06:40.466667999Z   internalPosition: undefined,
+2025-05-12T13:06:40.466669799Z   internalQuery: undefined,
+2025-05-12T13:06:40.466671759Z   where: undefined,
+2025-05-12T13:06:40.46667363Z   schema: undefined,
+2025-05-12T13:06:40.46667551Z   table: undefined,
+2025-05-12T13:06:40.46667732Z   column: undefined,
+2025-05-12T13:06:40.4666792Z   dataType: undefined,
+2025-05-12T13:06:40.46668105Z   constraint: undefined,
+2025-05-12T13:06:40.46668299Z   file: 'dependency.c',
+2025-05-12T13:06:40.46668482Z   line: '843',
+2025-05-12T13:06:40.46668744Z   routine: 'findDependentObjects'
+2025-05-12T13:06:40.4666893Z }
+2025-05-12T13:06:42.730033779Z Connecting to database in production mode
+2025-05-12T13:06:42.738602992Z Dotenv not available, using existing environment variables
+2025-05-12T13:06:42.8114171Z 1:06:42 PM [express] serving on port 5000
+2025-05-12T13:06:42.926288513Z Database connection successful
+2025-05-12T13:06:49.079717021Z ==> Your service is live 🎉
+2025-05-12T13:08:00.442032507Z 1:08:00 PM [express] GET /api/user 401 in 2ms :: {"error":"Not authenticated"}
+2025-05-12T13:08:10.941362763Z 1:08:10 PM [express] POST /api/register 201 in 112ms :: {"id":1,"username":"Fedor1","email":"fedor.h…
+2025-05-12T13:08:12.041609494Z 1:08:12 PM [express] GET /api/user 200 in 3ms :: {"id":1,"username":"Fedor1","email":"fedor.hatla@gm…
+2025-05-12T13:08:12.369766914Z 1:08:12 PM [express] GET /api/stats 200 in 10ms :: {"activeClients":0,"ongoingProjects":0,"monthlyRe…
+2025-05-12T13:08:12.387166964Z 1:08:12 PM [express] GET /api/projects 200 in 7ms :: []
+2025-05-12T13:08:12.393666623Z 1:08:12 PM [express] GET /api/clients 200 in 3ms :: []
+2025-05-12T13:08:51.501698929Z 1:08:51 PM [express] GET /api/resumes 200 in 5ms :: []
+2025-05-12T13:09:29.748610697Z 1:09:29 PM [express] POST /api/resumes 201 in 24ms :: {"id":1,"name":"Resume - Translator","type":"r…
