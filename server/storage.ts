@@ -94,8 +94,7 @@ export class MemStorage implements IStorage {
       name: "Tom Cook", 
       email: "tom@example.com", 
       company: "Acme Corporation", 
-      language: "English, German",
-      userId: null
+      language: "English, German" 
     };
     
     const client2: Client = { 
@@ -103,8 +102,7 @@ export class MemStorage implements IStorage {
       name: "Sarah Johnson", 
       email: "sarah@techstyle.com", 
       company: "TechStyle Inc.", 
-      language: "English, Spanish",
-      userId: null
+      language: "English, Spanish" 
     };
     
     const client3: Client = { 
@@ -112,8 +110,7 @@ export class MemStorage implements IStorage {
       name: "Michael Rodriguez", 
       email: "michael@greenleaf.com", 
       company: "GreenLeaf Agency", 
-      language: "French, Italian",
-      userId: null
+      language: "French, Italian" 
     };
 
     this.clients.set(client1.id, client1);
@@ -134,8 +131,7 @@ export class MemStorage implements IStorage {
       status: "In Progress",
       labels: ["In Progress"],
       invoiceSent: false,
-      isPaid: false,
-      userId: null
+      isPaid: false
     };
 
     const project2: Project = {
@@ -151,8 +147,7 @@ export class MemStorage implements IStorage {
       status: "In Progress",
       labels: ["In Progress"],
       invoiceSent: false,
-      isPaid: false,
-      userId: null
+      isPaid: false
     };
 
     const project3: Project = {
@@ -168,8 +163,7 @@ export class MemStorage implements IStorage {
       status: "Delivered",
       labels: ["Delivered", "Pending payment"],
       invoiceSent: true,
-      isPaid: false,
-      userId: null
+      isPaid: false
     };
 
     const project4: Project = {
@@ -185,8 +179,7 @@ export class MemStorage implements IStorage {
       status: "Paid",
       labels: ["Paid"],
       invoiceSent: true,
-      isPaid: true,
-      userId: null
+      isPaid: true
     };
     
     // Project with an overdue deadline
@@ -203,8 +196,7 @@ export class MemStorage implements IStorage {
       status: "In Progress",
       labels: ["In Progress", "Overdue"],
       invoiceSent: false,
-      isPaid: false,
-      userId: null
+      isPaid: false
     };
 
     this.projects.set(project1.id, project1);
@@ -231,11 +223,7 @@ export class MemStorage implements IStorage {
 
   async createUser(user: InsertUser): Promise<User> {
     const id = this.userId++;
-    const newUser: User = { 
-      ...user, 
-      id,
-      createdAt: new Date()
-    };
+    const newUser: User = { ...user, id };
     this.users.set(id, newUser);
     return newUser;
   }
@@ -521,7 +509,6 @@ export class MemStorage implements IStorage {
 // Export instance
 // Database-based storage implementation
 export class DatabaseStorage implements IStorage {
-  // User operations
   async getUsers(): Promise<User[]> {
     try {
       return await db.select().from(users);
@@ -577,7 +564,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteUser(id: number): Promise<boolean> {
     try {
-      await db.delete(users).where(eq(users.id, id));
+      const result = await db.delete(users).where(eq(users.id, id));
       return true;
     } catch (error) {
       console.error(`Error deleting user ${id}:`, error);
@@ -585,358 +572,153 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Continue using MemStorage implementations for other entities until they're migrated too
+  private memStorage = new MemStorage();
+
   // Client operations
   async getClients(): Promise<Client[]> {
-    try {
-      return await db.select().from(clients);
-    } catch (error) {
-      console.error("Error fetching clients:", error);
-      return [];
-    }
+    return this.memStorage.getClients();
   }
 
   async getClientsByUser(userId: number): Promise<Client[]> {
-    try {
-      return await db.select().from(clients).where(eq(clients.userId, userId));
-    } catch (error) {
-      console.error(`Error fetching clients for user ${userId}:`, error);
-      return [];
-    }
+    return this.memStorage.getClientsByUser(userId);
   }
 
   async getClient(id: number): Promise<Client | undefined> {
-    try {
-      const [client] = await db.select().from(clients).where(eq(clients.id, id));
-      return client;
-    } catch (error) {
-      console.error(`Error fetching client ${id}:`, error);
-      return undefined;
-    }
+    return this.memStorage.getClient(id);
   }
 
-  async createClient(clientData: InsertClient): Promise<Client> {
-    try {
-      const [client] = await db.insert(clients).values(clientData).returning();
-      return client;
-    } catch (error) {
-      console.error("Error creating client:", error);
-      throw new Error("Failed to create client");
-    }
+  async createClient(client: InsertClient): Promise<Client> {
+    return this.memStorage.createClient(client);
   }
 
-  async updateClient(id: number, clientData: Partial<InsertClient>): Promise<Client | undefined> {
-    try {
-      const [updatedClient] = await db
-        .update(clients)
-        .set(clientData)
-        .where(eq(clients.id, id))
-        .returning();
-      return updatedClient;
-    } catch (error) {
-      console.error(`Error updating client ${id}:`, error);
-      return undefined;
-    }
+  async updateClient(id: number, client: Partial<InsertClient>): Promise<Client | undefined> {
+    return this.memStorage.updateClient(id, client);
   }
 
   async deleteClient(id: number): Promise<boolean> {
-    try {
-      await db.delete(clients).where(eq(clients.id, id));
-      return true;
-    } catch (error) {
-      console.error(`Error deleting client ${id}:`, error);
-      return false;
-    }
+    return this.memStorage.deleteClient(id);
   }
 
   // Project operations
   async getProjects(): Promise<Project[]> {
-    try {
-      return await db.select().from(projects);
-    } catch (error) {
-      console.error("Error fetching projects:", error);
-      return [];
-    }
+    return this.memStorage.getProjects();
   }
 
   async getProjectsByUser(userId: number): Promise<Project[]> {
-    try {
-      return await db.select().from(projects).where(eq(projects.userId, userId));
-    } catch (error) {
-      console.error(`Error fetching projects for user ${userId}:`, error);
-      return [];
-    }
+    return this.memStorage.getProjectsByUser(userId);
   }
 
   async getProjectsByClient(clientId: number): Promise<Project[]> {
-    try {
-      return await db.select().from(projects).where(eq(projects.clientId, clientId));
-    } catch (error) {
-      console.error(`Error fetching projects for client ${clientId}:`, error);
-      return [];
-    }
+    return this.memStorage.getProjectsByClient(clientId);
   }
 
   async getProject(id: number): Promise<Project | undefined> {
-    try {
-      const [project] = await db.select().from(projects).where(eq(projects.id, id));
-      return project;
-    } catch (error) {
-      console.error(`Error fetching project ${id}:`, error);
-      return undefined;
-    }
+    return this.memStorage.getProject(id);
   }
 
-  async createProject(projectData: InsertProject): Promise<Project> {
-    try {
-      const [project] = await db.insert(projects).values(projectData).returning();
-      return project;
-    } catch (error) {
-      console.error("Error creating project:", error);
-      throw new Error("Failed to create project");
-    }
+  async createProject(project: InsertProject): Promise<Project> {
+    return this.memStorage.createProject(project);
   }
 
-  async updateProject(id: number, projectData: Partial<InsertProject>): Promise<Project | undefined> {
-    try {
-      const [updatedProject] = await db
-        .update(projects)
-        .set(projectData)
-        .where(eq(projects.id, id))
-        .returning();
-      return updatedProject;
-    } catch (error) {
-      console.error(`Error updating project ${id}:`, error);
-      return undefined;
-    }
+  async updateProject(id: number, project: Partial<InsertProject>): Promise<Project | undefined> {
+    return this.memStorage.updateProject(id, project);
   }
 
   async deleteProject(id: number): Promise<boolean> {
-    try {
-      await db.delete(projects).where(eq(projects.id, id));
-      return true;
-    } catch (error) {
-      console.error(`Error deleting project ${id}:`, error);
-      return false;
-    }
+    return this.memStorage.deleteProject(id);
   }
 
   // Document operations
   async getDocuments(): Promise<Document[]> {
-    try {
-      return await db.select().from(documents);
-    } catch (error) {
-      console.error("Error fetching documents:", error);
-      return [];
-    }
+    return this.memStorage.getDocuments();
   }
 
   async getDocumentsByUser(userId: number): Promise<Document[]> {
-    try {
-      return await db.select().from(documents).where(eq(documents.userId, userId));
-    } catch (error) {
-      console.error(`Error fetching documents for user ${userId}:`, error);
-      return [];
-    }
+    return this.memStorage.getDocumentsByUser(userId);
   }
 
   async getDocumentsByProject(projectId: number): Promise<Document[]> {
-    try {
-      return await db.select().from(documents).where(eq(documents.projectId, projectId));
-    } catch (error) {
-      console.error(`Error fetching documents for project ${projectId}:`, error);
-      return [];
-    }
+    return this.memStorage.getDocumentsByProject(projectId);
   }
 
   async getDocument(id: number): Promise<Document | undefined> {
-    try {
-      const [document] = await db.select().from(documents).where(eq(documents.id, id));
-      return document;
-    } catch (error) {
-      console.error(`Error fetching document ${id}:`, error);
-      return undefined;
-    }
+    return this.memStorage.getDocument(id);
   }
 
-  async createDocument(documentData: InsertDocument): Promise<Document> {
-    try {
-      const [document] = await db.insert(documents).values(documentData).returning();
-      return document;
-    } catch (error) {
-      console.error("Error creating document:", error);
-      throw new Error("Failed to create document");
-    }
+  async createDocument(document: InsertDocument): Promise<Document> {
+    return this.memStorage.createDocument(document);
   }
 
-  async updateDocument(id: number, documentData: Partial<{ content: string }>): Promise<Document | undefined> {
-    try {
-      const [updatedDocument] = await db
-        .update(documents)
-        .set(documentData)
-        .where(eq(documents.id, id))
-        .returning();
-      return updatedDocument;
-    } catch (error) {
-      console.error(`Error updating document ${id}:`, error);
-      return undefined;
-    }
+  async updateDocument(id: number, document: Partial<{ content: string }>): Promise<Document | undefined> {
+    return this.memStorage.updateDocument(id, document);
   }
 
   async deleteDocument(id: number): Promise<boolean> {
-    try {
-      await db.delete(documents).where(eq(documents.id, id));
-      return true;
-    } catch (error) {
-      console.error(`Error deleting document ${id}:`, error);
-      return false;
-    }
+    return this.memStorage.deleteDocument(id);
   }
 
   // External data operations
   async getExternalData(): Promise<ExternalData[]> {
-    try {
-      return await db.select().from(externalData);
-    } catch (error) {
-      console.error("Error fetching external data:", error);
-      return [];
-    }
+    return this.memStorage.getExternalData();
   }
 
   async getExternalDataByUser(userId: number): Promise<ExternalData[]> {
-    try {
-      return await db.select().from(externalData).where(eq(externalData.userId, userId));
-    } catch (error) {
-      console.error(`Error fetching external data for user ${userId}:`, error);
-      return [];
-    }
+    return this.memStorage.getExternalDataByUser(userId);
   }
 
   async getUnprocessedExternalData(): Promise<ExternalData[]> {
-    try {
-      return await db.select().from(externalData).where(eq(externalData.processed, false));
-    } catch (error) {
-      console.error("Error fetching unprocessed external data:", error);
-      return [];
-    }
+    return this.memStorage.getUnprocessedExternalData();
   }
 
   async getExternalDataById(id: number): Promise<ExternalData | undefined> {
-    try {
-      const [data] = await db.select().from(externalData).where(eq(externalData.id, id));
-      return data;
-    } catch (error) {
-      console.error(`Error fetching external data ${id}:`, error);
-      return undefined;
-    }
+    return this.memStorage.getExternalDataById(id);
   }
 
   async createExternalData(data: InsertExternalData): Promise<ExternalData> {
-    try {
-      const [externalDataItem] = await db.insert(externalData).values(data).returning();
-      return externalDataItem;
-    } catch (error) {
-      console.error("Error creating external data:", error);
-      throw new Error("Failed to create external data");
-    }
+    return this.memStorage.createExternalData(data);
   }
 
   async markExternalDataAsProcessed(id: number): Promise<boolean> {
-    try {
-      await db
-        .update(externalData)
-        .set({ processed: true })
-        .where(eq(externalData.id, id));
-      return true;
-    } catch (error) {
-      console.error(`Error marking external data ${id} as processed:`, error);
-      return false;
-    }
+    return this.memStorage.markExternalDataAsProcessed(id);
   }
 
   async deleteExternalData(id: number): Promise<boolean> {
-    try {
-      await db.delete(externalData).where(eq(externalData.id, id));
-      return true;
-    } catch (error) {
-      console.error(`Error deleting external data ${id}:`, error);
-      return false;
-    }
+    return this.memStorage.deleteExternalData(id);
   }
 
   // Resume operations
   async getResumes(): Promise<Resume[]> {
-    try {
-      return await db.select().from(resumes);
-    } catch (error) {
-      console.error("Error fetching resumes:", error);
-      return [];
-    }
+    return this.memStorage.getResumes();
   }
 
   async getResumesByUser(userId: number): Promise<Resume[]> {
-    try {
-      return await db.select().from(resumes).where(eq(resumes.userId, userId));
-    } catch (error) {
-      console.error(`Error fetching resumes for user ${userId}:`, error);
-      return [];
-    }
+    return this.memStorage.getResumesByUser(userId);
   }
 
   async getResumesByType(type: string): Promise<Resume[]> {
-    try {
-      return await db.select().from(resumes).where(eq(resumes.type, type));
-    } catch (error) {
-      console.error(`Error fetching resumes of type ${type}:`, error);
-      return [];
-    }
+    return this.memStorage.getResumesByType(type);
   }
 
   async getResume(id: number): Promise<Resume | undefined> {
-    try {
-      const [resume] = await db.select().from(resumes).where(eq(resumes.id, id));
-      return resume;
-    } catch (error) {
-      console.error(`Error fetching resume ${id}:`, error);
-      return undefined;
-    }
+    return this.memStorage.getResume(id);
   }
 
-  async createResume(resumeData: InsertResume): Promise<Resume> {
-    try {
-      const [resume] = await db.insert(resumes).values(resumeData).returning();
-      return resume;
-    } catch (error) {
-      console.error("Error creating resume:", error);
-      throw new Error("Failed to create resume");
-    }
+  async createResume(resume: InsertResume): Promise<Resume> {
+    return this.memStorage.createResume(resume);
   }
 
   async updateResume(id: number, resumeData: Partial<InsertResume>): Promise<Resume | undefined> {
-    try {
-      const [updatedResume] = await db
-        .update(resumes)
-        .set(resumeData)
-        .where(eq(resumes.id, id))
-        .returning();
-      return updatedResume;
-    } catch (error) {
-      console.error(`Error updating resume ${id}:`, error);
-      return undefined;
-    }
+    return this.memStorage.updateResume(id, resumeData);
   }
 
   async deleteResume(id: number): Promise<boolean> {
-    try {
-      await db.delete(resumes).where(eq(resumes.id, id));
-      return true;
-    } catch (error) {
-      console.error(`Error deleting resume ${id}:`, error);
-      return false;
-    }
+    return this.memStorage.deleteResume(id);
   }
 }
 
-// Always use database storage in production, but can be overridden
-export const storage = process.env.USE_MEM_STORAGE === 'true'
-  ? new MemStorage()
-  : new DatabaseStorage();
+// Choose storage implementation based on environment
+// Use database storage in production, memory storage in development
+export const storage = process.env.NODE_ENV === 'production' 
+  ? new DatabaseStorage()
+  : new MemStorage();

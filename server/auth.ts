@@ -144,14 +144,7 @@ export function setupAuth(app: Express): void {
         });
       }
       
-      console.error('Registration error details:', error);
-      
-      // Более подробное сообщение об ошибке
-      const errorMessage = error instanceof Error 
-        ? `Registration failed: ${error.message}` 
-        : "Registration failed";
-      
-      res.status(500).json({ error: errorMessage });
+      res.status(500).json({ error: "Registration failed" });
     }
   });
   
