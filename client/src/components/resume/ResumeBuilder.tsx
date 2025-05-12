@@ -3,7 +3,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 
 // Define types for resume data
 interface ResumeData {
@@ -22,7 +23,7 @@ import TargetPositionForm from "./steps/TargetPositionForm";
 import PreviewExportForm from "./steps/PreviewExportForm";
 import CoverLetterForm from "./steps/CoverLetterForm";
 
-import { ChevronLeft, ChevronRight, Save, PlayCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Save, PlayCircle, Loader2 } from "lucide-react";
 
 const STEPS = [
   { id: 'resume-building', title: 'Resume Building' },
@@ -181,13 +182,98 @@ export default function ResumeBuilder({ resumeId }: ResumeBuilderProps) {
     }
   };
   
-  // Save resume draft
-  const saveResumeDraft = () => {
-    // In a real implementation, we would save to localStorage or the database
-    toast({
-      title: "Resume draft saved",
-      description: "Your resume draft has been saved successfully",
-    });
+  // Create resume mutation
+  const createResumeMutation = useMutation({
+    mutationFn: async (resumeData: any) => {
+      const response = await fetch('/api/resumes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(resumeData),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create resume');
+      }
+      
+      return await response.json();
+    },
+    onSuccess: () => {
+      // Invalidate the resumes query to refetch the list
+      queryClient.invalidateQueries({ queryKey: ['/api/resumes'] });
+      
+      toast({
+        title: "Resume saved",
+        description: "Your resume has been saved successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error saving resume",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Update resume mutation
+  const updateResumeMutation = useMutation({
+    mutationFn: async ({ id, resumeData }: { id: number, resumeData: any }) => {
+      const response = await fetch(`/api/resumes/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(resumeData),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update resume');
+      }
+      
+      return await response.json();
+    },
+    onSuccess: () => {
+      // Invalidate the resumes query to refetch the list
+      queryClient.invalidateQueries({ queryKey: ['/api/resumes'] });
+      
+      toast({
+        title: "Resume updated",
+        description: "Your resume has been updated successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error updating resume",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Save or update resume
+  const saveResumeDraft = async () => {
+    // Create a name for the resume based on the target position and company
+    const resumeName = formData.targetPosition 
+      ? `Resume for ${formData.targetPosition}${formData.targetCompany ? ` at ${formData.targetCompany}` : ''}`
+      : `Resume ${new Date().toLocaleDateString()}`;
+    
+    const resumeData = {
+      name: resumeName,
+      type: 'resume',
+      content: JSON.stringify(formData),
+      targetPosition: formData.targetPosition,
+      targetCompany: formData.targetCompany,
+    };
+    
+    if (isEditMode && resumeId) {
+      // Update existing resume
+      updateResumeMutation.mutate({ id: resumeId, resumeData });
+    } else {
+      // Create new resume
+      createResumeMutation.mutate(resumeData);
+    }
   };
   
   // Render current step form
@@ -246,6 +332,16 @@ export default function ResumeBuilder({ resumeId }: ResumeBuilderProps) {
         return null;
     }
   };
+  
+  // Show loading indicator when fetching resume data
+  if (isLoadingResume) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+        <p className="text-lg font-medium">Loading resume data...</p>
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-6">
@@ -316,9 +412,10 @@ export default function ResumeBuilder({ resumeId }: ResumeBuilderProps) {
           <Button
             variant="outline"
             onClick={saveResumeDraft}
+            disabled={createResumeMutation.isPending || updateResumeMutation.isPending}
           >
             <Save className="mr-2 h-4 w-4" />
-            Save Draft
+            {createResumeMutation.isPending || updateResumeMutation.isPending ? "Saving..." : "Save Draft"}
           </Button>
           
           {currentStep < STEPS.length - 1 ? (
@@ -327,8 +424,11 @@ export default function ResumeBuilder({ resumeId }: ResumeBuilderProps) {
               <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
           ) : (
-            <Button onClick={() => toast({ title: "Resume completed!", description: "Your resume has been successfully created." })}>
-              Complete
+            <Button 
+              onClick={saveResumeDraft}
+              disabled={createResumeMutation.isPending || updateResumeMutation.isPending}
+            >
+              {createResumeMutation.isPending || updateResumeMutation.isPending ? "Saving..." : "Complete"}
               <PlayCircle className="ml-2 h-4 w-4" />
             </Button>
           )}
