@@ -22,8 +22,10 @@ let connectionString = process.env.DATABASE_URL;
 const isInternalUrl = connectionString && /\b10\.\d+\.\d+\.\d+\b/.test(connectionString);
 
 if (isInternalUrl) {
-  console.log('Обнаружен внутренний URL базы данных Render. Использование внутренней сети...');
-  // Для внутренних URL не требуется дополнительных настроек
+  console.log('Обнаружен внутренний URL базы данных Render. Фиксируем порт...');
+  // Для внутренних URL принудительно устанавливаем порт 5432
+  connectionString = connectionString.replace(/:[0-9]+\//, ':5432/');
+  console.log('URL после исправления порта:', connectionString.replace(/:[^@:]*@/, ':***@'));
 } else if (connectionString && connectionString.includes('dpg-') && !connectionString.includes('.postgres.render.com')) {
   console.log('Обнаружен внешний URL базы данных Render без полного домена. Исправляем...');
   
