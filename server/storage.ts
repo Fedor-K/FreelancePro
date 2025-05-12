@@ -565,7 +565,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getClientsByUser(userId: number): Promise<Client[]> {
-    return await db.select().from(clients).where(eq(clients.user_id, userId));
+    return await db.select().from(clients).where(eq(clients.userId, userId));
   }
 
   async getClient(id: number): Promise<Client | undefined> {
@@ -601,16 +601,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getProjectsByUser(userId: number): Promise<Project[]> {
-    // Join projects with clients to filter by user_id
+    // Join projects with clients to filter by userId
     return await db.select()
       .from(projects)
-      .innerJoin(clients, eq(projects.client_id, clients.id))
-      .where(eq(clients.user_id, userId))
+      .innerJoin(clients, eq(projects.clientId, clients.id))
+      .where(eq(clients.userId, userId))
       .then(rows => rows.map(row => row.projects));
   }
 
   async getProjectsByClient(clientId: number): Promise<Project[]> {
-    return await db.select().from(projects).where(eq(projects.client_id, clientId));
+    return await db.select().from(projects).where(eq(projects.clientId, clientId));
   }
 
   async getProject(id: number): Promise<Project | undefined> {
@@ -646,17 +646,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getDocumentsByUser(userId: number): Promise<Document[]> {
-    // Join documents with projects and clients to filter by user_id
+    // Join documents with projects and clients to filter by userId
     return await db.select()
       .from(documents)
-      .innerJoin(projects, eq(documents.project_id, projects.id))
-      .innerJoin(clients, eq(projects.client_id, clients.id))
-      .where(eq(clients.user_id, userId))
+      .innerJoin(projects, eq(documents.projectId, projects.id))
+      .innerJoin(clients, eq(projects.clientId, clients.id))
+      .where(eq(clients.userId, userId))
       .then(rows => rows.map(row => row.documents));
   }
 
   async getDocumentsByProject(projectId: number): Promise<Document[]> {
-    return await db.select().from(documents).where(eq(documents.project_id, projectId));
+    return await db.select().from(documents).where(eq(documents.projectId, projectId));
   }
 
   async getDocument(id: number): Promise<Document | undefined> {
@@ -685,7 +685,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getResumesByUser(userId: number): Promise<Resume[]> {
-    return await db.select().from(resumes).where(eq(resumes.user_id, userId));
+    return await db.select().from(resumes).where(eq(resumes.userId, userId));
   }
 
   async getResumesByType(type: string): Promise<Resume[]> {
@@ -718,7 +718,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getExternalDataByUser(userId: number): Promise<ExternalData[]> {
-    return await db.select().from(externalData).where(eq(externalData.user_id, userId));
+    return await db.select().from(externalData).where(eq(externalData.userId, userId));
   }
 
   async getUnprocessedExternalData(): Promise<ExternalData[]> {
