@@ -766,43 +766,74 @@ Date: ____________
   });
 
   // Resume routes
-  app.get("/api/resumes", async (req: Request, res: Response) => {
+  app.get("/api/resumes", requireAuth, async (req: Request, res: Response) => {
     try {
+      const userId = req.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       let resumes;
       // Filter by type if provided
       if (req.query.type) {
         const type = req.query.type as string;
-        resumes = await storage.getResumesByType(type);
+        // Get resumes by type AND user
+        const allTypeResumes = await storage.getResumesByType(type);
+        resumes = allTypeResumes.filter(resume => resume.userId === userId);
       } else {
-        resumes = await storage.getResumes();
+        // Get only user's resumes
+        resumes = await storage.getResumesByUser(userId);
       }
       res.json(resumes);
     } catch (error) {
+      console.error("Error fetching resumes:", error);
       res.status(500).json({ message: "Failed to fetch resumes" });
     }
   });
 
-  app.get("/api/resumes/:id", async (req: Request, res: Response) => {
+  app.get("/api/resumes/:id", requireAuth, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
         return res.status(400).json({ message: "Invalid resume ID" });
       }
       
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const resume = await storage.getResume(id);
+      
       if (!resume) {
         return res.status(404).json({ message: "Resume not found" });
       }
       
+      // Check if this resume belongs to the authenticated user
+      if (resume.userId !== userId) {
+        return res.status(403).json({ message: "You do not have access to this resume" });
+      }
+      
       res.json(resume);
     } catch (error) {
+      console.error("Error fetching resume:", error);
       res.status(500).json({ message: "Failed to fetch resume" });
     }
   });
 
-  app.post("/api/resumes", async (req: Request, res: Response) => {
+  app.post("/api/resumes", requireAuth, async (req: Request, res: Response) => {
     try {
-      const result = insertResumeSchema.safeParse(req.body);
+      const userId = req.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      // Add userId to the request data
+      const data = { ...req.body, userId };
+      
+      const result = insertResumeSchema.safeParse(data);
       if (!result.success) {
         return res.status(400).json({ 
           message: "Invalid resume data", 
@@ -813,15 +844,21 @@ Date: ____________
       const resume = await storage.createResume(result.data);
       res.status(201).json(resume);
     } catch (error) {
+      console.error("Resume creation error:", error);
       res.status(500).json({ message: "Failed to create resume" });
     }
   });
 
-  app.patch("/api/resumes/:id", async (req: Request, res: Response) => {
+  app.patch("/api/resumes/:id", requireAuth, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
         return res.status(400).json({ message: "Invalid resume ID" });
+      }
+      
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
       }
       
       const updateData = req.body;
@@ -831,6 +868,11 @@ Date: ____________
         return res.status(404).json({ message: "Resume not found" });
       }
       
+      // Check if this resume belongs to the authenticated user
+      if (resume.userId !== userId) {
+        return res.status(403).json({ message: "You do not have access to this resume" });
+      }
+      
       const updatedResume = await storage.updateResume(id, updateData);
       if (!updatedResume) {
         return res.status(500).json({ message: "Failed to update resume" });
@@ -838,24 +880,42 @@ Date: ____________
       
       res.json(updatedResume);
     } catch (error) {
+      console.error("Error updating resume:", error);
       res.status(500).json({ message: "Failed to update resume" });
     }
   });
 
-  app.delete("/api/resumes/:id", async (req: Request, res: Response) => {
+  app.delete("/api/resumes/:id", requireAuth, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
         return res.status(400).json({ message: "Invalid resume ID" });
       }
       
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      // First check if resume exists and belongs to user
+      const resume = await storage.getResume(id);
+      if (!resume) {
+        return res.status(404).json({ message: "Resume not found" });
+      }
+      
+      // Check if this resume belongs to the authenticated user
+      if (resume.userId !== userId) {
+        return res.status(403).json({ message: "You do not have access to this resume" });
+      }
+      
       const success = await storage.deleteResume(id);
       if (!success) {
-        return res.status(404).json({ message: "Resume not found" });
+        return res.status(500).json({ message: "Failed to delete resume" });
       }
       
       res.status(204).send();
     } catch (error) {
+      console.error("Error deleting resume:", error);
       res.status(500).json({ message: "Failed to delete resume" });
     }
   });
@@ -908,9 +968,15 @@ Date: ____________
   // Initialize WebSocket server
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
 
+  // Define types for WebSocket connections
+  type ConnectionData = {
+    ws: WebSocket;
+    projectId: string | null;
+  };
+
   // Store active connections and their project rooms
-  const connections = new Map();
-  const projectRooms = new Map();
+  const connections = new Map<string, ConnectionData>();
+  const projectRooms = new Map<string, Set<string>>();
 
   wss.on('connection', (ws) => {
     log('WebSocket connection established', 'websocket');
@@ -958,7 +1024,7 @@ Date: ____________
             const roomConnections = projectRooms.get(projectId);
             
             // Broadcast to all other connections in the same room
-            roomConnections.forEach((connId) => {
+            roomConnections.forEach((connId: string) => {
               if (connId !== connectionId) { // Don't send back to sender
                 const targetConn = connections.get(connId);
                 if (targetConn && targetConn.ws.readyState === WebSocket.OPEN) {
