@@ -6,6 +6,8 @@ import {
   resumes, type Resume, type InsertResume,
   users, type User, type InsertUser
 } from "@shared/schema";
+import { eq } from "drizzle-orm";
+import { db } from "./db";
 
 // Interface for storage operations
 export interface IStorage {
@@ -505,4 +507,247 @@ export class MemStorage implements IStorage {
 }
 
 // Export instance
-export const storage = new MemStorage();
+// Database storage implementation using Drizzle ORM
+export class DatabaseStorage implements IStorage {
+  // User operations
+  async getUsers(): Promise<User[]> {
+    return await db.select().from(users);
+  }
+
+  async getUser(id: number): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.id, id));
+    return result[0];
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.username, username));
+    return result[0];
+  }
+
+  async createUser(user: InsertUser): Promise<User> {
+    const result = await db.insert(users).values(user).returning();
+    return result[0];
+  }
+
+  async updateUser(id: number, userData: Partial<InsertUser>): Promise<User | undefined> {
+    const result = await db.update(users).set(userData).where(eq(users.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteUser(id: number): Promise<boolean> {
+    // Delete all related data first (optional - depends on your database constraints)
+    // Delete client data
+    const clientsToDelete = await this.getClientsByUser(id);
+    for (const client of clientsToDelete) {
+      await this.deleteClient(client.id);
+    }
+
+    // Delete user's resumes
+    const resumesToDelete = await this.getResumesByUser(id);
+    for (const resume of resumesToDelete) {
+      await this.deleteResume(resume.id);
+    }
+
+    // Delete user's external data
+    const externalDataToDelete = await this.getExternalDataByUser(id);
+    for (const data of externalDataToDelete) {
+      await this.deleteExternalData(data.id);
+    }
+
+    // Finally delete the user
+    const result = await db.delete(users).where(eq(users.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Client operations
+  async getClients(): Promise<Client[]> {
+    return await db.select().from(clients);
+  }
+
+  async getClientsByUser(userId: number): Promise<Client[]> {
+    return await db.select().from(clients).where(eq(clients.user_id, userId));
+  }
+
+  async getClient(id: number): Promise<Client | undefined> {
+    const result = await db.select().from(clients).where(eq(clients.id, id));
+    return result[0];
+  }
+
+  async createClient(client: InsertClient): Promise<Client> {
+    const result = await db.insert(clients).values(client).returning();
+    return result[0];
+  }
+
+  async updateClient(id: number, clientData: Partial<InsertClient>): Promise<Client | undefined> {
+    const result = await db.update(clients).set(clientData).where(eq(clients.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteClient(id: number): Promise<boolean> {
+    // Delete projects associated with this client first
+    const projectsToDelete = await this.getProjectsByClient(id);
+    for (const project of projectsToDelete) {
+      await this.deleteProject(project.id);
+    }
+
+    // Delete the client
+    const result = await db.delete(clients).where(eq(clients.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Project operations
+  async getProjects(): Promise<Project[]> {
+    return await db.select().from(projects);
+  }
+
+  async getProjectsByUser(userId: number): Promise<Project[]> {
+    // Join projects with clients to filter by user_id
+    return await db.select()
+      .from(projects)
+      .innerJoin(clients, eq(projects.client_id, clients.id))
+      .where(eq(clients.user_id, userId))
+      .then(rows => rows.map(row => row.projects));
+  }
+
+  async getProjectsByClient(clientId: number): Promise<Project[]> {
+    return await db.select().from(projects).where(eq(projects.client_id, clientId));
+  }
+
+  async getProject(id: number): Promise<Project | undefined> {
+    const result = await db.select().from(projects).where(eq(projects.id, id));
+    return result[0];
+  }
+
+  async createProject(project: InsertProject): Promise<Project> {
+    const result = await db.insert(projects).values(project).returning();
+    return result[0];
+  }
+
+  async updateProject(id: number, projectData: Partial<InsertProject>): Promise<Project | undefined> {
+    const result = await db.update(projects).set(projectData).where(eq(projects.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteProject(id: number): Promise<boolean> {
+    // Delete documents associated with this project first
+    const documentsToDelete = await this.getDocumentsByProject(id);
+    for (const document of documentsToDelete) {
+      await this.deleteDocument(document.id);
+    }
+
+    // Delete the project
+    const result = await db.delete(projects).where(eq(projects.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Document operations
+  async getDocuments(): Promise<Document[]> {
+    return await db.select().from(documents);
+  }
+
+  async getDocumentsByUser(userId: number): Promise<Document[]> {
+    // Join documents with projects and clients to filter by user_id
+    return await db.select()
+      .from(documents)
+      .innerJoin(projects, eq(documents.project_id, projects.id))
+      .innerJoin(clients, eq(projects.client_id, clients.id))
+      .where(eq(clients.user_id, userId))
+      .then(rows => rows.map(row => row.documents));
+  }
+
+  async getDocumentsByProject(projectId: number): Promise<Document[]> {
+    return await db.select().from(documents).where(eq(documents.project_id, projectId));
+  }
+
+  async getDocument(id: number): Promise<Document | undefined> {
+    const result = await db.select().from(documents).where(eq(documents.id, id));
+    return result[0];
+  }
+
+  async createDocument(document: InsertDocument): Promise<Document> {
+    const result = await db.insert(documents).values(document).returning();
+    return result[0];
+  }
+
+  async updateDocument(id: number, documentData: Partial<{ content: string }>): Promise<Document | undefined> {
+    const result = await db.update(documents).set(documentData).where(eq(documents.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteDocument(id: number): Promise<boolean> {
+    const result = await db.delete(documents).where(eq(documents.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Resume operations
+  async getResumes(): Promise<Resume[]> {
+    return await db.select().from(resumes);
+  }
+
+  async getResumesByUser(userId: number): Promise<Resume[]> {
+    return await db.select().from(resumes).where(eq(resumes.user_id, userId));
+  }
+
+  async getResumesByType(type: string): Promise<Resume[]> {
+    return await db.select().from(resumes).where(eq(resumes.type, type));
+  }
+
+  async getResume(id: number): Promise<Resume | undefined> {
+    const result = await db.select().from(resumes).where(eq(resumes.id, id));
+    return result[0];
+  }
+
+  async createResume(resume: InsertResume): Promise<Resume> {
+    const result = await db.insert(resumes).values(resume).returning();
+    return result[0];
+  }
+
+  async updateResume(id: number, resumeData: Partial<InsertResume>): Promise<Resume | undefined> {
+    const result = await db.update(resumes).set(resumeData).where(eq(resumes.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteResume(id: number): Promise<boolean> {
+    const result = await db.delete(resumes).where(eq(resumes.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // External data operations
+  async getExternalData(): Promise<ExternalData[]> {
+    return await db.select().from(externalData);
+  }
+
+  async getExternalDataByUser(userId: number): Promise<ExternalData[]> {
+    return await db.select().from(externalData).where(eq(externalData.user_id, userId));
+  }
+
+  async getUnprocessedExternalData(): Promise<ExternalData[]> {
+    return await db.select().from(externalData).where(eq(externalData.processed, false));
+  }
+
+  async getExternalDataById(id: number): Promise<ExternalData | undefined> {
+    const result = await db.select().from(externalData).where(eq(externalData.id, id));
+    return result[0];
+  }
+
+  async createExternalData(data: InsertExternalData): Promise<ExternalData> {
+    const result = await db.insert(externalData).values(data).returning();
+    return result[0];
+  }
+
+  async markExternalDataAsProcessed(id: number): Promise<boolean> {
+    const result = await db.update(externalData)
+      .set({ processed: true })
+      .where(eq(externalData.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  async deleteExternalData(id: number): Promise<boolean> {
+    const result = await db.delete(externalData).where(eq(externalData.id, id)).returning();
+    return result.length > 0;
+  }
+}
+
+// Use DatabaseStorage instead of MemStorage
+export const storage = new DatabaseStorage();
