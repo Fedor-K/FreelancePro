@@ -2,6 +2,9 @@
 
 import { defineConfig } from "drizzle-kit";
 
+// Отключаем проверку самоподписанных сертификатов для Drizzle-миграций
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 const url = process.env.MIGRATE_DATABASE_URL;
 if (!url) {
   throw new Error("MIGRATE_DATABASE_URL must be set for migrations");
@@ -12,16 +15,12 @@ export default defineConfig({
   schema: "./shared/schema.ts",
   dialect: "postgresql",
   dbCredentials: {
-    url, // берём URL из MIGRATE_DATABASE_URL
-    ssl: {
-      // отключаем проверку сертификата
-      rejectUnauthorized: false,
-    },
+    url, // используем TCP-URL с портом 5432 и sslmode=require
   },
   ignore: {
-    // не трогаем все вьюшки PostgreSQL, начинающиеся с pg_stat_
+    // не трогаем системные вьюшки pg_stat_*
     views: [/^pg_stat_.*/],
   },
-  // только применять миграции, без автоматического удаления объектов
+  // только применяем миграции, без автоматического удаления «лишних» объектов
   migrationMode: "apply",
 });
