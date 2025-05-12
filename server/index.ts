@@ -1,10 +1,15 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import * as dotenv from 'dotenv';
 
-// Load environment variables from .env file
-dotenv.config();
+// Optional dotenv loading (only in development)
+try {
+  const dotenv = require('dotenv');
+  dotenv.config();
+  console.log('Environment variables loaded from .env file');
+} catch (error) {
+  console.log('Dotenv not available, using existing environment variables');
+}
 
 const app = express();
 app.use(express.json());

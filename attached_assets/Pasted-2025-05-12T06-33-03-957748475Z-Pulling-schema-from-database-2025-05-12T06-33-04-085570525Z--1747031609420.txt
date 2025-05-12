@@ -1,0 +1,111 @@
+2025-05-12T06:33:03.957748475Z [⢿] Pulling schema from database...
+2025-05-12T06:33:04.085570525Z [⣻] Pulling schema from database...
+2025-05-12T06:33:04.213809814Z [⣽] Pulling schema from database...
+2025-05-12T06:33:04.341809647Z [⣷] Pulling schema from database...
+2025-05-12T06:33:04.446896977Z [✓] Pulling schema from database...
+2025-05-12T06:33:04.475060795Z error: cannot drop view pg_stat_statements_info because extension pg_stat_statements requires it
+2025-05-12T06:33:04.475081797Z     at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+2025-05-12T06:33:04.475084767Z     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-05-12T06:33:04.475087997Z     at async Object.query (/opt/render/project/src/node_modules/drizzle-kit/bin.cjs:66575:26)
+2025-05-12T06:33:04.475090568Z     at async pgPush (/opt/render/project/src/node_modules/drizzle-kit/bin.cjs:70117:13)
+2025-05-12T06:33:04.475093278Z     at async Object.handler (/opt/render/project/src/node_modules/drizzle-kit/bin.cjs:79124:9)
+2025-05-12T06:33:04.475095988Z     at async run (/opt/render/project/src/node_modules/drizzle-kit/bin.cjs:78381:7) {
+2025-05-12T06:33:04.475099098Z   length: 210,
+2025-05-12T06:33:04.475102078Z   severity: 'ERROR',
+2025-05-12T06:33:04.475103829Z   code: '2BP01',
+2025-05-12T06:33:04.475105479Z   detail: undefined,
+2025-05-12T06:33:04.475107459Z   hint: 'You can drop extension pg_stat_statements instead.',
+2025-05-12T06:33:04.475110169Z   position: undefined,
+2025-05-12T06:33:04.475113019Z   internalPosition: undefined,
+2025-05-12T06:33:04.475115629Z   internalQuery: undefined,
+2025-05-12T06:33:04.475118119Z   where: undefined,
+2025-05-12T06:33:04.47512088Z   schema: undefined,
+2025-05-12T06:33:04.4751239Z   table: undefined,
+2025-05-12T06:33:04.47512562Z   column: undefined,
+2025-05-12T06:33:04.47512731Z   dataType: undefined,
+2025-05-12T06:33:04.47512892Z   constraint: undefined,
+2025-05-12T06:33:04.47513056Z   file: 'dependency.c',
+2025-05-12T06:33:04.475132191Z   line: '843',
+2025-05-12T06:33:04.475135801Z   routine: 'findDependentObjects'
+2025-05-12T06:33:04.475138611Z }
+2025-05-12T06:33:04.734797818Z node:internal/modules/package_json_reader:268
+2025-05-12T06:33:04.73482669Z   throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+2025-05-12T06:33:04.73483052Z         ^
+2025-05-12T06:33:04.734833521Z 
+2025-05-12T06:33:04.734864333Z Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'dotenv' imported from /opt/render/project/src/dist/index.js
+2025-05-12T06:33:04.734870523Z     at Object.getPackageJSONURL (node:internal/modules/package_json_reader:268:9)
+2025-05-12T06:33:04.734874563Z     at packageResolve (node:internal/modules/esm/resolve:768:81)
+2025-05-12T06:33:04.734878374Z     at moduleResolve (node:internal/modules/esm/resolve:854:18)
+2025-05-12T06:33:04.734881784Z     at defaultResolve (node:internal/modules/esm/resolve:984:11)
+2025-05-12T06:33:04.734885004Z     at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:685:12)
+2025-05-12T06:33:04.734888524Z     at #cachedDefaultResolve (node:internal/modules/esm/loader:634:25)
+2025-05-12T06:33:04.734891765Z     at ModuleLoader.resolve (node:internal/modules/esm/loader:617:38)
+2025-05-12T06:33:04.734895375Z     at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:273:38)
+2025-05-12T06:33:04.734898385Z     at ModuleJob._link (node:internal/modules/esm/module_job:135:49) {
+2025-05-12T06:33:04.734902675Z   code: 'ERR_MODULE_NOT_FOUND'
+2025-05-12T06:33:04.734906296Z }
+2025-05-12T06:33:04.734909716Z 
+2025-05-12T06:33:04.734913106Z Node.js v22.14.0
+2025-05-12T06:33:09.866200957Z ==> Exited with status 1
+2025-05-12T06:33:09.882449345Z ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
+2025-05-12T06:33:11.502100237Z ==> Running 'npx drizzle-kit push && NODE_ENV=production node dist/index.js'
+2025-05-12T06:33:12.520869892Z No config path provided, using default 'drizzle.config.ts'
+2025-05-12T06:33:12.521142921Z Reading config file '/opt/render/project/src/drizzle.config.ts'
+2025-05-12T06:33:14.107831563Z Using 'pg' driver for database querying
+2025-05-12T06:33:14.891232501Z [⣷] Pulling schema from database...
+2025-05-12T06:33:14.953289958Z [⣯] Pulling schema from database...
+2025-05-12T06:33:15.081792466Z [⣟] Pulling schema from database...
+2025-05-12T06:33:15.209436433Z [⡿] Pulling schema from database...
+2025-05-12T06:33:15.337829214Z [⢿] Pulling schema from database...
+2025-05-12T06:33:15.46560286Z [⣻] Pulling schema from database...
+2025-05-12T06:33:15.594245429Z [⣽] Pulling schema from database...
+2025-05-12T06:33:15.722496809Z [⣷] Pulling schema from database...
+2025-05-12T06:33:15.850666424Z [⣯] Pulling schema from database...
+2025-05-12T06:33:15.978621773Z [⣟] Pulling schema from database...
+2025-05-12T06:33:16.106993062Z [⡿] Pulling schema from database...
+2025-05-12T06:33:16.234832933Z [⢿] Pulling schema from database...
+2025-05-12T06:33:16.362773781Z [⣻] Pulling schema from database...
+2025-05-12T06:33:16.445664971Z [✓] Pulling schema from database...
+2025-05-12T06:33:16.473122779Z error: cannot drop view pg_stat_statements_info because extension pg_stat_statements requires it
+2025-05-12T06:33:16.47314414Z     at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+2025-05-12T06:33:16.47314697Z     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-05-12T06:33:16.473149191Z     at async Object.query (/opt/render/project/src/node_modules/drizzle-kit/bin.cjs:66575:26)
+2025-05-12T06:33:16.473151271Z     at async pgPush (/opt/render/project/src/node_modules/drizzle-kit/bin.cjs:70117:13)
+2025-05-12T06:33:16.473153301Z     at async Object.handler (/opt/render/project/src/node_modules/drizzle-kit/bin.cjs:79124:9)
+2025-05-12T06:33:16.473155411Z     at async run (/opt/render/project/src/node_modules/drizzle-kit/bin.cjs:78381:7) {
+2025-05-12T06:33:16.473157801Z   length: 210,
+2025-05-12T06:33:16.473160982Z   severity: 'ERROR',
+2025-05-12T06:33:16.473163172Z   code: '2BP01',
+2025-05-12T06:33:16.473165212Z   detail: undefined,
+2025-05-12T06:33:16.473167862Z   hint: 'You can drop extension pg_stat_statements instead.',
+2025-05-12T06:33:16.473169892Z   position: undefined,
+2025-05-12T06:33:16.473172692Z   internalPosition: undefined,
+2025-05-12T06:33:16.473174852Z   internalQuery: undefined,
+2025-05-12T06:33:16.473176953Z   where: undefined,
+2025-05-12T06:33:16.473178943Z   schema: undefined,
+2025-05-12T06:33:16.473180963Z   table: undefined,
+2025-05-12T06:33:16.473182973Z   column: undefined,
+2025-05-12T06:33:16.473184993Z   dataType: undefined,
+2025-05-12T06:33:16.473187013Z   constraint: undefined,
+2025-05-12T06:33:16.473189073Z   file: 'dependency.c',
+2025-05-12T06:33:16.473191094Z   line: '843',
+2025-05-12T06:33:16.473193804Z   routine: 'findDependentObjects'
+2025-05-12T06:33:16.473195874Z }
+2025-05-12T06:33:16.605823998Z node:internal/modules/package_json_reader:268
+2025-05-12T06:33:16.60584916Z   throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+2025-05-12T06:33:16.60585266Z         ^
+2025-05-12T06:33:16.60585512Z 
+2025-05-12T06:33:16.605861441Z Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'dotenv' imported from /opt/render/project/src/dist/index.js
+2025-05-12T06:33:16.605867911Z     at Object.getPackageJSONURL (node:internal/modules/package_json_reader:268:9)
+2025-05-12T06:33:16.605885953Z     at packageResolve (node:internal/modules/esm/resolve:768:81)
+2025-05-12T06:33:16.605889053Z     at moduleResolve (node:internal/modules/esm/resolve:854:18)
+2025-05-12T06:33:16.605891703Z     at defaultResolve (node:internal/modules/esm/resolve:984:11)
+2025-05-12T06:33:16.605894203Z     at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:685:12)
+2025-05-12T06:33:16.605896913Z     at #cachedDefaultResolve (node:internal/modules/esm/loader:634:25)
+2025-05-12T06:33:16.605899554Z     at ModuleLoader.resolve (node:internal/modules/esm/loader:617:38)
+2025-05-12T06:33:16.605902164Z     at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:273:38)
+2025-05-12T06:33:16.605904774Z     at ModuleJob._link (node:internal/modules/esm/module_job:135:49) {
+2025-05-12T06:33:16.605908434Z   code: 'ERR_MODULE_NOT_FOUND'
+2025-05-12T06:33:16.605911134Z }
+2025-05-12T06:33:16.605912744Z 
+2025-05-12T06:33:16.605914475Z Node.js v22.14.0
