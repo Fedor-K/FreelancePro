@@ -417,13 +417,12 @@ export class MemStorage implements IStorage {
   async createDocument(document: InsertDocument): Promise<Document> {
     const id = this.documentId++;
     const newDocument: Document = { 
-      ...document, 
       id, 
-      createdAt: document.createdAt || new Date(),
-      userId: document.userId || null,
-      projectId: document.projectId || null,
       type: document.type,
-      content: document.content
+      content: document.content,
+      createdAt: new Date(),
+      userId: document.userId || null,
+      projectId: document.projectId || null
     };
     this.documents.set(id, newDocument);
     return newDocument;
@@ -473,10 +472,13 @@ export class MemStorage implements IStorage {
   async createExternalData(data: InsertExternalData): Promise<ExternalData> {
     const id = this.externalDataId++;
     const newExternalData: ExternalData = {
-      ...data,
       id,
-      processed: false,
-      createdAt: new Date()
+      dataType: data.dataType,
+      createdAt: new Date(),
+      userId: data.userId || null,
+      content: data.content,
+      source: data.source,
+      processed: false
     };
     this.externalDataItems.set(id, newExternalData);
     return newExternalData;
@@ -519,9 +521,16 @@ export class MemStorage implements IStorage {
   async createResume(resume: InsertResume): Promise<Resume> {
     const id = this.resumeId++;
     const newResume: Resume = {
-      ...resume,
       id,
-      createdAt: new Date()
+      name: resume.name,
+      createdAt: new Date(),
+      type: resume.type,
+      userId: resume.userId || null,
+      projectId: resume.projectId || null,
+      content: resume.content,
+      targetPosition: resume.targetPosition || null,
+      targetCompany: resume.targetCompany || null,
+      htmlContent: resume.htmlContent
     };
     this.resumeItems.set(id, newResume);
     return newResume;
