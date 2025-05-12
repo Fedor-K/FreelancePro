@@ -24,31 +24,41 @@ Configure the following environment variables in the Render.com dashboard:
 
 Настройте следующие команды в панели Render.com для вашего сервиса:
 
-- **Build Command**: `npm run build && chmod +x render-start.cjs`
-- **Start Command**: `node render-start.cjs`
+- **Build Command**: `npm run build && chmod +x render-start.sh`
+- **Start Command**: `./render-start.sh`
 
 ### Автоматическое исправление проблем с PostgreSQL
 
-Мы создали скрипт `render-start.cjs`, который:
+Мы реализовали два уровня исправления проблем:
 
-1. Автоматически исправляет формат URL базы данных, добавляя домен `.region-postgres.render.com`
-2. Добавляет параметр `?ssl=true` к URL если его нет
-3. Создает временный конфиг для Drizzle, который игнорирует ошибки с pg_stat_statements_info
-4. Запускает миграции с помощью этого конфига
-5. Запускает основное приложение
+#### 1. Автоматическое исправление URL базы данных в коде приложения
 
-**Вам не нужно ничего настраивать вручную!** Скрипт автоматически обнаружит и исправит проблемы с подключением к базе данных.
+В файле `server/db.ts` мы добавили код, который:
+- Проверяет формат URL базы данных и автоматически добавляет `.frankfurt-postgres.render.com` если его нет
+- Добавляет параметр `?ssl=true` для безопасного соединения
 
 ```javascript
-// Пример как работает скрипт render-start.cjs (фрагмент):
-if (dbUrl && dbUrl.includes('dpg-') && !dbUrl.includes('postgres.render.com')) {
-  // Преобразует URL вида: 
-  // postgres://user:pass@dpg-id/dbname
-  // в формат:
-  // postgres://user:pass@dpg-id.frankfurt-postgres.render.com/dbname?ssl=true
-  // ...
+// Проверяем, что URL содержит dpg- (характерное начало ID хоста на Render PostgreSQL)
+if (connectionString.includes('dpg-') && !connectionString.includes('.postgres.render.com')) {
+  console.log('Неполный URL базы данных на Render. Исправляем...');
+  
+  // Находим ID хоста (dpg-xxx)
+  const matches = connectionString.match(/(postgres[ql]:\/\/.*?@)(dpg-[a-z0-9]+)/i);
+  if (matches && matches.length >= 3) {
+    // Собираем полный URL с добавлением домена региона
+    connectionString = `${prefix}${hostId}.frankfurt-postgres.render.com${restOfUrl}`;
+  }
 }
 ```
+
+#### 2. Безопасные миграции Drizzle для Render.com
+
+Скрипт `render-start.sh` запускает миграции Drizzle с безопасной конфигурацией, которая:
+- Игнорирует системные представления PostgreSQL, вызывающие ошибку
+- Продолжает работу даже при ошибках миграции
+- Автоматически запускает основное приложение после миграций
+
+**Вам не нужно ничего настраивать вручную!** Всё будет работать автоматически.
 
 ## Troubleshooting Database Errors
 

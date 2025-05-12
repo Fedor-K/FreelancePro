@@ -15,12 +15,35 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
+// Исправляем URL для Render.com, если он содержит неполный домен
+let connectionString = process.env.DATABASE_URL;
+
+// Проверяем, что URL содержит dpg- (характерное начало ID хоста на Render PostgreSQL)
+if (connectionString.includes('dpg-') && !connectionString.includes('.postgres.render.com')) {
+  console.log('Неполный URL базы данных на Render. Исправляем...');
+  
+  // Находим ID хоста (dpg-xxx)
+  const matches = connectionString.match(/(postgres[ql]:\/\/.*?@)(dpg-[a-z0-9]+)/i);
+  if (matches && matches.length >= 3) {
+    const prefix = matches[1]; // postgres://user:pass@
+    const hostId = matches[2]; // dpg-xxx
+    const restOfUrl = connectionString.substring(matches[0].length); // /dbname
+    
+    // Собираем полный URL с добавлением домена региона
+    connectionString = `${prefix}${hostId}.frankfurt-postgres.render.com${restOfUrl}`;
+    console.log('Исправленный URL:', connectionString);
+  }
+}
+
+// Добавляем параметр ssl=true, если его нет
+if (!connectionString.includes('ssl=true')) {
+  connectionString += connectionString.includes('?') ? '&ssl=true' : '?ssl=true';
+  console.log('Добавлен параметр SSL');
+}
+
 // Опции для улучшения подключения
-// Важно: для Neon PostgreSQL необходимо использовать правильный формат URL:
-// postgres://username:password@hostname.region-postgres.render.com/dbname?ssl=true
-// Обратите внимание на '.region-postgres.render.com' в имени хоста и '?ssl=true' в конце
 const poolConfig = {
-  connectionString: process.env.DATABASE_URL,
+  connectionString: connectionString,
   max: 10,                  // Максимум 10 одновременных соединений
   idleTimeoutMillis: 30000, // Таймаут неактивных соединений
   connectionTimeoutMillis: 20000, // Таймаут установки соединения
