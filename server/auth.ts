@@ -41,7 +41,11 @@ export function setupAuth(app: Express): void {
   // Set up session middleware
   app.use(
     session({
-      cookie: { maxAge: 86400000 }, // 24 hours
+      cookie: { 
+        maxAge: 86400000, // 24 hours
+        secure: process.env.NODE_ENV === 'production', // Only use secure cookies in production
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Required for cross-site cookies in production
+      },
       store: new MemoryStore({
         checkPeriod: 86400000, // Clear expired sessions every 24h
       }),
@@ -50,6 +54,11 @@ export function setupAuth(app: Express): void {
       secret: process.env.SESSION_SECRET || "freelanly-session-secret",
     })
   );
+  
+  // Trust first proxy for secure cookies in production
+  if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1);
+  }
   
   // Initialize passport
   app.use(passport.initialize());

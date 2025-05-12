@@ -31,15 +31,11 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<string>("login");
-  const { user, loginMutation, registerMutation } = useAuth();
+  const { user, isLoading, loginMutation, registerMutation } = useAuth();
   const [location, navigate] = useLocation();
 
-  // Redirect if already logged in
-  useEffect(() => {
-    if (user) {
-      navigate("/");
-    }
-  }, [user, navigate]);
+  // No need for redirection here as it's handled in App.tsx
+  // This component will only render if the user is not logged in
 
   // Login form
   const loginForm = useForm<LoginFormValues>({
