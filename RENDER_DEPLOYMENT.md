@@ -14,6 +14,7 @@ Configure the following environment variables in the Render.com dashboard:
 | `NODE_ENV` | `production` | Устанавливает режим работы приложения на production | **Да** |
 | `SESSION_SECRET` | `[generate a random string]` | Секретный ключ для шифрования сессий. Используйте длинную случайную строку. | **Да** |
 | `DATABASE_URL` | `[автоматически предоставляется Render]` | URL для подключения к базе данных. Работает как с внутренним URL (10.x.x.x), так и с внешним URL. Формат будет автоматически исправлен если необходимо. | **Да** |
+| `MIGRATE_DATABASE_URL` | `[оставить пустым]` | URL для миграций базы данных. Устанавливается автоматически из DATABASE_URL. Установите вручную только если для миграций нужен другой URL. | Нет |
 | `OPENAI_API_KEY` | `sk-...` | Ключ API для работы с OpenAI (для генерации текста). | **Да** |
 | `USE_MEM_STORAGE` | `false` | Опциональный флаг для использования in-memory хранилища вместо базы данных (только для разработки). | Нет |
 
@@ -147,9 +148,22 @@ ssl: !isInternalUrl
 
 ## Troubleshooting Database Errors
 
-### Common Database Connection Errors
+### Ошибки с переменными окружения
 
-If you see an error like this during deployment:
+Если вы видите ошибку связанную с `MIGRATE_DATABASE_URL`:
+
+```
+Error: MIGRATE_DATABASE_URL must be set for migrations
+```
+
+Это означает, что drizzle.config.ts не может найти эту переменную. Решения:
+
+1. Добавьте переменную окружения `MIGRATE_DATABASE_URL` с тем же значением, что и `DATABASE_URL`
+2. **ИЛИ** скрипт render-start.sh автоматически установит эту переменную при запуске
+
+### Ошибки с системными представлениями PostgreSQL
+
+Если вы видите ошибку вида:
 
 ```
 error: cannot drop view pg_stat_statements_info because extension pg_stat_statements requires it

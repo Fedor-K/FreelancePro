@@ -10,21 +10,48 @@ const fs = require('fs');
 function createTempConfig() {
   console.log('Создание временного конфига Drizzle...');
   
+  // Убедимся, что у нас есть URL для миграции
+  if (!process.env.MIGRATE_DATABASE_URL && process.env.DATABASE_URL) {
+    process.env.MIGRATE_DATABASE_URL = process.env.DATABASE_URL;
+    console.log('MIGRATE_DATABASE_URL установлен из DATABASE_URL для совместимости с drizzle.config.ts');
+  }
+  
+  // Используем MIGRATE_DATABASE_URL или DATABASE_URL
+  const dbUrl = process.env.MIGRATE_DATABASE_URL || process.env.DATABASE_URL;
+  
+  if (!dbUrl) {
+    throw new Error('Ни DATABASE_URL, ни MIGRATE_DATABASE_URL не установлены. Миграция невозможна.');
+  }
+  
   // Определяем, используется ли внутренний URL (проверяем наличие 10.x.x.x)
-  const isInternalUrl = process.env.DATABASE_URL && /\b10\.\d+\.\d+\.\d+\b/.test(process.env.DATABASE_URL);
+  const isInternalUrl = dbUrl && /\b10\.\d+\.\d+\.\d+\b/.test(dbUrl);
+  
+  // Проверяем, нужно ли добавить полный домен для Render
+  if (dbUrl && dbUrl.includes('dpg-') && !dbUrl.includes('postgres.render.com')) {
+    const hostId = dbUrl.match(/@(dpg-[a-z0-9-]+)/);
+    if (hostId && hostId[1]) {
+      const oldUrl = dbUrl;
+      dbUrl = dbUrl.replace(`@${hostId[1]}`, `@${hostId[1]}.frankfurt-postgres.render.com`);
+      if (oldUrl !== dbUrl) {
+        console.log('Добавлен домен к URL для миграций для корректной работы с Render.com');
+      }
+    }
+  }
   
   const config = {
     out: "./migrations",
     schema: "./shared/schema.ts",  // в Production это будет "./dist/shared/schema.js"
     dialect: "postgresql",
     dbCredentials: {
-      connectionString: process.env.DATABASE_URL,
+      connectionString: dbUrl,
       ssl: !isInternalUrl, // Отключаем SSL для внутренних URL
     },
     // Игнорируем системные вьюшки PostgreSQL
     ignore: {
-      views: ["pg_stat_statements_info", "pg_stat_statements"],
+      views: ["pg_stat_statements_info", "pg_stat_statements", /^pg_stat_.*/],
     },
+    // Добавляем режим миграции, чтобы предотвратить удаление объектов
+    migrationMode: "apply",
     // Дополнительные настройки для стабильности
     verbose: true,
     strict: false,
@@ -111,6 +138,9 @@ function runMigration() {
     'pg_stat_statements_info',
     'pg_stat_statements',
     'cannot drop view',
+    'extension pg_stat_statements requires it',
+    'could not drop',
+    'permission denied',
   ];
   
   try {

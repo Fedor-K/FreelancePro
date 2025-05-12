@@ -97,6 +97,30 @@ fi
 
 echo "Итоговый URL (скрыт пароль): $(safe_url "$DATABASE_URL")"
 
+# Устанавливаем MIGRATE_DATABASE_URL для совместимости с drizzle.config.ts
+# Если MIGRATE_DATABASE_URL не установлен явно, используем DATABASE_URL
+if [ -z "$MIGRATE_DATABASE_URL" ]; then
+  export MIGRATE_DATABASE_URL="$DATABASE_URL"
+  echo "MIGRATE_DATABASE_URL установлен из DATABASE_URL для совместимости с drizzle.config.ts"
+else
+  echo "Используем существующий MIGRATE_DATABASE_URL для миграций"
+fi
+
+# Добавляем полный домен к URL, если он отсутствует
+if echo "$MIGRATE_DATABASE_URL" | grep -q "dpg-" && ! echo "$MIGRATE_DATABASE_URL" | grep -q "postgres.render.com"; then
+  HOST_ID=$(echo "$MIGRATE_DATABASE_URL" | sed -E 's|.+@(dpg-[a-z0-9-]+).*|\1|')
+  ORIGINAL_URL=$MIGRATE_DATABASE_URL
+  FIXED_URL=$(echo "$MIGRATE_DATABASE_URL" | sed -E "s|(@$HOST_ID)|\\1.frankfurt-postgres.render.com|")
+  
+  # Проверяем, изменился ли URL
+  if [ "$ORIGINAL_URL" != "$FIXED_URL" ]; then
+    export MIGRATE_DATABASE_URL="$FIXED_URL"
+    echo "Добавлен домен к MIGRATE_DATABASE_URL для миграций"
+  fi
+fi
+
+echo "URL для миграций (скрыт пароль): $(safe_url "$MIGRATE_DATABASE_URL")"
+
 # Проверяем наличие файла drizzle-push-safe.js
 if [ -f "drizzle-push-safe.js" ]; then
   echo "Запуск безопасной миграции базы данных..."
