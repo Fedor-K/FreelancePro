@@ -13,7 +13,7 @@ Configure the following environment variables in the Render.com dashboard:
 |----------|-------|-------------|
 | `NODE_ENV` | `production` | Sets the application to production mode |
 | `SESSION_SECRET` | `[generate a random string]` | Secret for session encryption. Use a long random string. |
-| `DATABASE_URL` | `[your database connection string]` | Already configured in your Render.com service |
+| `DATABASE_URL` | `[internal database URL]` | **Use the Internal Database URL** from Render.com PostgreSQL dashboard |
 
 > **Important**: For `SESSION_SECRET`, use a secure random string. You can generate one with this command:
 > ```
@@ -27,20 +27,35 @@ Ensure your Render.com service is configured with the following commands:
 - **Build Command**: `npm run build`
 - **Start Command**: `NODE_ENV=production node dist/index.js`
 
-Альтернативная команда запуска (если вы получаете ошибку Drizzle):
+Мы рекомендуем использовать эту команду запуска вместо команды с Drizzle, так как она более стабильна:
+
+## Database Configuration
+
+### Important: Use Internal Database URL
+
+For best performance and security, always use the **Internal Database URL** for your Render PostgreSQL database when your web service is also hosted on Render. This URL looks like:
+
 ```
-NODE_ENV=production node dist/index.js
+postgresql://username:password@database-internal-address/database_name
 ```
 
-## Troubleshooting Database Errors
+### SSL Configuration
 
-If you see an error like this during deployment:
+The application is configured to work with Render's PostgreSQL SSL certificates. In production mode, SSL is enabled but set to allow self-signed certificates, which is necessary for Render's database service.
+
+### Troubleshooting Database Errors
+
+If you see errors like these during deployment:
 
 ```
 error: cannot drop view pg_stat_statements_info because extension pg_stat_statements requires it
 ```
 
-This is related to the Drizzle ORM migration process and can be safely ignored. The application should still function correctly as long as your database schema is properly set up.
+```
+Error: self-signed certificate
+```
+
+These are related to the Drizzle ORM migration process and SSL certificates. They can be safely ignored. The application is configured to handle these issues automatically.
 
 ## Note About Authentication
 

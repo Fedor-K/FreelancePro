@@ -1,9 +1,6 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
-
-neonConfig.webSocketConstructor = ws;
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -11,5 +8,34 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle({ client: pool, schema });
+// Determine if we're in production environment
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Configure pool options based on environment
+const poolConfig = {
+  connectionString: process.env.DATABASE_URL,
+  // For production, use internal DATABASE_URL with SSL settings
+  ssl: isProduction ? {
+    rejectUnauthorized: false // Allows self-signed certificates
+  } : undefined
+};
+
+// Log database connection (without sensitive info)
+console.log(`Connecting to database in ${isProduction ? 'production' : 'development'} mode`);
+
+// Create connection pool
+export const pool = new Pool(poolConfig);
+
+// Add error handling for connection issues
+pool.on('error', (err) => {
+  console.error('Unexpected error on idle database client', err);
+  process.exit(-1);
+});
+
+// Initialize Drizzle with the pool
+export const db = drizzle(pool, { schema });
+
+// Test connection
+pool.query('SELECT NOW()')
+  .then(() => console.log('Database connection successful'))
+  .catch(err => console.error('Database connection error:', err));
