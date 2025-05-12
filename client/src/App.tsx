@@ -1,6 +1,5 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import Layout from "@/components/Layout";
-import PublicLayout from "@/components/PublicLayout";
 import LandingPage from "@/pages/LandingPage";
 import Dashboard from "@/pages/Dashboard";
 import Clients from "@/pages/Clients";
@@ -19,13 +18,7 @@ function AppRoutes() {
   return (
     <Switch>
       {/* Public routes */}
-      <Route path="/">
-        {() => (
-          <PublicLayout>
-            <LandingPage />
-          </PublicLayout>
-        )}
-      </Route>
+      <Route path="/" component={LandingPage} />
       <Route path="/auth" component={AuthPage} />
       
       {/* Protected routes */}
@@ -45,11 +38,18 @@ function AppRoutes() {
 }
 
 function App() {
+  const [location] = useLocation();
+  const isPublicRoute = location === "/" || location === "/auth";
+  
   return (
     <AuthProvider>
-      <Layout>
+      {isPublicRoute ? (
         <AppRoutes />
-      </Layout>
+      ) : (
+        <Layout>
+          <AppRoutes />
+        </Layout>
+      )}
     </AuthProvider>
   );
 }

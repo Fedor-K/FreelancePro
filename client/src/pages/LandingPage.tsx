@@ -36,13 +36,8 @@ export default function LandingPage() {
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <Link href="/auth">
                   <Button size="lg" className="w-full sm:w-auto">
-                    Get started for free
+                    Get started
                     <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-                <Link href="/auth">
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                    Book a demo
                   </Button>
                 </Link>
               </div>
@@ -139,135 +134,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section className="py-20 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Simple, transparent pricing</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              No hidden fees or long-term contracts. Start for free and upgrade as you grow.
-            </p>
-          </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Free Plan */}
-            <div className="border rounded-lg overflow-hidden">
-              <div className="p-8">
-                <h3 className="text-xl font-semibold mb-2">Free</h3>
-                <p className="text-gray-600 mb-6">Perfect for getting started</p>
-                <div className="flex items-baseline mb-6">
-                  <span className="text-4xl font-bold">$0</span>
-                  <span className="text-gray-500 ml-2">/month</span>
-                </div>
-                <Link href="/auth">
-                  <Button className="w-full">Get Started</Button>
-                </Link>
-              </div>
-              <div className="border-t px-8 py-6 bg-gray-50">
-                <ul className="space-y-4">
-                  <li className="flex items-center">
-                    <Check className="h-4 w-4 text-green-500 mr-3" />
-                    <span>Up to 5 clients</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-4 w-4 text-green-500 mr-3" />
-                    <span>Up to 10 projects</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-4 w-4 text-green-500 mr-3" />
-                    <span>Basic reporting</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-4 w-4 text-green-500 mr-3" />
-                    <span>Resume builder (1 template)</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Pro Plan */}
-            <div className="border rounded-lg overflow-hidden shadow-lg relative">
-              <div className="absolute top-0 right-0 bg-primary text-white px-4 py-1 rounded-bl-lg text-sm">
-                Popular
-              </div>
-              <div className="p-8">
-                <h3 className="text-xl font-semibold mb-2">Pro</h3>
-                <p className="text-gray-600 mb-6">For growing freelancers</p>
-                <div className="flex items-baseline mb-6">
-                  <span className="text-4xl font-bold">$15</span>
-                  <span className="text-gray-500 ml-2">/month</span>
-                </div>
-                <Link href="/auth">
-                  <Button className="w-full">Get Started</Button>
-                </Link>
-              </div>
-              <div className="border-t px-8 py-6 bg-gray-50">
-                <ul className="space-y-4">
-                  <li className="flex items-center">
-                    <Check className="h-4 w-4 text-green-500 mr-3" />
-                    <span>Unlimited clients</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-4 w-4 text-green-500 mr-3" />
-                    <span>Unlimited projects</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-4 w-4 text-green-500 mr-3" />
-                    <span>Advanced reporting</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-4 w-4 text-green-500 mr-3" />
-                    <span>Resume builder (all templates)</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-4 w-4 text-green-500 mr-3" />
-                    <span>AI cover letter generation</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Business Plan */}
-            <div className="border rounded-lg overflow-hidden">
-              <div className="p-8">
-                <h3 className="text-xl font-semibold mb-2">Business</h3>
-                <p className="text-gray-600 mb-6">For teams and agencies</p>
-                <div className="flex items-baseline mb-6">
-                  <span className="text-4xl font-bold">$29</span>
-                  <span className="text-gray-500 ml-2">/month</span>
-                </div>
-                <Link href="/auth">
-                  <Button className="w-full">Get Started</Button>
-                </Link>
-              </div>
-              <div className="border-t px-8 py-6 bg-gray-50">
-                <ul className="space-y-4">
-                  <li className="flex items-center">
-                    <Check className="h-4 w-4 text-green-500 mr-3" />
-                    <span>Everything in Pro</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-4 w-4 text-green-500 mr-3" />
-                    <span>Team collaboration</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-4 w-4 text-green-500 mr-3" />
-                    <span>Job board integration</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-4 w-4 text-green-500 mr-3" />
-                    <span>API access</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-4 w-4 text-green-500 mr-3" />
-                    <span>Priority support</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* CTA Section */}
       <section className="py-20 bg-primary">
@@ -279,7 +146,7 @@ export default function LandingPage() {
             </p>
             <Link href="/auth">
               <Button size="lg" variant="secondary">
-                Start Your Free Trial
+                Start Now for Free
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
@@ -301,8 +168,6 @@ export default function LandingPage() {
               <h4 className="font-semibold mb-4">Product</h4>
               <ul className="space-y-2">
                 <li><a href="#" className="text-gray-400 hover:text-white">Features</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Pricing</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Testimonials</a></li>
                 <li><a href="#" className="text-gray-400 hover:text-white">FAQ</a></li>
               </ul>
             </div>
@@ -311,7 +176,6 @@ export default function LandingPage() {
               <ul className="space-y-2">
                 <li><a href="#" className="text-gray-400 hover:text-white">About</a></li>
                 <li><a href="#" className="text-gray-400 hover:text-white">Blog</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Careers</a></li>
                 <li><a href="#" className="text-gray-400 hover:text-white">Contact</a></li>
               </ul>
             </div>
