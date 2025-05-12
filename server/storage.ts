@@ -6,6 +6,8 @@ import {
   resumes, type Resume, type InsertResume,
   users, type User, type InsertUser
 } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -505,4 +507,218 @@ export class MemStorage implements IStorage {
 }
 
 // Export instance
-export const storage = new MemStorage();
+// Database-based storage implementation
+export class DatabaseStorage implements IStorage {
+  async getUsers(): Promise<User[]> {
+    try {
+      return await db.select().from(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      return [];
+    }
+  }
+
+  async getUser(id: number): Promise<User | undefined> {
+    try {
+      const [user] = await db.select().from(users).where(eq(users.id, id));
+      return user;
+    } catch (error) {
+      console.error(`Error fetching user by ID ${id}:`, error);
+      return undefined;
+    }
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    try {
+      const [user] = await db.select().from(users).where(eq(users.username, username));
+      return user;
+    } catch (error) {
+      console.error(`Error fetching user by username ${username}:`, error);
+      return undefined;
+    }
+  }
+
+  async createUser(userData: InsertUser): Promise<User> {
+    try {
+      const [user] = await db.insert(users).values(userData).returning();
+      return user;
+    } catch (error) {
+      console.error("Error creating user:", error);
+      throw new Error("Failed to create user");
+    }
+  }
+
+  async updateUser(id: number, userData: Partial<InsertUser>): Promise<User | undefined> {
+    try {
+      const [updatedUser] = await db
+        .update(users)
+        .set(userData)
+        .where(eq(users.id, id))
+        .returning();
+      return updatedUser;
+    } catch (error) {
+      console.error(`Error updating user ${id}:`, error);
+      return undefined;
+    }
+  }
+
+  async deleteUser(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(users).where(eq(users.id, id));
+      return true;
+    } catch (error) {
+      console.error(`Error deleting user ${id}:`, error);
+      return false;
+    }
+  }
+
+  // Continue using MemStorage implementations for other entities until they're migrated too
+  private memStorage = new MemStorage();
+
+  // Client operations
+  async getClients(): Promise<Client[]> {
+    return this.memStorage.getClients();
+  }
+
+  async getClientsByUser(userId: number): Promise<Client[]> {
+    return this.memStorage.getClientsByUser(userId);
+  }
+
+  async getClient(id: number): Promise<Client | undefined> {
+    return this.memStorage.getClient(id);
+  }
+
+  async createClient(client: InsertClient): Promise<Client> {
+    return this.memStorage.createClient(client);
+  }
+
+  async updateClient(id: number, client: Partial<InsertClient>): Promise<Client | undefined> {
+    return this.memStorage.updateClient(id, client);
+  }
+
+  async deleteClient(id: number): Promise<boolean> {
+    return this.memStorage.deleteClient(id);
+  }
+
+  // Project operations
+  async getProjects(): Promise<Project[]> {
+    return this.memStorage.getProjects();
+  }
+
+  async getProjectsByUser(userId: number): Promise<Project[]> {
+    return this.memStorage.getProjectsByUser(userId);
+  }
+
+  async getProjectsByClient(clientId: number): Promise<Project[]> {
+    return this.memStorage.getProjectsByClient(clientId);
+  }
+
+  async getProject(id: number): Promise<Project | undefined> {
+    return this.memStorage.getProject(id);
+  }
+
+  async createProject(project: InsertProject): Promise<Project> {
+    return this.memStorage.createProject(project);
+  }
+
+  async updateProject(id: number, project: Partial<InsertProject>): Promise<Project | undefined> {
+    return this.memStorage.updateProject(id, project);
+  }
+
+  async deleteProject(id: number): Promise<boolean> {
+    return this.memStorage.deleteProject(id);
+  }
+
+  // Document operations
+  async getDocuments(): Promise<Document[]> {
+    return this.memStorage.getDocuments();
+  }
+
+  async getDocumentsByUser(userId: number): Promise<Document[]> {
+    return this.memStorage.getDocumentsByUser(userId);
+  }
+
+  async getDocumentsByProject(projectId: number): Promise<Document[]> {
+    return this.memStorage.getDocumentsByProject(projectId);
+  }
+
+  async getDocument(id: number): Promise<Document | undefined> {
+    return this.memStorage.getDocument(id);
+  }
+
+  async createDocument(document: InsertDocument): Promise<Document> {
+    return this.memStorage.createDocument(document);
+  }
+
+  async updateDocument(id: number, document: Partial<{ content: string }>): Promise<Document | undefined> {
+    return this.memStorage.updateDocument(id, document);
+  }
+
+  async deleteDocument(id: number): Promise<boolean> {
+    return this.memStorage.deleteDocument(id);
+  }
+
+  // External data operations
+  async getExternalData(): Promise<ExternalData[]> {
+    return this.memStorage.getExternalData();
+  }
+
+  async getExternalDataByUser(userId: number): Promise<ExternalData[]> {
+    return this.memStorage.getExternalDataByUser(userId);
+  }
+
+  async getUnprocessedExternalData(): Promise<ExternalData[]> {
+    return this.memStorage.getUnprocessedExternalData();
+  }
+
+  async getExternalDataById(id: number): Promise<ExternalData | undefined> {
+    return this.memStorage.getExternalDataById(id);
+  }
+
+  async createExternalData(data: InsertExternalData): Promise<ExternalData> {
+    return this.memStorage.createExternalData(data);
+  }
+
+  async markExternalDataAsProcessed(id: number): Promise<boolean> {
+    return this.memStorage.markExternalDataAsProcessed(id);
+  }
+
+  async deleteExternalData(id: number): Promise<boolean> {
+    return this.memStorage.deleteExternalData(id);
+  }
+
+  // Resume operations
+  async getResumes(): Promise<Resume[]> {
+    return this.memStorage.getResumes();
+  }
+
+  async getResumesByUser(userId: number): Promise<Resume[]> {
+    return this.memStorage.getResumesByUser(userId);
+  }
+
+  async getResumesByType(type: string): Promise<Resume[]> {
+    return this.memStorage.getResumesByType(type);
+  }
+
+  async getResume(id: number): Promise<Resume | undefined> {
+    return this.memStorage.getResume(id);
+  }
+
+  async createResume(resume: InsertResume): Promise<Resume> {
+    return this.memStorage.createResume(resume);
+  }
+
+  async updateResume(id: number, resumeData: Partial<InsertResume>): Promise<Resume | undefined> {
+    return this.memStorage.updateResume(id, resumeData);
+  }
+
+  async deleteResume(id: number): Promise<boolean> {
+    return this.memStorage.deleteResume(id);
+  }
+}
+
+// Choose storage implementation based on environment
+// Use database storage in production, memory storage in development
+export const storage = process.env.NODE_ENV === 'production' 
+  ? new DatabaseStorage()
+  : new MemStorage();
