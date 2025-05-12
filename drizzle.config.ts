@@ -1,7 +1,10 @@
+// drizzle.config.ts
+
 import { defineConfig } from "drizzle-kit";
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL, ensure the database is provisioned");
+const url = process.env.MIGRATE_DATABASE_URL;
+if (!url) {
+  throw new Error("MIGRATE_DATABASE_URL must be set for migrations");
 }
 
 export default defineConfig({
@@ -9,6 +12,16 @@ export default defineConfig({
   schema: "./shared/schema.ts",
   dialect: "postgresql",
   dbCredentials: {
-    url: process.env.DATABASE_URL,
+    url, // берём URL из MIGRATE_DATABASE_URL
+    ssl: {
+      // отключаем проверку сертификата
+      rejectUnauthorized: false,
+    },
   },
+  ignore: {
+    // не трогаем все вьюшки PostgreSQL, начинающиеся с pg_stat_
+    views: [/^pg_stat_.*/],
+  },
+  // только применять миграции, без автоматического удаления объектов
+  migrationMode: "apply",
 });
