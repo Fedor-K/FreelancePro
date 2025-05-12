@@ -145,7 +145,14 @@ export function ClientForm({ defaultValues, clientId, onSuccess }: ClientFormPro
             <FormItem>
               <FormLabel>Company</FormLabel>
               <FormControl>
-                <Input placeholder="e.g. Acme Corporation (optional)" {...field} />
+                <Input 
+                  placeholder="e.g. Acme Corporation (optional)" 
+                  value={field.value || ''}
+                  onChange={field.onChange} 
+                  onBlur={field.onBlur}
+                  ref={field.ref}
+                  name={field.name}
+                />
               </FormControl>
               <FormDescription>Leave blank if the client is an individual</FormDescription>
               <FormMessage />
@@ -160,7 +167,14 @@ export function ClientForm({ defaultValues, clientId, onSuccess }: ClientFormPro
             <FormItem>
               <FormLabel>Languages</FormLabel>
               <FormControl>
-                <Input placeholder="e.g. English, Spanish (optional)" {...field} />
+                <Input 
+                  placeholder="e.g. English, Spanish (optional)" 
+                  value={field.value || ''}
+                  onChange={field.onChange} 
+                  onBlur={field.onBlur}
+                  ref={field.ref}
+                  name={field.name}
+                />
               </FormControl>
               <FormDescription>Languages the client communicates in or needs translation for</FormDescription>
               <FormMessage />
@@ -178,7 +192,11 @@ export function ClientForm({ defaultValues, clientId, onSuccess }: ClientFormPro
                 <Textarea 
                   placeholder="Add any notes or comments about this client (optional)" 
                   className="min-h-[100px]"
-                  {...field} 
+                  value={field.value || ''}
+                  onChange={field.onChange} 
+                  onBlur={field.onBlur}
+                  ref={field.ref}
+                  name={field.name}
                 />
               </FormControl>
               <FormDescription>Additional information, special requirements or notes</FormDescription>

@@ -95,6 +95,7 @@ export class MemStorage implements IStorage {
       email: "tom@example.com", 
       company: "Acme Corporation", 
       language: "English, German",
+      comments: "Long-term client since 2019. Prefers weekly updates.",
       userId: 1
     };
     
@@ -104,6 +105,7 @@ export class MemStorage implements IStorage {
       email: "sarah@techstyle.com", 
       company: "TechStyle Inc.", 
       language: "English, Spanish",
+      comments: "Requires detailed formatting and company style guidelines.",
       userId: 1
     };
     
@@ -113,6 +115,7 @@ export class MemStorage implements IStorage {
       email: "michael@greenleaf.com", 
       company: "GreenLeaf Agency", 
       language: "French, Italian",
+      comments: "Eco-friendly translations only. Sensitive project content.",
       userId: 1
     };
 
@@ -313,6 +316,7 @@ export class MemStorage implements IStorage {
       id,
       company: client.company || null,
       language: client.language || null,
+      comments: client.comments || null,
       userId: client.userId || null
     };
     this.clients.set(id, newClient);
