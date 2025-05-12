@@ -18,10 +18,18 @@ export default function SavedResumes() {
   const [previewResume, setPreviewResume] = useState<any>(null);
   
   // Fetch resumes from the API
-  const { data: resumes, isLoading, refetch } = useQuery({
+  const { data: resumes, isLoading, error, refetch } = useQuery({
     queryKey: ['/api/resumes'],
     enabled: true,
+    retry: 1,
+    refetchOnWindowFocus: true,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
+  
+  // Log error for debugging
+  if (error) {
+    console.error("Error fetching resumes:", error);
+  }
   
   // Handle resume preview
   const handlePreview = (resume: any) => {

@@ -1,0 +1,50 @@
+2025-05-12T14:22:58.105173522Z [⢿] Pulling schema from database...
+2025-05-12T14:22:58.233338526Z [⣻] Pulling schema from database...
+2025-05-12T14:22:58.243183727Z [✓] Pulling schema from database...
+2025-05-12T14:22:58.26716629Z error: cannot drop view pg_stat_statements_info because extension pg_stat_statements requires it
+2025-05-12T14:22:58.267182511Z     at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+2025-05-12T14:22:58.267185221Z     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-05-12T14:22:58.267187581Z     at async Object.query (/opt/render/project/src/node_modules/drizzle-kit/bin.cjs:66575:26)
+2025-05-12T14:22:58.267189751Z     at async pgPush (/opt/render/project/src/node_modules/drizzle-kit/bin.cjs:70117:13)
+2025-05-12T14:22:58.267191901Z     at async Object.handler (/opt/render/project/src/node_modules/drizzle-kit/bin.cjs:79124:9)
+2025-05-12T14:22:58.267194271Z     at async run (/opt/render/project/src/node_modules/drizzle-kit/bin.cjs:78381:7) {
+2025-05-12T14:22:58.267196501Z   length: 210,
+2025-05-12T14:22:58.267199251Z   severity: 'ERROR',
+2025-05-12T14:22:58.267201331Z   code: '2BP01',
+2025-05-12T14:22:58.267203481Z   detail: undefined,
+2025-05-12T14:22:58.267207471Z   hint: 'You can drop extension pg_stat_statements instead.',
+2025-05-12T14:22:58.267209712Z   position: undefined,
+2025-05-12T14:22:58.267213721Z   internalPosition: undefined,
+2025-05-12T14:22:58.267215792Z   internalQuery: undefined,
+2025-05-12T14:22:58.267217832Z   where: undefined,
+2025-05-12T14:22:58.267220102Z   schema: undefined,
+2025-05-12T14:22:58.267222712Z   table: undefined,
+2025-05-12T14:22:58.267224802Z   column: undefined,
+2025-05-12T14:22:58.267226902Z   dataType: undefined,
+2025-05-12T14:22:58.267228992Z   constraint: undefined,
+2025-05-12T14:22:58.267231042Z   file: 'dependency.c',
+2025-05-12T14:22:58.267233112Z   line: '843',
+2025-05-12T14:22:58.267236152Z   routine: 'findDependentObjects'
+2025-05-12T14:22:58.267238292Z }
+2025-05-12T14:23:00.392624757Z Connecting to database in production mode
+2025-05-12T14:23:00.470034484Z Dotenv not available, using existing environment variables
+2025-05-12T14:23:00.488511011Z 2:23:00 PM [express] serving on port 5000
+2025-05-12T14:23:00.576631733Z Database connection successful
+2025-05-12T14:23:08.436855892Z ==> Your service is live 🎉
+2025-05-12T14:25:00.632324442Z 2:25:00 PM [express] POST /api/clients 401 in 2ms :: {"message":"Unauthorized"}
+2025-05-12T14:25:08.428621559Z 2:25:08 PM [express] GET /api/user 401 in 1ms :: {"error":"Not authenticated"}
+2025-05-12T14:25:14.7946136Z 2:25:14 PM [express] POST /api/login 200 in 67ms :: {"id":1,"username":"Fedor1","email":"fedor.hatla…
+2025-05-12T14:25:15.983149762Z 2:25:15 PM [express] GET /api/user 304 in 2ms :: {"id":1,"username":"Fedor1","email":"fedor.hatla@gm…
+2025-05-12T14:25:16.32052872Z 2:25:16 PM [express] GET /api/stats 200 in 7ms :: {"activeClients":0,"ongoingProjects":0,"monthlyRev…
+2025-05-12T14:25:16.33314164Z 2:25:16 PM [express] GET /api/clients 200 in 2ms :: []
+2025-05-12T14:25:16.71937232Z 2:25:16 PM [express] GET /api/projects 200 in 4ms :: []
+2025-05-12T14:25:28.230357443Z 2:25:28 PM [express] POST /api/clients 201 in 15ms :: {"id":1,"name":"Fedor Khatlamadzhiev","email":…
+2025-05-12T14:25:28.557440607Z 2:25:28 PM [express] GET /api/clients 200 in 6ms :: [{"id":1,"name":"Fedor Khatlamadzhiev","email":"…
+2025-05-12T14:26:03.85161349Z 2:26:03 PM [express] POST /api/projects 201 in 83ms :: {"id":1,"clientId":1,"name":"Binance","descri…
+2025-05-12T14:26:04.176596154Z 2:26:04 PM [express] GET /api/projects 200 in 5ms :: [{"id":1,"clientId":1,"name":"Binance","descrip…
+2025-05-12T14:26:04.488924297Z 2:26:04 PM [express] GET /api/projects 304 in 4ms :: [{"id":1,"clientId":1,"name":"Binance","descrip…
+2025-05-12T14:26:11.543186513Z 2:26:11 PM [express] GET /api/resumes 304 in 3ms :: []
+2025-05-12T14:26:43.838327759Z 2:26:43 PM [express] POST /api/resumes 201 in 196ms :: {"id":2,"name":"Resume - Translator","type":"…
+2025-05-12T14:27:22.220393871Z 2:27:22 PM [express] POST /api/ai/generate-cover-letter 200 in 5653ms :: {"coverLetter":"Dear Hiring…
+2025-05-12T14:27:28.924722912Z 2:27:28 PM [express] POST /api/resumes 201 in 17ms :: {"id":3,"name":"Resume - Translator","type":"r…
+2025-05-12T14:27:37.962343575Z 2:27:37 PM [express] POST /api/resumes 201 in 4ms :: {"id":4,"name":"Resume - Translator","type":"re…
