@@ -9,6 +9,7 @@ import {
   BarChart,
   Settings,
   FileEdit,
+  ShieldAlert,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
@@ -17,7 +18,8 @@ export default function Sidebar() {
   const [location] = useLocation();
   const { user } = useAuth();
 
-  const navItems = [
+  // Basic navigation items
+  let navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/clients", label: "Clients", icon: Users },
     { href: "/projects", label: "Projects", icon: ClipboardList },
@@ -26,6 +28,11 @@ export default function Sidebar() {
     { href: "/reports", label: "Reports", icon: BarChart },
     { href: "/settings", label: "Settings", icon: Settings },
   ];
+  
+  // Add admin link for users with admin privileges
+  if (user && user.isAdmin) {
+    navItems.push({ href: "/admin", label: "Administration", icon: ShieldAlert });
+  }
 
   return (
     <div className="hidden md:flex md:flex-shrink-0">
