@@ -79,10 +79,10 @@ export default function Admin() {
 
   // Fetch users
   const { 
-    data: users = [], 
+    data: users = [] as User[], 
     isLoading: isLoadingUsers,
     refetch: refetchUsers
-  } = useQuery({
+  } = useQuery<User[]>({
     queryKey: ['/api/admin/users'],
     enabled: !!user?.isAdmin,
   });
@@ -99,10 +99,11 @@ export default function Admin() {
   // Toggle user blocked status
   const blockUserMutation = useMutation({
     mutationFn: async ({ userId, isBlocked }: { userId: number, isBlocked: boolean }) => {
-      return apiRequest(`/api/admin/users/${userId}/block`, {
-        method: 'PATCH',
-        data: { isBlocked }
-      });
+      return apiRequest(
+        'PATCH',
+        `/api/admin/users/${userId}/block`, 
+        { isBlocked }
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
@@ -123,9 +124,10 @@ export default function Admin() {
   // Delete user
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: number) => {
-      return apiRequest(`/api/admin/users/${userId}`, {
-        method: 'DELETE'
-      });
+      return apiRequest(
+        'DELETE',
+        `/api/admin/users/${userId}`
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });

@@ -813,7 +813,7 @@ Date: ____________
       }
       
       // Cannot block yourself
-      if (id === req.user.id) {
+      if (req.user && id === req.user.id) {
         return res.status(400).json({ message: "Cannot block your own account" });
       }
       
@@ -839,7 +839,7 @@ Date: ____________
       }
       
       // Cannot delete yourself
-      if (id === req.user.id) {
+      if (req.user && id === req.user.id) {
         return res.status(400).json({ message: "Cannot delete your own account" });
       }
       
@@ -903,7 +903,7 @@ Date: ____________
           username: mostActiveUser.username,
           email: mostActiveUser.email,
           fullName: mostActiveUser.fullName,
-          projectCount: userProjectCounts[mostActiveUserId]
+          projectCount: mostActiveUserId ? userProjectCounts[mostActiveUserId] : 0
         } : null
       };
       

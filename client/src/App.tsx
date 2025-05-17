@@ -9,6 +9,7 @@ import Resume from "@/pages/Resume";
 import Documents from "@/pages/Documents";
 import Reports from "@/pages/Reports";
 import Settings from "@/pages/Settings";
+import Admin from "@/pages/Admin";
 import AuthPage from "@/pages/auth-page";
 import NotFound from "@/pages/not-found";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
@@ -57,6 +58,7 @@ function AppWithAuth() {
       <ProtectedRoute path="/documents" component={Documents} />
       <ProtectedRoute path="/reports" component={Reports} />
       <ProtectedRoute path="/settings" component={Settings} />
+      <ProtectedRoute path="/admin" component={Admin} />
       
       {/* Fallback */}
       <Route component={NotFound} />
