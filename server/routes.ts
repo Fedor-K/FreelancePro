@@ -54,6 +54,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "Unauthorized" });
     }
+    
+    // Check if user is blocked
+    if (req.user.isBlocked) {
+      return res.status(403).json({ message: "Your account has been blocked. Please contact an administrator." });
+    }
+    
+    next();
+  };
+  
+  // Middleware to check admin rights
+  const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ message: "Admin rights required" });
+    }
+    
     next();
   };
   
@@ -762,6 +781,135 @@ Date: ____________
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: "Failed to delete external data" });
+    }
+  });
+  
+  // Admin routes for user management
+  app.get("/api/admin/users", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const users = await storage.getUsers();
+      // Remove passwords from response
+      const usersWithoutPasswords = users.map(user => {
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
+      });
+      
+      res.json(usersWithoutPasswords);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+  
+  app.patch("/api/admin/users/:id/block", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const user = await storage.getUser(id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Cannot block yourself
+      if (id === req.user.id) {
+        return res.status(400).json({ message: "Cannot block your own account" });
+      }
+      
+      const isBlocked = req.body.isBlocked === true;
+      const updatedUser = await storage.updateUser(id, { isBlocked });
+      
+      if (!updatedUser) {
+        return res.status(500).json({ message: "Failed to update user" });
+      }
+      
+      const { password, ...userWithoutPassword } = updatedUser;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+  
+  app.delete("/api/admin/users/:id", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      // Cannot delete yourself
+      if (id === req.user.id) {
+        return res.status(400).json({ message: "Cannot delete your own account" });
+      }
+      
+      const success = await storage.deleteUser(id);
+      if (!success) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+  
+  // Admin route for summary statistics
+  app.get("/api/admin/summary", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const users = await storage.getUsers();
+      const clients = await storage.getClients();
+      const projects = await storage.getProjects();
+      
+      // Calculate statistics
+      const totalUsers = users.length;
+      const totalClients = clients.length;
+      const totalProjects = projects.length;
+      const projectsInProgress = projects.filter(p => p.status === "In Progress").length;
+      const projectsDelivered = projects.filter(p => p.status === "Delivered").length;
+      const projectsPaid = projects.filter(p => p.status === "Paid").length;
+      
+      // Calculate total earnings
+      const totalEarnings = projects
+        .filter(p => p.amount !== null)
+        .reduce((sum, project) => sum + (project.amount || 0), 0);
+      
+      // Get user with most projects
+      const userProjectCounts = projects.reduce((counts, project) => {
+        if (project.userId) {
+          counts[project.userId] = (counts[project.userId] || 0) + 1;
+        }
+        return counts;
+      }, {} as Record<number, number>);
+      
+      const mostActiveUserId = Object.entries(userProjectCounts)
+        .sort((a, b) => b[1] - a[1])
+        .map(entry => parseInt(entry[0]))[0] || null;
+      
+      const mostActiveUser = mostActiveUserId 
+        ? users.find(u => u.id === mostActiveUserId) 
+        : null;
+      
+      const summary = {
+        totalUsers,
+        totalClients,
+        totalProjects,
+        projectsInProgress,
+        projectsDelivered,
+        projectsPaid,
+        totalEarnings,
+        mostActiveUser: mostActiveUser ? {
+          id: mostActiveUser.id,
+          username: mostActiveUser.username,
+          email: mostActiveUser.email,
+          fullName: mostActiveUser.fullName,
+          projectCount: userProjectCounts[mostActiveUserId]
+        } : null
+      };
+      
+      res.json(summary);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch summary data" });
     }
   });
 
